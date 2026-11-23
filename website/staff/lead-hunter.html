@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Hunter (Google Places Import) — Welcome East Gwillimbury</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=72.16">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+    <script src="/shared/config.js?v=72.16"></script>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none !important;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+                <div>
+                    <h1 style="margin:0;">&#127919; Lead Hunter — Business Directory Importer</h1>
+                    <p style="margin:6px 0 0;">Admins only. Search Google Places by neighbourhood/address or specific sub-category, review &amp; enrich selected businesses, and push to <strong>Pending Approval</strong> on <code>/staff/businesses.html</code> (no photos imported).</p>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <a href="/staff/businesses.html?filter=pending" class="btn btn-secondary">&#9203; View Pending Businesses</a>
+                    <a href="/staff/businesses.html" class="btn btn-secondary">&larr; Business Directory Editor</a>
+                </div>
+            </div>
+
+            <div id="page-alert" class="alert" style="display:none;margin-bottom:16px;"></div>
+
+            <!-- Periodic Batch Sweep Reminder Banner -->
+            <div id="sweep-reminder-banner" class="card" style="display:none;margin-bottom:16px;padding:12px 16px;border-left:4px solid #0284c7;background:#f0f9ff;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div>
+                        <strong id="sweep-reminder-title" style="color:#0c4a6e;"></strong>
+                        <div id="sweep-reminder-detail" style="font-size:12px;color:#334155;margin-top:2px;"></div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="switchMode('sweep')">&#9889; Open Batch Sweep</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-sweep-snooze" onclick="snoozeSweepReminder()" style="display:none;">Snooze 7 Days</button>
+                    </div>
+                </div>
+            </div>
+
+            <details class="wg-admin-guide">
+                <summary>&#128214; Beginner's Guide: Using Lead Hunter &amp; Batch Sweep Safely</summary>
+                <div class="wg-admin-guide-body">
+                    <ol>
+                        <li><strong>Single Search (Neighbourhood or Sub-Category):</strong> Google returns up to 20 results per call. Search a specific street/plaza (e.g., <code>213 The Queensway S, Holland Landing</code>) or a narrow sub-category (<code>bakery</code>, <code>florist</code>, <code>barber</code>) so independent local shops aren't buried by chains.</li>
+                        <li><strong>Periodic Batch Sweep (Recommended Every 30 Days):</strong> Open the <strong>&#9889; Batch Sweep</strong> tab to scan all your saved plazas/streets and sub-categories in one throttled run (2.5s between calls). Set your <strong>Sweep Reminder Interval</strong> (14, 30, 60, or 90 days) so the banner at the top reminds you when it's time to check for new businesses.</li>
+                        <li><strong>Duplicates Set Aside Automatically:</strong> Any business already in your directory (same name and street address) or repeated across searches is automatically moved into the collapsible <strong>Duplicates Set Aside</strong> panel—leaving only new leads in your review table.</li>
+                        <li><strong>Two-Step Cost Control:</strong> Searches fetch low-cost Pro fields first. Uncheck chains/out-of-area results (or let Batch Sweep uncheck chains for you), then enrich selected leads for phone, website, and hours.</li>
+                        <li><strong>Zero Photo Copyright Risk &amp; Pending Approval Only:</strong> Lead Hunter never imports Google photos (listings use <code>/placeholder-500x500.jpg</code> until you or the owner upload a cleared photo), and pushed leads <strong>always</strong> land in <strong>Pending Approval</strong> on <code>/staff/businesses.html</code>—never published live automatically.</li>
+                    </ol>
+                </div>
+            </details>
+
+            <!-- Search Mode Tabs -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                <button type="button" class="btn btn-primary btn-sm" id="tab-neighbourhood" onclick="switchMode('neighbourhood')">&#128205; Neighbourhood / Plaza / Address Search</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tab-category" onclick="switchMode('category')">&#127991;&#65039; Sub-Category + Community Search</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tab-sweep" onclick="switchMode('sweep')">&#9889; Batch Sweep (Auto-Collect &amp; Dedupe)</button>
+            </div>
+
+            <!-- Panel 1: Neighbourhood / Address Search -->
+            <section id="panel-neighbourhood" class="card" style="margin-bottom:20px;">
+                <form onsubmit="runNeighbourhoodSearch(event)">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label for="lh-location">Street Address, Plaza, Crossroads, or Neighbourhood *</label>
+                            <input type="text" id="lh-location" class="form-control" placeholder="e.g. 213 The Queensway S, Holland Landing or High St & Dalton Rd, Mount Albert" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lh-radius">Search Radius: <strong id="lh-radius-val">400m</strong></label>
+                            <input type="range" id="lh-radius" min="50" max="5000" step="50" value="400" style="width:100%;margin-top:8px;" oninput="document.getElementById('lh-radius-val').textContent=this.value+'m'">
+                        </div>
+                        <div class="form-group">
+                            <label for="lh-nb-subcat">Optional Sub-Category Filter</label>
+                            <input type="text" id="lh-nb-subcat" class="form-control" placeholder="Leave blank for all businesses nearby">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="submit" id="btn-nb-search" class="btn btn-primary">&#128269; Search Neighbourhood</button>
+                        <button type="button" id="btn-save-area" class="btn btn-secondary" onclick="saveCurrentAreaToSweep()">&#10133; Save Area to Batch Sweep</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Panel 3: Periodic Batch Sweep -->
+            <section id="panel-sweep" class="card" style="display:none;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                    <div>
+                        <h3 style="margin:0;">&#9889; Periodic Batch Sweep</h3>
+                        <p style="margin:4px 0 0;font-size:13px;color:var(--muted);">
+                            Runs all pre-defined plazas/streets and sub-categories sequentially with safe throttling (2.5s delay) to stay within API limits, sets aside duplicates automatically, and leaves new leads ready for your review or in <strong>Pending Approval</strong>.
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="resetSweepPresets()">Reset Presets</button>
+                </div>
+
+                <div class="grid-2" style="margin-bottom:12px;">
+                    <div class="form-group">
+                        <label for="sweep-plazas">Pre-Defined Plazas / Streets (one per line)</label>
+                        <textarea id="sweep-plazas" class="form-control" rows="6" onchange="saveSweepConfig()"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="sweep-subcats">Pre-Defined Sub-Categories (one per line)</label>
+                        <textarea id="sweep-subcats" class="form-control" rows="6" onchange="saveSweepConfig()"></textarea>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-bottom:12px;">
+                    <div class="form-group">
+                        <label for="sweep-community">Sub-Category Search Community</label>
+                        <select id="sweep-community" class="form-control" onchange="saveSweepConfig()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sweep-radius">Plaza Search Radius (metres)</label>
+                        <input type="number" id="sweep-radius" class="form-control" min="100" max="2000" step="50" value="400" onchange="saveSweepConfig()">
+                    </div>
+                    <div class="form-group">
+                        <label for="sweep-interval">Sweep Reminder Interval</label>
+                        <select id="sweep-interval" class="form-control" onchange="saveSweepConfig(); renderSweepReminder();">
+                            <option value="14">Every 14 days</option>
+                            <option value="30" selected>Every 30 days (Recommended)</option>
+                            <option value="60">Every 60 days</option>
+                            <option value="90">Every 90 days</option>
+                            <option value="0">Off (No reminder)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="sweep-auto-enrich" checked>
+                        <span>Auto-enrich new non-chain leads (Phone, Website, Hours)</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="sweep-auto-push">
+                        <span>Auto-push clean new leads to <strong>Pending Approval</strong> (never auto-approves live)</span>
+                    </label>
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <button type="button" id="btn-run-sweep" class="btn btn-primary" onclick="runBatchSweep()">&#9889; Run Full Batch Sweep</button>
+                    <button type="button" id="btn-stop-sweep" class="btn btn-danger" onclick="stopBatchSweep()" style="display:none;">&#9209; Stop Sweep</button>
+                    <span id="sweep-status-text" style="font-size:12px;color:var(--muted);"></span>
+                </div>
+
+                <div id="sweep-progress-wrap" style="display:none;margin-top:12px;">
+                    <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;">
+                        <div id="sweep-progress-bar" style="height:100%;width:0%;background:#0284c7;transition:width 0.2s;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Panel 2: Sub-Category + Community Search -->
+            <section id="panel-category" class="card" style="display:none;margin-bottom:20px;">
+                <form onsubmit="runCategorySearch(event, '')">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="lh-cat-query">Specific Sub-Category / Keyword *</label>
+                            <input type="text" id="lh-cat-query" class="form-control" placeholder="e.g. bakery, coffee shop, florist, barber, auto repair" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lh-cat-community">East Gwillimbury Community</label>
+                            <select id="lh-cat-community" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                        <span style="font-size:11px;font-weight:800;color:var(--muted);align-self:center;">Quick Sub-Categories:</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('bakery')">Bakery</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('coffee shop')">Coffee Shop</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('restaurant')">Restaurant</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('florist')">Florist</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('gift shop')">Gift Shop</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('barber')">Barber / Salon</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('auto repair')">Auto Repair</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('pharmacy')">Pharmacy</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('dentist')">Dentist</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="pickSubCat('contractor')">Home Contractor</button>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="submit" id="btn-cat-search" class="btn btn-primary">&#128269; Search Sub-Category</button>
+                        <button type="button" id="btn-cat-more" class="btn btn-secondary" style="display:none;" onclick="runCategorySearch(null, nextPageToken)">Load Next 20 Results</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Panel 3: Periodic Batch Sweep -->
+            <section id="panel-sweep" class="card" style="display:none;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                    <div>
+                        <h3 style="margin:0;">&#9889; Periodic Batch Sweep</h3>
+                        <p style="margin:4px 0 0;font-size:13px;color:var(--muted);">
+                            Runs all pre-defined plazas/streets and sub-categories sequentially with safe throttling (2.5s delay) to stay within API limits, sets aside duplicates automatically, and leaves new leads ready for your review or in <strong>Pending Approval</strong>.
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="resetSweepPresets()">Reset Presets</button>
+                </div>
+
+                <div class="grid-2" style="margin-bottom:12px;">
+                    <div class="form-group">
+                        <label for="sweep-plazas">Pre-Defined Plazas / Streets (one per line)</label>
+                        <textarea id="sweep-plazas" class="form-control" rows="6" onchange="saveSweepConfig()"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="sweep-subcats">Pre-Defined Sub-Categories (one per line)</label>
+                        <textarea id="sweep-subcats" class="form-control" rows="6" onchange="saveSweepConfig()"></textarea>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-bottom:12px;">
+                    <div class="form-group">
+                        <label for="sweep-community">Sub-Category Search Community</label>
+                        <select id="sweep-community" class="form-control" onchange="saveSweepConfig()"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sweep-radius">Plaza Search Radius (metres)</label>
+                        <input type="number" id="sweep-radius" class="form-control" min="100" max="2000" step="50" value="400" onchange="saveSweepConfig()">
+                    </div>
+                    <div class="form-group">
+                        <label for="sweep-interval">Sweep Reminder Interval</label>
+                        <select id="sweep-interval" class="form-control" onchange="saveSweepConfig(); renderSweepReminder();">
+                            <option value="14">Every 14 days</option>
+                            <option value="30" selected>Every 30 days (Recommended)</option>
+                            <option value="60">Every 60 days</option>
+                            <option value="90">Every 90 days</option>
+                            <option value="0">Off (No reminder)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;">
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="sweep-auto-enrich" checked>
+                        <span>Auto-enrich new non-chain leads (Phone, Website, Hours)</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                        <input type="checkbox" id="sweep-auto-push">
+                        <span>Auto-push clean new leads to <strong>Pending Approval</strong> (never auto-approves live)</span>
+                    </label>
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <button type="button" id="btn-run-sweep" class="btn btn-primary" onclick="runBatchSweep()">&#9889; Run Full Batch Sweep</button>
+                    <button type="button" id="btn-stop-sweep" class="btn btn-danger" onclick="stopBatchSweep()" style="display:none;">&#9209; Stop Sweep</button>
+                    <span id="sweep-status-text" style="font-size:12px;color:var(--muted);"></span>
+                </div>
+
+                <div id="sweep-progress-wrap" style="display:none;margin-top:12px;">
+                    <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;">
+                        <div id="sweep-progress-bar" style="height:100%;width:0%;background:#0284c7;transition:width 0.2s;"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Review Table -->
+            <section class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                    <div>
+                        <h3 style="margin:0;">Review Results (<span id="res-count">0</span>)</h3>
+                        <small id="res-meta" style="color:var(--muted);"></small>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="uncheckChains()">Uncheck Chains</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="btn-enrich" onclick="enrichSelected()" disabled>&#9889; Enrich Selected (Phone, Website, Hours)</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-push" onclick="pushSelectedToPending()" disabled>&#128229; Push Selected to Pending (<span id="sel-count">0</span>)</button>
+                    </div>
+                </div>
+                <div id="results-wrap" style="overflow-x:auto;">
+                    <p style="color:var(--muted);">Run a Neighbourhood, Sub-Category, or Batch Sweep search above to review businesses before importing.</p>
+                </div>
+
+                <details id="duplicates-panel" style="display:none;margin-top:16px;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;background:#f8fafc;">
+                    <summary style="cursor:pointer;font-weight:700;font-size:13px;color:#475569;">
+                        &#128260; Duplicates Set Aside (<span id="dup-count">0</span>) — click to inspect
+                    </summary>
+                    <div id="duplicates-wrap" style="overflow-x:auto;margin-top:10px;"></div>
+                </details>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        let sbClient = null;
+        let authToken = "";
+        let currentUserId = null;
+        let existingBusinesses = [];
+        let foundRows = [];
+        let nextPageToken = "";
+
+        const COMMUNITIES = [
+            "All East Gwillimbury", "Baldwin", "Franklin", "Brown Hill", "Egypt", "Brown Hill",
+            "Sharon", "Holland Landing", "Queensville", "Ravenshoe",
+            "Holt", "Mount Albert", "Brown Hill", "Virginia", "River Drive Park"
+        ];
+        const DEFAULT_SWEEP_PLAZAS = [
+            "213 The Queensway S, Holland Landing",
+            "24018 Woodbine Ave, Holland Landing",
+            "443 The Queensway S, Holland Landing",
+            "High St & Dalton Rd, Mount Albert",
+            "15235 Hwy 48, Mount Albert",
+            "759 Queensville Rd, Queensville",
+            "Sharon Harbour, East Gwillimbury"
+        ];
+        const DEFAULT_SWEEP_SUBCATS = [
+            "bakery", "coffee shop", "restaurant", "florist", "gift shop",
+            "barber", "auto repair", "pharmacy", "dentist", "contractor"
+        ];
+        let duplicateRows = [];
+        let sweepAbortFlag = false;
+        const OUT_OF_AREA_TOWNS = ["newmarket", "east gwillimbury", "bradford", "beaverton", "uxbridge", "aurora", "mount albert", "holland landing", "queensville", "sharon"];
+        const KNOWN_CHAINS = ["walmart", "mcdonald", "tim hortons", "shoppers drug mart", "staples", "zehrs", "freshco", "boston pizza", "dollarama", "canadian tire", "sobeys", "no frills", "subway", "starbucks", "pizza pizza", "domino", "popeyes", "harvey", "wendy", "burger king", "a&w", "kfc", "dairy queen", "lcbo", "the beer store", "rexall", "pet valu", "esso", "shell", "petro-canada", "ultramar", "circle k", "rbc", "td canada", "bmo", "scotiabank", "cibc"];
+
+        function escapeHtml(s) {
+            return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function slugify(s) {
+            return String(s || "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 120);
+        }
+
+        function normName(s) {
+            return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        }
+
+        const TITLE_MINOR_WORDS = new Set(["and", "of", "the", "at", "in", "on", "for", "by", "to", "a", "an", "de", "la", "or"]);
+        const TITLE_ACRONYMS = new Set(["BBQ", "HVAC", "TD", "RBC", "BMO", "CIBC", "LCBO", "CPA", "MD", "DDS", "RMT", "DJ", "TV", "IT", "ON", "CA", "USA", "INC", "LTD", "LLC", "II", "III", "IV"]);
+
+        function formatBusinessName(raw) {
+            const clean = String(raw || "").replace(/\s+/g, " ").trim();
+            if (!clean) return "";
+            const hasUpper = /[A-Z]/.test(clean);
+            const hasLower = /[a-z]/.test(clean);
+            // Only re-case when the string is ALL CAPS or all lowercase
+            if (hasUpper && hasLower) return clean;
+
+            const words = clean.split(" ");
+            return words.map((word, idx) => {
+                const upper = word.toUpperCase();
+                const stripped = upper.replace(/[^A-Z0-9]/g, "");
+                if (TITLE_ACRONYMS.has(stripped)) {
+                    return word.replace(/[A-Za-z]+/g, m => m.toUpperCase());
+                }
+                const lower = word.toLowerCase();
+                if (idx > 0 && idx < words.length - 1 && TITLE_MINOR_WORDS.has(lower)) {
+                    return lower;
+                }
+                return lower.replace(/(^|[-/])([a-z])/g, (_, sep, ch) => sep + ch.toUpperCase());
+            }).join(" ");
+        }
+
+        function normalizeStreetKey(addr) {
+            const s = String(addr || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+            const m = s.match(/^(\d+[a-z]?)\s+([a-z0-9]+(?:\s+[a-z0-9]+)?)/);
+            return m ? (m[1] + " " + m[2]) : s.slice(0, 28);
+        }
+
+        function detectCommunity(addr) {
+            const low = String(addr || "").toLowerCase();
+            for (const c of COMMUNITIES) {
+                if (c === "All East Gwillimbury") continue;
+                if (low.includes(c.toLowerCase())) return c;
+            }
+            return "Holland Landing";
+        }
+
+        function isOutOfArea(addr) {
+            const low = String(addr || "").toLowerCase();
+            return OUT_OF_AREA_TOWNS.some(t => low.includes(t)) && !low.includes("georgina") && !low.includes("holland landing") && !low.includes("mount albert") && !low.includes("queensville");
+        }
+
+        function isChain(name) {
+            const low = String(name || "").toLowerCase();
+            return KNOWN_CHAINS.some(c => low.includes(c));
+        }
+
+        function mapCategory(primaryType, types) {
+            const all = [primaryType].concat(Array.isArray(types) ? types : []).join(" ").toLowerCase();
+            if (/(restaurant|bar_and_grill|bistro|pub|pizza|steak|sushi|diner|eatery|fast_food|meal)/.test(all)) return "Dining & Restaurant";
+            if (/(bakery|coffee|cafe|juice|tea|ice_cream)/.test(all)) return "Bakery & Cafe";
+            if (/(store|shop|florist|supermarket|grocery|mall|boutique|hardware|market|retail|pharmacy|clothing)/.test(all)) return "Retail & Shopping Area";
+            if (/(health|clinic|medical|dental|dentist|wellness|chiro|physio|spa|fitness|gym|doctor)/.test(all)) return "Healthcare & Wellness";
+            if (/(art_studio|gallery|museum|theatre|theater|arts)/.test(all)) return "Arts & Culture";
+            if (/(park|trail|recreation|marina|golf|arena|sport)/.test(all)) return "Recreation & Parks";
+            if (/(school|academy|education|library|learning)/.test(all)) return "Library & Learning";
+            if (/(non_profit|charity|club|church|community)/.test(all)) return "Community Organization";
+            if (/(government|municipal|city_hall)/.test(all)) return "Municipal Government";
+            if (/(service|consultant|lawyer|legal|real_estate|accounting|bookkeeping|repair|insurance|plumber|electrician|roofing|contractor)/.test(all)) return "Professional Services";
+            return "Local Business";
+        }
+
+        function cleanUrl(raw) {
+            let u = String(raw || "").trim();
+            if (!u) return "";
+            if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+            if (/^https?:\/\/(www\.)?welcomeeg\.ca(\/|$)/i.test(u)) return "";
+            try {
+                const parsed = new URL(u);
+                ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "y_source", "cmpid", "fbclid", "gclid", "mibextid"].forEach(k => parsed.searchParams.delete(k));
+                return parsed.toString();
+            } catch (_) {
+                return u;
+            }
+        }
+
+        function showAlert(msg, type, link) {
+            const el = document.getElementById("page-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.textContent = String(msg || "").replace(/<[^>]+>/g, "");
+            if (link && link.href && link.text) {
+                el.appendChild(document.createTextNode(" "));
+                const a = document.createElement("a");
+                a.href = link.href;
+                a.textContent = link.text;
+                a.className = "underline font-bold";
+                el.appendChild(a);
+            }
+            el.style.display = "block";
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        window.switchMode = function (mode) {
+            document.getElementById("panel-neighbourhood").style.display = mode === "neighbourhood" ? "block" : "none";
+            document.getElementById("panel-category").style.display = mode === "category" ? "block" : "none";
+            document.getElementById("panel-sweep").style.display = mode === "sweep" ? "block" : "none";
+            document.getElementById("tab-neighbourhood").className = mode === "neighbourhood" ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm";
+            document.getElementById("tab-category").className = mode === "category" ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm";
+            document.getElementById("tab-sweep").className = mode === "sweep" ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm";
+        };
+
+        window.pickSubCat = function (val) {
+            document.getElementById("lh-cat-query").value = val;
+        };
+
+        async function callLeadHunterApi(body) {
+            if (sbClient) {
+                const { data } = await sbClient.auth.getSession();
+                if (data && data.session && data.session.access_token) {
+                    authToken = data.session.access_token;
+                }
+            }
+            const res = await fetch("/api/lead_hunter.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": "Bearer " + authToken },
+                body: JSON.stringify(body)
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+            return json;
+        }
+
+        function mergeAndTagPlaces(places, append) {
+            const existingSlugs = new Set(existingBusinesses.map(b => String(b.slug || "").toLowerCase()));
+            const existingPlaceIds = new Set(existingBusinesses.map(b => String(b.google_place_id || "").trim()).filter(Boolean));
+            const existingRecs = existingBusinesses.map(b => ({
+                nameKey: normName(b.name),
+                streetKey: normalizeStreetKey(b.location),
+                rawName: b.name || ""
+            }));
+            const currentIds = new Set(append ? foundRows.map(r => r.placeId).concat(duplicateRows.map(d => d.placeId)) : []);
+            const next = append ? [...foundRows] : [];
+            const dups = append ? [...duplicateRows] : [];
+
+            for (const p of places) {
+                if (!p.placeId) continue;
+                if (existingPlaceIds.has(p.placeId)) {
+                    if (!dups.some(d => d.placeId === p.placeId)) {
+                        dups.push({ placeId: p.placeId, name: p.name, location: p.address, reason: "Already in Directory (Google Place ID)" });
+                    }
+                    continue;
+                }
+                if (currentIds.has(p.placeId)) {
+                    if (!dups.some(d => d.placeId === p.placeId)) {
+                        dups.push({ placeId: p.placeId, name: p.name, location: p.address, reason: "Duplicate in Sweep" });
+                    }
+                    continue;
+                }
+                currentIds.add(p.placeId);
+
+                const nameKey = normName(p.name);
+                const streetKey = normalizeStreetKey(p.address);
+                const matches = existingRecs.concat(next.map(n => ({ nameKey: normName(n.name), streetKey: normalizeStreetKey(n.location), rawName: n.name })))
+                    .filter(x => x.nameKey === nameKey || (x.nameKey.length >= 6 && nameKey.length >= 6 && (x.nameKey.includes(nameKey) || nameKey.includes(x.nameKey))));
+                const exactSameAddr = matches.some(x => !streetKey || !x.streetKey || x.streetKey === streetKey);
+                const diffAddrMatch = !exactSameAddr && matches.length > 0 ? matches[0].rawName : "";
+                const outArea = isOutOfArea(p.address);
+                const closed = p.businessStatus === "CLOSED_PERMANENTLY";
+                const chain = isChain(p.name);
+
+                const formattedName = formatBusinessName(p.name);
+                if (exactSameAddr) {
+                    dups.push({
+                        placeId: p.placeId,
+                        name: formattedName,
+                        location: p.address,
+                        reason: "Already in Directory / Sweep (Same Address)"
+                    });
+                    continue;
+                }
+
+                let slug = slugify(formattedName);
+                if (existingSlugs.has(slug) || next.some(x => x.slug === slug)) {
+                    const num = (streetKey.match(/^(\d+[a-z]?)/) || [])[1] || p.placeId.slice(-4).toLowerCase();
+                    slug = slugify(formattedName + "-" + num);
+                }
+
+                const isVenue = (p.types || []).some(t => ["park", "school", "community_center", "museum", "marina", "golf_course"].includes(t));
+                next.push({
+                    placeId: p.placeId,
+                    name: formattedName,
+                    slug,
+                    category: mapCategory(p.primaryType, p.types),
+                    rawType: p.primaryType || "",
+                    community: outArea ? "Out of Area" : detectCommunity(p.address),
+                    location: p.address,
+                    listing_type: isVenue ? "venue" : "business",
+                    phone: "",
+                    link: "",
+                    notes: "",
+                    googleMapsUri: p.googleMapsUri || "",
+                    rating: null,
+                    userRatingCount: null,
+                    hours: [],
+                    enriched: false,
+                    exactSameAddr,
+                    diffAddrMatch,
+                    outArea,
+                    closed,
+                    chain,
+                    selected: !exactSameAddr && !outArea && !closed
+                });
+            }
+            foundRows = next;
+            duplicateRows = dups;
+            renderResults();
+        }
+
+        window.runNeighbourhoodSearch = async function (e) {
+            if (e) e.preventDefault();
+            const location = document.getElementById("lh-location").value.trim();
+            const radius = Number(document.getElementById("lh-radius").value || 400);
+            const subCategory = document.getElementById("lh-nb-subcat").value.trim();
+            const btn = document.getElementById("btn-nb-search");
+            btn.disabled = true;
+            btn.textContent = "Searching...";
+            try {
+                const json = await callLeadHunterApi({ action: "neighbourhood", location, radius, subCategory });
+                nextPageToken = "";
+                document.getElementById("btn-cat-more").style.display = "none";
+                document.getElementById("res-meta").textContent = "Center: " + (json.center || location);
+                mergeAndTagPlaces(json.places || [], false);
+            } catch (err) {
+                showAlert("Neighbourhood search failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "&#128269; Search Neighbourhood";
+            }
+        };
+
+        window.runCategorySearch = async function (e, token) {
+            if (e) e.preventDefault();
+            const query = document.getElementById("lh-cat-query").value.trim();
+            const community = document.getElementById("lh-cat-community").value;
+            const btn = document.getElementById("btn-cat-search");
+            btn.disabled = true;
+            btn.textContent = "Searching...";
+            try {
+                const json = await callLeadHunterApi({ action: "category", query, community, pageToken: token || "" });
+                nextPageToken = json.nextPageToken || "";
+                document.getElementById("btn-cat-more").style.display = nextPageToken ? "inline-flex" : "none";
+                document.getElementById("res-meta").textContent = `${query} in ${community}`;
+                mergeAndTagPlaces(json.places || [], Boolean(token));
+            } catch (err) {
+                showAlert("Category search failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "&#128269; Search Sub-Category";
+            }
+        };
+
+        window.toggleRow = function (idx, checked) {
+            if (foundRows[idx]) foundRows[idx].selected = checked;
+            updateActionButtons();
+        };
+
+        window.updateField = function (idx, field, val) {
+            if (foundRows[idx]) foundRows[idx][field] = val;
+        };
+
+        window.uncheckChains = function () {
+            foundRows.forEach(r => { if (r.chain) r.selected = false; });
+            renderResults();
+        };
+
+        function updateActionButtons() {
+            const sel = foundRows.filter(r => r.selected).length;
+            const selEl = document.getElementById("sel-count");
+            if (selEl) selEl.textContent = sel;
+            document.getElementById("btn-push").disabled = sel === 0;
+            document.getElementById("btn-enrich").disabled = sel === 0;
+        }
+
+        function renderResults() {
+            document.getElementById("res-count").textContent = foundRows.length;
+            const wrap = document.getElementById("results-wrap");
+            if (!foundRows.length) {
+                wrap.innerHTML = `<p style="color:var(--muted);">No businesses returned for this search.</p>`;
+                updateActionButtons();
+                return;
+            }
+            wrap.innerHTML = `
+                <table class="data-table" style="width:100%;border-collapse:collapse;font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>Add</th>
+                            <th>Business Name &amp; Flags</th>
+                            <th>Category &amp; Type</th>
+                            <th>Address &amp; Community</th>
+                            <th>Phone / Website / Bio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${foundRows.map((r, i) => `
+                            <tr style="${r.exactSameAddr || r.outArea || r.closed ? "opacity:0.55;background:#f8fafc;" : (r.diffAddrMatch ? "background:#fefce8;" : "")}">
+                                <td><input type="checkbox" ${r.selected ? "checked" : ""} onchange="toggleRow(${i}, this.checked)"></td>
+                                <td style="min-width:190px;">
+                                    <input type="text" class="form-control" style="font-size:12px;padding:4px 8px;font-weight:700;" value="${escapeHtml(r.name)}" onchange="updateField(${i}, 'name', this.value)">
+                                    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+                                        ${r.exactSameAddr ? `<span style="font-size:10px;background:#e2e8f0;padding:1px 5px;border-radius:4px;">Duplicate (Same Addr)</span>` : ""}
+                                        ${r.diffAddrMatch ? `<span style="font-size:10px;background:#fef08a;color:#854d0e;padding:1px 5px;border-radius:4px;font-weight:700;">&#9888; Same Name / Diff Addr</span>` : ""}
+                                        ${r.outArea ? `<span style="font-size:10px;background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:4px;">Out of Area</span>` : ""}
+                                        ${r.closed ? `<span style="font-size:10px;background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:4px;">Closed Permanently</span>` : ""}
+                                        ${r.chain ? `<span style="font-size:10px;background:#e0e7ff;color:#3730a3;padding:1px 5px;border-radius:4px;">Chain</span>` : ""}
+                                    </div>
+                                </td>
+                                <td style="min-width:160px;">
+                                    <input type="text" class="form-control" style="font-size:12px;padding:4px 8px;margin-bottom:4px;" value="${escapeHtml(r.category)}" onchange="updateField(${i}, 'category', this.value)">
+                                    <select class="form-control" style="font-size:11px;padding:3px 6px;" onchange="updateField(${i}, 'listing_type', this.value)">
+                                        <option value="business" ${r.listing_type === "business" ? "selected" : ""}>Business</option>
+                                        <option value="venue" ${r.listing_type === "venue" ? "selected" : ""}>Venue / Hall / Park</option>
+                                    </select>
+                                    ${r.rawType ? `<div style="font-size:10px;color:#64748b;margin-top:2px;">Google: ${escapeHtml(r.rawType)}</div>` : ""}
+                                </td>
+                                <td style="min-width:200px;">
+                                    <input type="text" class="form-control" style="font-size:12px;padding:4px 8px;margin-bottom:4px;" value="${escapeHtml(r.location)}" onchange="updateField(${i}, 'location', this.value)">
+                                    <input type="text" class="form-control" style="font-size:11px;padding:3px 6px;" value="${escapeHtml(r.community)}" onchange="updateField(${i}, 'community', this.value)">
+                                </td>
+                                <td style="min-width:210px;">
+                                    ${r.enriched ? `
+                                        <div style="font-size:11px;"><strong>Phone:</strong> ${escapeHtml(r.phone || "—")}</div>
+                                        <div style="font-size:11px;word-break:break-all;"><strong>Web:</strong> ${/^https?:\/\//i.test(String(r.link || "").trim()) ? `<a href="${escapeHtml(String(r.link).trim())}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.link)}</a>` : (r.link ? escapeHtml(r.link) : "None")}</div>
+                                        <input type="text" class="form-control" style="font-size:11px;padding:3px 6px;margin-top:4px;" placeholder="Public bio (optional)" value="${escapeHtml(r.notes)}" onchange="updateField(${i}, 'notes', this.value)">
+                                    ` : `<span style="font-size:11px;color:#64748b;">Click <em>Enrich Selected</em> to fetch phone, website &amp; hours.</span>`}
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+            renderDuplicatesPanel();
+            updateActionButtons();
+        }
+
+        function renderDuplicatesPanel() {
+            const panel = document.getElementById("duplicates-panel");
+            const countEl = document.getElementById("dup-count");
+            const wrap = document.getElementById("duplicates-wrap");
+            countEl.textContent = duplicateRows.length;
+            if (!duplicateRows.length) {
+                panel.style.display = "none";
+                wrap.innerHTML = "";
+                return;
+            }
+            panel.style.display = "block";
+            wrap.innerHTML = `
+                <table class="data-table" style="width:100%;border-collapse:collapse;font-size:12px;">
+                    <thead><tr><th>Business</th><th>Address</th><th>Reason Set Aside</th></tr></thead>
+                    <tbody>
+                        ${duplicateRows.map(d => `
+                            <tr>
+                                <td><strong>${escapeHtml(d.name)}</strong></td>
+                                <td>${escapeHtml(d.location || "—")}</td>
+                                <td><span style="font-size:11px;background:#e2e8f0;padding:2px 7px;border-radius:99px;">${escapeHtml(d.reason)}</span></td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        window.enrichSelected = async function () {
+            const toEnrich = foundRows.filter(r => r.selected && !r.enriched);
+            if (!toEnrich.length) {
+                showAlert("All selected businesses are already enriched.", "info");
+                return;
+            }
+            const btn = document.getElementById("btn-enrich");
+            btn.disabled = true;
+            btn.textContent = "Enriching...";
+            try {
+                let enrichedCount = 0;
+                const ids = toEnrich.map(r => r.placeId);
+                for (let i = 0; i < ids.length; i += 20) {
+                    const chunk = ids.slice(i, i + 20);
+                    const json = await callLeadHunterApi({ action: "enrich", placeIds: chunk });
+                    const details = json.details || {};
+                    for (const r of foundRows) {
+                        const d = details[r.placeId];
+                        if (d) {
+                            r.phone = d.phone || "";
+                            r.link = cleanUrl(d.website || "");
+                            r.notes = d.editorialSummary || "";
+                            r.rating = d.rating;
+                            r.userRatingCount = d.userRatingCount;
+                            r.hours = d.hours || [];
+                            r.enriched = true;
+                            enrichedCount++;
+                        }
+                    }
+                }
+                renderResults();
+                showAlert(`Enriched ${enrichedCount} selected business(es).`, "success");
+            } catch (err) {
+                showAlert("Enrich failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                updateActionButtons();
+                btn.innerHTML = "&#9889; Enrich Selected (Phone, Website, Hours)";
+            }
+        };
+
+        window.pushSelectedToPending = async function () {
+            const picked = foundRows.filter(r => r.selected);
+            if (!picked.length || !sbClient) return;
+            const btn = document.getElementById("btn-push");
+            btn.disabled = true;
+            btn.textContent = "Pushing...";
+            try {
+                const payload = picked.map(r => ({
+                    name: r.name.trim(),
+                    slug: r.slug,
+                    category: r.category.trim() || "Local Business",
+                    community: r.community.trim() || "East Gwillimbury",
+                    location: r.location.trim() || null,
+                    phone: r.phone || null,
+                    link: r.link || null,
+                    notes: r.notes ? r.notes.trim() : null,
+                    image_url: null,
+                    source: "lead_hunter",
+                    google_place_id: r.placeId,
+                    listing_type: r.listing_type || "business",
+                    status: "pending"
+                }));
+                const { data: inserted, error } = await sbClient.from("directory_listings").insert(payload).select("id, slug, name, location, google_place_id");
+                if (error) throw error;
+                if (Array.isArray(inserted)) {
+                    existingBusinesses.push(...inserted);
+                }
+
+                // Save Google Place ID, rating, maps link, and hours to admin-only notes
+                if (Array.isArray(inserted)) {
+                    const noteRows = [];
+                    inserted.forEach((row, idx) => {
+                        const src = picked[idx];
+                        if (!src) return;
+                        const parts = [
+                            `Lead Hunter Import (${new Date().toISOString().slice(0, 10)})`,
+                            `Place ID: ${src.placeId}`,
+                            src.googleMapsUri ? `Google Maps: ${src.googleMapsUri}` : "",
+                            src.rating ? `Google Rating: ${src.rating} (${src.userRatingCount || 0} reviews)` : "",
+                            src.hours && src.hours.length ? `Hours:\n${src.hours.join("\n")}` : ""
+                        ].filter(Boolean);
+                        noteRows.push({
+                            business_id: row.id,
+                            notes: parts.join("\n"),
+                            updated_at: new Date().toISOString(),
+                            updated_by: currentUserId
+                        });
+                    });
+                    if (noteRows.length) {
+                        await sbClient.from("directory_listing_admin_notes").upsert(noteRows, { onConflict: "business_id" }).catch(() => {});
+                    }
+                }
+
+                showAlert(
+                    `Pushed ${payload.length} business(es) to Pending Approval!`,
+                    "success",
+                    { text: "Open Pending Businesses Queue \u2192", href: "/staff/businesses.html?filter=pending" }
+                );
+                foundRows = foundRows.filter(r => !r.selected);
+                renderResults();
+            } catch (err) {
+                showAlert("Push to Pending failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.innerHTML = `&#128229; Push Selected to Pending (<span id="sel-count">${foundRows.filter(r => r.selected).length}</span>)`;
+                updateActionButtons();
+            }
+        };
+
+        const SWEEP_SETTING_KEY = "lead_hunter_sweep_config";
+        const SWEEP_KEYS = {
+            plazas: "wg_lh_sweep_plazas",
+            subcats: "wg_lh_sweep_subcats",
+            community: "wg_lh_sweep_community",
+            radius: "wg_lh_sweep_radius",
+            interval: "wg_lh_sweep_interval_days",
+            lastAt: "wg_lh_last_sweep_at",
+            lastSummary: "wg_lh_last_sweep_summary",
+            snoozeUntil: "wg_lh_sweep_snooze_until"
+        };
+        let remoteSweepConfig = null;
+
+        function parseLines(val) {
+            return String(val || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        }
+
+        function buildSweepConfigObject() {
+            return {
+                plazas: parseLines(document.getElementById("sweep-plazas").value),
+                subcats: parseLines(document.getElementById("sweep-subcats").value),
+                community: document.getElementById("sweep-community").value || "All East Gwillimbury",
+                radius: Math.max(100, Math.min(2000, Number(document.getElementById("sweep-radius").value || 400))),
+                interval_days: Number(document.getElementById("sweep-interval").value ?? 30),
+                last_sweep_at: localStorage.getItem(SWEEP_KEYS.lastAt) || (remoteSweepConfig && remoteSweepConfig.last_sweep_at) || null,
+                last_sweep_summary: localStorage.getItem(SWEEP_KEYS.lastSummary) || (remoteSweepConfig && remoteSweepConfig.last_sweep_summary) || ""
+            };
+        }
+
+        async function loadSweepConfigFromSupabase() {
+            if (!sbClient) return;
+            try {
+                const { data } = await sbClient
+                    .from("newsletter_settings")
+                    .select("setting_value")
+                    .eq("setting_key", SWEEP_SETTING_KEY)
+                    .maybeSingle();
+                if (data && data.setting_value && typeof data.setting_value === "object") {
+                    remoteSweepConfig = data.setting_value;
+                }
+            } catch (_) {}
+        }
+
+        function loadSweepConfig() {
+            const rc = remoteSweepConfig || {};
+            const plazas = Array.isArray(rc.plazas) && rc.plazas.length
+                ? rc.plazas.join("\n")
+                : localStorage.getItem(SWEEP_KEYS.plazas);
+            const subcats = Array.isArray(rc.subcats) && rc.subcats.length
+                ? rc.subcats.join("\n")
+                : localStorage.getItem(SWEEP_KEYS.subcats);
+            const comm = rc.community || localStorage.getItem(SWEEP_KEYS.community);
+            const rad = rc.radius || localStorage.getItem(SWEEP_KEYS.radius);
+            const iv = rc.interval_days !== undefined ? String(rc.interval_days) : localStorage.getItem(SWEEP_KEYS.interval);
+
+            document.getElementById("sweep-plazas").value = plazas !== null ? plazas : DEFAULT_SWEEP_PLAZAS.join("\n");
+            document.getElementById("sweep-subcats").value = subcats !== null ? subcats : DEFAULT_SWEEP_SUBCATS.join("\n");
+            if (comm) document.getElementById("sweep-community").value = comm;
+            if (rad) document.getElementById("sweep-radius").value = rad;
+            if (iv !== null) document.getElementById("sweep-interval").value = iv;
+
+            if (rc.last_sweep_at) localStorage.setItem(SWEEP_KEYS.lastAt, rc.last_sweep_at);
+            if (rc.last_sweep_summary) localStorage.setItem(SWEEP_KEYS.lastSummary, rc.last_sweep_summary);
+        }
+
+        window.saveSweepConfig = async function () {
+            localStorage.setItem(SWEEP_KEYS.plazas, document.getElementById("sweep-plazas").value);
+            localStorage.setItem(SWEEP_KEYS.subcats, document.getElementById("sweep-subcats").value);
+            localStorage.setItem(SWEEP_KEYS.community, document.getElementById("sweep-community").value);
+            localStorage.setItem(SWEEP_KEYS.radius, document.getElementById("sweep-radius").value);
+            localStorage.setItem(SWEEP_KEYS.interval, document.getElementById("sweep-interval").value);
+            const cfg = buildSweepConfigObject();
+            remoteSweepConfig = cfg;
+            if (sbClient) {
+                try {
+                    await sbClient.rpc("save_newsletter_setting", {
+                        key_input: SWEEP_SETTING_KEY,
+                        value_input: cfg
+                    });
+                } catch (_) {}
+            }
+        };
+
+        window.saveCurrentAreaToSweep = async function () {
+            const loc = document.getElementById("lh-location").value.trim();
+            if (!loc) {
+                showAlert("Enter a street address, plaza, or neighbourhood first.", "warning");
+                return;
+            }
+            const existing = parseLines(document.getElementById("sweep-plazas").value);
+            if (existing.some(p => p.toLowerCase() === loc.toLowerCase())) {
+                showAlert(`"${loc}" is already in your Batch Sweep list.`, "info");
+                return;
+            }
+            existing.push(loc);
+            document.getElementById("sweep-plazas").value = existing.join("\n");
+            await saveSweepConfig();
+            showAlert(`Saved "${loc}" to your shared Batch Sweep plazas list.`, "success");
+        };
+
+        window.resetSweepPresets = async function () {
+            localStorage.removeItem(SWEEP_KEYS.plazas);
+            localStorage.removeItem(SWEEP_KEYS.subcats);
+            localStorage.removeItem(SWEEP_KEYS.community);
+            localStorage.removeItem(SWEEP_KEYS.radius);
+            remoteSweepConfig = {
+                plazas: [...DEFAULT_SWEEP_PLAZAS],
+                subcats: [...DEFAULT_SWEEP_SUBCATS],
+                community: "All East Gwillimbury",
+                radius: 400,
+                interval_days: 30,
+                last_sweep_at: localStorage.getItem(SWEEP_KEYS.lastAt) || null,
+                last_sweep_summary: localStorage.getItem(SWEEP_KEYS.lastSummary) || ""
+            };
+            loadSweepConfig();
+            await saveSweepConfig();
+            showAlert("Batch Sweep presets reset to defaults and saved.", "info");
+        };
+
+        window.snoozeSweepReminder = function () {
+            const until = Date.now() + 7 * 86400 * 1000;
+            localStorage.setItem(SWEEP_KEYS.snoozeUntil, String(until));
+            renderSweepReminder();
+        };
+
+        window.renderSweepReminder = function () {
+            const banner = document.getElementById("sweep-reminder-banner");
+            const titleEl = document.getElementById("sweep-reminder-title");
+            const detailEl = document.getElementById("sweep-reminder-detail");
+            const snoozeBtn = document.getElementById("btn-sweep-snooze");
+            const intervalDays = Number(localStorage.getItem(SWEEP_KEYS.interval) ?? document.getElementById("sweep-interval").value ?? 30);
+            if (!intervalDays) {
+                banner.style.display = "none";
+                return;
+            }
+            const lastIso = localStorage.getItem(SWEEP_KEYS.lastAt);
+            const lastSummary = localStorage.getItem(SWEEP_KEYS.lastSummary) || "";
+            const snoozeUntil = Number(localStorage.getItem(SWEEP_KEYS.snoozeUntil) || 0);
+            const now = Date.now();
+
+            banner.style.display = "block";
+            if (!lastIso) {
+                banner.style.borderLeftColor = "#d97706";
+                banner.style.background = "#fffbeb";
+                titleEl.style.color = "#92400e";
+                titleEl.textContent = "Periodic Batch Sweep: Never run on this browser";
+                detailEl.textContent = `Recommended every ${intervalDays} days to discover new local businesses and set aside duplicates for review.`;
+                snoozeBtn.style.display = snoozeUntil > now ? "none" : "inline-flex";
+                return;
+            }
+
+            const daysAgo = Math.floor((now - Date.parse(lastIso)) / 86400000);
+            const isDue = daysAgo >= intervalDays && snoozeUntil <= now;
+            if (isDue) {
+                banner.style.borderLeftColor = "#d97706";
+                banner.style.background = "#fffbeb";
+                titleEl.style.color = "#92400e";
+                titleEl.textContent = `Batch Sweep Due — Last run ${daysAgo} day(s) ago`;
+                detailEl.textContent = (lastSummary ? lastSummary + " • " : "") + `Configured reminder: every ${intervalDays} days.`;
+                snoozeBtn.style.display = "inline-flex";
+            } else {
+                banner.style.borderLeftColor = "#0284c7";
+                banner.style.background = "#f0f9ff";
+                titleEl.style.color = "#0c4a6e";
+                titleEl.textContent = `Last Batch Sweep: ${daysAgo === 0 ? "Today" : daysAgo + " day(s) ago"}`;
+                detailEl.textContent = lastSummary || `Next reminder in ${Math.max(1, intervalDays - daysAgo)} day(s).`;
+                snoozeBtn.style.display = "none";
+            }
+        };
+
+        window.stopBatchSweep = function () {
+            sweepAbortFlag = true;
+            document.getElementById("sweep-status-text").textContent = "Stopping after current step...";
+        };
+
+        window.runBatchSweep = async function () {
+            saveSweepConfig();
+            const plazas = parseLines(document.getElementById("sweep-plazas").value);
+            const subcats = parseLines(document.getElementById("sweep-subcats").value);
+            const community = document.getElementById("sweep-community").value || "All East Gwillimbury";
+            const radius = Math.max(100, Math.min(2000, Number(document.getElementById("sweep-radius").value || 400)));
+            const autoEnrich = document.getElementById("sweep-auto-enrich").checked;
+            const autoPush = document.getElementById("sweep-auto-push").checked;
+
+            const steps = [
+                ...plazas.map(loc => ({ kind: "neighbourhood", label: `Plaza: ${loc}`, loc })),
+                ...subcats.map(q => ({ kind: "category", label: `Category: ${q} (${community})`, q }))
+            ];
+            if (!steps.length) {
+                showAlert("Add at least one plaza/street or sub-category before running a Batch Sweep.", "warning");
+                return;
+            }
+
+            sweepAbortFlag = false;
+            foundRows = [];
+            duplicateRows = [];
+            renderResults();
+
+            const btnRun = document.getElementById("btn-run-sweep");
+            const btnStop = document.getElementById("btn-stop-sweep");
+            const statusEl = document.getElementById("sweep-status-text");
+            const progWrap = document.getElementById("sweep-progress-wrap");
+            const progBar = document.getElementById("sweep-progress-bar");
+
+            btnRun.disabled = true;
+            btnStop.style.display = "inline-flex";
+            progWrap.style.display = "block";
+            progBar.style.width = "0%";
+            document.getElementById("res-meta").textContent = "Batch Sweep in progress...";
+
+            let completed = 0;
+            let errors = 0;
+            for (const step of steps) {
+                if (sweepAbortFlag) break;
+                completed++;
+                progBar.style.width = Math.round((completed / steps.length) * 100) + "%";
+                statusEl.textContent = `Step ${completed} of ${steps.length}: ${step.label}`;
+                try {
+                    const json = step.kind === "neighbourhood"
+                        ? await callLeadHunterApi({ action: "neighbourhood", location: step.loc, radius, subCategory: "" })
+                        : await callLeadHunterApi({ action: "category", query: step.q, community, pageToken: "" });
+                    mergeAndTagPlaces(json.places || [], true);
+                } catch (err) {
+                    errors++;
+                    console.warn("Sweep step failed:", step.label, err);
+                }
+                if (!sweepAbortFlag && completed < steps.length) {
+                    await new Promise(r => setTimeout(r, 2500));
+                }
+            }
+
+            // Uncheck known chains automatically during Batch Sweep so only independent local leads stay selected
+            foundRows.forEach(r => { if (r.chain) r.selected = false; });
+            renderResults();
+
+            if (!sweepAbortFlag && autoEnrich && foundRows.some(r => r.selected && !r.enriched)) {
+                statusEl.textContent = "Enriching selected new leads...";
+                await enrichSelected();
+            }
+
+            let pushedCount = 0;
+            if (!sweepAbortFlag && autoPush && foundRows.some(r => r.selected)) {
+                pushedCount = foundRows.filter(r => r.selected).length;
+                statusEl.textContent = `Pushing ${pushedCount} clean new leads to Pending Approval...`;
+                await pushSelectedToPending();
+            }
+
+            const newCount = foundRows.length + pushedCount;
+            const dupCount = duplicateRows.length;
+            const summary = `${newCount} new lead(s) found, ${dupCount} duplicate(s) set aside${pushedCount ? `, ${pushedCount} pushed to Pending` : ""}${errors ? `, ${errors} step error(s)` : ""}`;
+            localStorage.setItem(SWEEP_KEYS.lastAt, new Date().toISOString());
+            localStorage.setItem(SWEEP_KEYS.lastSummary, summary);
+            localStorage.removeItem(SWEEP_KEYS.snoozeUntil);
+            await saveSweepConfig();
+            renderSweepReminder();
+
+            document.getElementById("res-meta").textContent = sweepAbortFlag ? `Batch Sweep stopped early (${summary})` : `Batch Sweep complete (${summary})`;
+            statusEl.textContent = sweepAbortFlag ? "Sweep stopped." : "Done!";
+            btnRun.disabled = false;
+            btnStop.style.display = "none";
+
+            if (!autoPush) {
+                showAlert(`Batch Sweep complete: ${summary}. Review below and click Push Selected to Pending.`, "success");
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const sel = document.getElementById("lh-cat-community");
+            const sweepSel = document.getElementById("sweep-community");
+            COMMUNITIES.forEach(c => {
+                const o = document.createElement("option");
+                o.value = c; o.textContent = c;
+                sel.appendChild(o);
+                const o2 = document.createElement("option");
+                o2.value = c; o2.textContent = c;
+                sweepSel.appendChild(o2);
+            });
+            loadSweepConfig();
+            renderSweepReminder();
+
+            sbClient = window.GeorginaStore ? window.GeorginaStore.getClient() : null;
+            if (!sbClient) { showAlert("Supabase not configured.", "warning"); return; }
+            const { data: { session } } = await sbClient.auth.getSession();
+            if (!session) {
+                window.location.href = "/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            authToken = session.access_token || "";
+            currentUserId = session.user ? session.user.id : null;
+
+            const { data: prof } = await sbClient.from("user_profiles").select("role, active").eq("id", currentUserId).maybeSingle();
+            if (!prof || !prof.active || !["admin", "super_admin"].includes(String(prof.role || "").toLowerCase())) {
+                window.location.replace("/staff/admin-approvals.html");
+                return;
+            }
+
+            await loadSweepConfigFromSupabase();
+            loadSweepConfig();
+            renderSweepReminder();
+
+            const { data: biz } = await sbClient.from("directory_listings").select("id, name, slug, location, google_place_id").limit(2000);
+            existingBusinesses = biz || [];
+        });
+    </script>
+</body>
+</html>

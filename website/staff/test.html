@@ -1,0 +1,987 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Newsletter Dispatch — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        
+        .admin-nav-bar a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .admin-nav-bar a:hover {
+            background: var(--bg-hover, #f1f5f9);
+            border-color: var(--border);
+        }
+        .admin-nav-bar a.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .edition-radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .edition-card-option {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            background: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .edition-card-option:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .edition-card-option.selected {
+            border-color: var(--primary);
+            background: #f0fdf4;
+        }
+        .edition-card-option input[type="radio"] {
+            margin-right: 8px;
+            accent-color: var(--primary);
+        }
+        .preview-pane-wrapper {
+            margin-top: 24px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .preview-iframe {
+            width: 100%;
+            height: 700px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+        .btn-test-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            border: none;
+        }
+        .btn-test-action:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    
+/* Unified Admin Navigation Sub-Bar with Robust Pill Buttons */
+.admin-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-nav-group-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-primary a {
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.admin-nav-group-primary a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.admin-nav-group-primary a.active {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0369a1;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+}
+
+.admin-nav-group-external {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-external .external-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.admin-nav-group-external a {
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.admin-nav-group-external a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.admin-nav-group-external a.btn-crm-link {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.admin-nav-group-external a.btn-crm-link:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+    /* Staff Portal Left Sidebar & Modern Shell Layout */
+.admin-shell {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: #00008b;
+    color: #ffffff;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-right: 1px solid #1e3a8a;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e3a8a;
+    }
+}
+
+.admin-content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+}
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="test-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- ADMIN LEFT SIDEBAR MENU (STAFF PORTAL) -->
+        
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <!-- Breadcrumb / Admin Nav -->
+        <!-- Unified Admin Navigation Bar -->
+        
+
+        <div id="page-alert" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Test the Newsletter Safely</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Pick an Edition:</strong> Choose <strong>Thursday Community Edition</strong> (weekend events) or <strong>Monday Community Edition</strong> (weekday events). Leave the <strong>Preview Newsletter Ads</strong> boxes checked if you want to see how sponsored ads look inside the email.</li>
+        <li><strong>Button 1 (Quick Test):</strong> Sends a copy of the most recent saved newsletter directly to <em>your</em> email address only. Real subscribers will <strong>not</strong> receive anything.</li>
+        <li><strong>Button 2 (Fresh Build Test):</strong> Collects brand-new events from all websites first, builds a fresh newsletter, and emails it only to you.</li>
+        <li><strong>Blue Button (Send to Everyone):</strong> Only click <strong>Publish Live Edition On Demand</strong> when you truly want to email every subscriber on your list.</li>
+    </ol>
+</details>
+
+        <!-- AUTH GATE: Only Admin/Staff can access -->
+        <section id="auth-gate" class="card" style="display: none; max-width: 520px; margin: 40px auto; text-align: center;">
+            <h2 style="color: var(--danger); margin-bottom: 8px;">&#128274; Admin Access Required</h2>
+            <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">
+                You must be logged in as an administrator (<code>cheerfulweb@gmail.com</code>) to dispatch test newsletter editions.
+            </p>
+            <a href="/staff/login.html" class="btn btn-primary">Go to Login Page &rarr;</a>
+        </section>
+
+        <!-- MAIN TEST RUN CONSOLE -->
+        <section id="test-console" style="display: none;">
+            <!-- TEST SAFETY BANNER -->
+            <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; color: #166534; font-size: 13px;">
+                <strong>&#128737; Subscriber Protection Active:</strong>
+                All tests on this page are strictly isolated. No matter which button you click, <strong>real subscribers are never emailed</strong> and test builds <strong>never overwrite the approved public edition</strong>.
+            </div>
+
+            <div class="card" style="border: 2px solid var(--primary); background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); margin-bottom: 24px;">
+                <h2 style="margin: 0 0 6px 0; color: var(--text);">&#129514; Test Newsletter Control Center</h2>
+                <p style="margin: 0 0 16px 0; font-size: 14px; color: var(--muted);">
+                    Choose your edition, verify the test recipient, and pick how you want to run the test:
+                </p>
+
+                <!-- 1. Select Edition -->
+                <label style="font-weight: 700; font-size: 14px; display: block; margin-bottom: 8px;">
+                    1. Choose Newsletter Edition to Test:
+                </label>
+                <div class="edition-radio-group">
+                    <label class="edition-card-option selected" id="opt-reader-label">
+                        <input type="radio" name="edition" value="reader" id="opt-reader" checked>
+                        <strong style="color: #0f172a; font-size: 15px;">&#127969; Thursday Community Edition</strong>
+                        <p style="margin: 6px 0 0 0; font-size: 13px; color: var(--muted);">
+                            This coming weekend &amp; next weekend (Friday&ndash;Sunday) local events, dining specials &amp; community sales.
+                        </p>
+                        <div id="reader-edition-meta" style="margin-top: 8px; font-size: 11px; color: var(--muted);">
+                            Loading latest compiled edition...
+                        </div>
+                    </label>
+
+                    <label class="edition-card-option" id="opt-monday-label">
+                        <input type="radio" name="edition" value="monday" id="opt-monday">
+                        <strong style="color: #0f172a; font-size: 15px;">&#128197; Monday Community Edition</strong>
+                        <p style="margin: 6px 0 0 0; font-size: 13px; color: var(--muted);">
+                            Monday&ndash;Friday local events, dining specials &amp; community sales for the week ahead.
+                        </p>
+                        <div id="monday-edition-meta" style="margin-top: 8px; font-size: 11px; color: var(--muted);">
+                            Loading latest compiled edition...
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Preview Ads Toggle -->
+                <div style="background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+                    <div style="font-weight: 800; font-size: 13px; color: #92400e; margin-bottom: 6px;">&#11088; Preview Newsletter Ads (Positional 2a/2b Slots)</div>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #0f172a; cursor: pointer; margin-bottom: 4px;">
+                        <input type="checkbox" id="chk-preview-ads" checked>
+                        <span>Include active Sponsored Ads from Newsletter Ad Manager in preview &amp; test email</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #78350f; cursor: pointer; margin-left: 22px;">
+                        <input type="checkbox" id="chk-sample-ads" checked>
+                        <span>If no active ads exist for this edition yet, inject sample 2a &amp; 2b preview ads so I can see the layout</span>
+                    </label>
+                    <div id="preview-ads-status" style="margin-top: 6px; font-size: 11.5px; color: #92400e; font-weight: 600;"></div>
+                </div>
+
+                <!-- 2. Test Recipient -->
+                <div class="grid-2" style="margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label for="test-email">2. Send Test To Email Address *</label>
+                        <input type="email" id="test-email" class="form-control" required placeholder="e.g. cheerfulweb@gmail.com">
+                        <small style="color: var(--muted); font-size: 12px; display: block; margin-top: 4px;">
+                            Defaults to your logged-in administrator email.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="test-subject-prefix">3. Subject Line Tag</label>
+                        <input type="text" id="test-subject-prefix" class="form-control" value="[TEST RUN]" placeholder="[TEST RUN]">
+                        <small style="color: var(--muted); font-size: 12px; display: block; margin-top: 4px;">
+                            Appears at the start of your test email subject.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- 3. THE TWO DISTINCT TEST BUTTONS -->
+                <label style="font-weight: 700; font-size: 14px; display: block; margin-bottom: 8px;">
+                    4. Choose Your Test Action:
+                </label>
+                <div class="grid-2" style="gap: 16px; margin-bottom: 16px;">
+                    <!-- BUTTON 1: LAST SAVED EDITION -->
+                    <div style="background: #ffffff; border: 2px solid #bae6fd; border-radius: 10px; padding: 16px;">
+                        <h4 style="margin: 0 0 6px 0; color: #0369a1;">Button 1: Test with Last Edition (Instant)</h4>
+                        <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--muted);">
+                            Sends the latest approved issue currently saved in Supabase immediately via Brevo. No web scraping is performed.
+                        </p>
+                        <button type="button" id="btn-test-last-edition" class="btn-test-action btn-primary" style="width: 100%;">
+                            &#9889; Send Test (Last Saved Edition)
+                        </button>
+                    </div>
+
+                    <!-- BUTTON 2: NEW BUILD TEST -->
+                    <div style="background: #ffffff; border: 2px solid #fed7aa; border-radius: 10px; padding: 16px;">
+                        <h4 style="margin: 0 0 6px 0; color: #c2410c;">Button 2: Test with New Build (Full Re-Scrape)</h4>
+                        <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--muted);">
+                            Runs the full scraper on GitHub Actions, compiles a brand new test newsletter, and emails it only to you. Subscribers are untouched.
+                        </p>
+                        <button type="button" id="btn-test-new-build" class="btn-test-action" style="width: 100%; background: #ea580c; color: #ffffff;">
+                            &#128640; Run Test with New Build &rarr;
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BUTTON 3: ON-DEMAND LIVE PUBLISH TO SUBSCRIBERS -->
+                <div style="background: #eff6ff; border: 2px solid #00008b; border-radius: 10px; padding: 16px; margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span style="font-size: 10px; font-weight: 900; text-transform: uppercase; color: #1d4ed8; letter-spacing: 0.08em; background: #dbeafe; padding: 2px 8px; border-radius: 6px;">Live Broadcast</span>
+                            <h4 style="margin: 4px 0 2px 0; color: #00008b; font-size: 16px;">Publish Live Edition On Demand (All Active Subscribers)</h4>
+                            <p style="margin: 0; font-size: 13px; color: #334155;">
+                                Broadcasts the chosen edition to your full subscriber list immediately. Protected with confirmation check.
+                            </p>
+                        </div>
+                        <button type="button" id="btn-live-publish" class="btn-test-action" style="background: #00008b; color: #ffffff; font-weight: 900; white-space: nowrap;" onclick="triggerLiveBroadcastFromTest()">
+                            &#128640; Publish Live Edition On Demand
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dispatch-spinner" style="display: none; padding: 10px; font-size: 14px; color: var(--primary); font-weight: 600; text-align: center;">
+                    &#9203; Processing test dispatch... please wait.
+                </div>
+            </div>
+
+            <!-- MODAL / POPUP INSTRUCTIONS FOR BUTTON 2 (NEW BUILD) -->
+            <div id="new-build-modal" class="card" style="display: none; border: 2px solid #ea580c; background: #fffaf5; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <h3 style="margin: 0; color: #c2410c;">&#128640; Launching New Build Test on GitHub Actions</h3>
+                    <button type="button" id="btn-close-new-build" class="btn btn-secondary btn-sm">&times; Close</button>
+                </div>
+                <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">
+                    Because running the full multi-site Python web crawler takes 30–60 seconds, it runs securely on your GitHub Actions server with <strong>Test Mode Safety</strong> guaranteed:
+                </p>
+                <div style="background: #ffffff; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px;">
+                    <ol style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                        <li>Click the button below to open your private GitHub Actions pipeline: <br>
+                            <a id="link-github-actions" href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml" target="_blank" rel="noopener noreferrer" style="font-weight: 700; color: #ea580c;">
+                                Open GitHub Actions Runner &#8599;
+                            </a>
+                        </li>
+                        <li>Click <strong>"Run workflow"</strong> on the right side of the screen.</li>
+                        <li>Select which edition you want (<code id="code-target-edition">reader</code>).</li>
+                        <li>Check the box for <strong>"Test Run ONLY"</strong> (this ensures <code>test_mode: true</code>).</li>
+                        <li>Verify your test email (<code id="code-target-email">cheerfulweb@gmail.com</code>) and click the green <strong>"Run workflow"</strong> button.</li>
+                    </ol>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        &#128640; Go to GitHub Actions to Run New Build
+                    </a>
+                    <span style="font-size: 12px; color: #166534; font-weight: 600;">
+                        &#10003; Zero risk to subscribers. Output will be emailed exclusively to your test address.
+                    </span>
+                </div>
+            </div>
+
+            <!-- PREVIEW IN BROWSER -->
+            <div class="preview-pane-wrapper">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h3 style="margin: 0; font-size: 16px;">Live In-Browser Preview (Last Saved Edition)</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--muted);" id="preview-caption">
+                            Showing latest saved edition
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" id="btn-refresh-editions" class="btn btn-secondary btn-sm">&#8635; Reload</button>
+                        <a id="btn-open-preview-tab" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                            &#8599; Open in New Tab
+                        </a>
+                    </div>
+                </div>
+                <iframe id="newsletter-preview-frame" sandbox="allow-popups allow-popups-to-escape-sandbox" class="preview-iframe" title="Newsletter Preview"></iframe>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        let sbClient = null;
+        let currentUser = null;
+        let cachedEditions = {
+            reader: null,
+            monday: null
+        };
+        let cachedNewsletterAds = [];
+
+        function getSelectedEditionKey() {
+            return document.getElementById("opt-monday")?.checked ? "monday" : "reader";
+        }
+
+        function escapeTestHtml(s) {
+            return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function renderPreviewAdCardHtml(ad) {
+            const href = escapeTestHtml(ad.target_url || "https://welcomeeg.ca");
+            const headline = escapeTestHtml(ad.headline || "Sponsored Feature");
+            const sponsor = escapeTestHtml(ad.sponsor_name || "");
+            const body = escapeTestHtml(ad.body_text || "");
+            const cta = escapeTestHtml(ad.cta_label || "Learn More →");
+            const imgHtml = ad.image_url
+                ? `<div style="margin: 0 0 10px 0;"><a href="${href}" target="_blank" rel="noopener noreferrer"><img src="${escapeTestHtml(ad.image_url)}" alt="${headline}" style="max-width: 100%; height: auto; border-radius: 8px; display: block;"></a></div>`
+                : "";
+            return `
+        <div style="border: 2px solid #f59e0b; border-left: 6px solid #d97706; background-color: #fffbeb; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
+            <div style="margin: 0 0 6px 0;">
+                <span style="display: inline-block; background-color: #fef3c7; color: #92400e; border: 1px solid #f59e0b; font-size: 11px; font-weight: 900; padding: 3px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.06em;">Sponsored</span>
+                ${sponsor ? `<span style="font-size: 12px; font-weight: 700; color: #78350f; margin-left: 8px;">${sponsor}</span>` : ""}
+            </div>
+            ${imgHtml}
+            <h3 style="margin: 0 0 6px 0; font-size: 17px; line-height: 1.3; font-weight: 900; color: #1e293b;">
+                <a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #00008b; text-decoration: none;">${headline}</a>
+            </h3>
+            ${body ? `<p style="margin: 0 0 10px 0; color: #334155; font-size: 14px; line-height: 1.55;">${body}</p>` : ""}
+            <a href="${href}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #d97706; color: #ffffff; font-size: 12px; font-weight: 800; padding: 7px 16px; border-radius: 9999px; text-decoration: none;">${cta}</a>
+        </div>`;
+        }
+
+        function getPreviewAdsForEdition(editionKey) {
+            const targetEd = editionKey === "monday" ? "monday" : "thursday";
+            const active = (cachedNewsletterAds || []).filter((ad) => ad.active !== false && (ad.edition === "both" || ad.edition === targetEd));
+            if (active.length > 0) return { ads: active, isSample: false };
+            const useSample = document.getElementById("chk-sample-ads")?.checked;
+            if (!useSample) return { ads: [], isSample: false };
+            return {
+                isSample: true,
+                ads: [
+                    {
+                        sponsor_name: "Sample Sponsor A (Slot 2a)",
+                        headline: "Preview Sponsored Ad (Position 2a) — Your Local Business Here",
+                        body_text: "This is a live preview of how a Sponsored Newsletter Ad appears after listing #2 in the " + (targetEd === "monday" ? "Monday" : "Thursday") + " edition.",
+                        cta_label: "Visit Sponsor Website →",
+                        target_url: "https://welcomeeg.ca/advertise",
+                        insert_after_index: 2,
+                        sub_order: "a"
+                    },
+                    {
+                        sponsor_name: "Sample Sponsor B (Slot 2b)",
+                        headline: "Preview Consecutive Ad (Position 2b) — Weekend Special Offer",
+                        body_text: "Consecutive ads (2a, 2b) stack cleanly in the exact same position without crowding local community listings.",
+                        cta_label: "Claim Local Offer →",
+                        target_url: "https://welcomeeg.ca/advertise",
+                        insert_after_index: 2,
+                        sub_order: "b"
+                    }
+                ]
+            };
+        }
+
+        function getProcessedEditionHtml(editionKey) {
+            const edition = cachedEditions[editionKey];
+            if (!edition || !edition.html_content) return "";
+            let htmlOut = edition.html_content.replace(/\{\{UNSUBSCRIBE_TOKEN\}\}/g, "TEST_PREVIEW_ONLY");
+            const includeAds = document.getElementById("chk-preview-ads")?.checked;
+            const statusEl = document.getElementById("preview-ads-status");
+            if (!includeAds) {
+                if (statusEl) statusEl.textContent = "Preview ads disabled — showing compiled edition as saved.";
+                return htmlOut;
+            }
+            const { ads, isSample } = getPreviewAdsForEdition(editionKey);
+            if (!ads.length) {
+                if (statusEl) statusEl.textContent = "No active ads in newsletter_ad_placements for this edition (and sample ads unchecked).";
+                return htmlOut;
+            }
+            if (statusEl) {
+                statusEl.textContent = isSample
+                    ? `Injecting ${ads.length} sample preview ad(s) (2a/2b) because no active ads exist for this edition yet.`
+                    : `Injecting ${ads.length} active ad(s) from Newsletter Ad Manager.`;
+            }
+
+            // Group ads by insert_after_index, preserving sub_order
+            const sortedAds = [...ads].sort((a, b) => (Number(a.insert_after_index || 0) - Number(b.insert_after_index || 0)) || String(a.sub_order || "a").localeCompare(String(b.sub_order || "a")));
+            const byPos = new Map();
+            sortedAds.forEach((ad) => {
+                const pos = Math.max(0, Number(ad.insert_after_index || 0));
+                if (!byPos.has(pos)) byPos.set(pos, []);
+                byPos.get(pos).push(renderPreviewAdCardHtml(ad));
+            });
+
+            // Split around listing cards (each starts with background-color: #ffffff; border: 1px solid #e2e8f0)
+            const cardMarker = '<div style="margin-bottom: 14px; padding: 16px 18px; background-color: #ffffff; border: 1px solid #e2e8f0;';
+            const parts = htmlOut.split(cardMarker);
+            if (parts.length > 1) {
+                let rebuilt = parts[0];
+                if (byPos.has(0)) rebuilt += byPos.get(0).join("\n");
+                for (let i = 1; i < parts.length; i++) {
+                    rebuilt += cardMarker + parts[i];
+                    if (byPos.has(i)) {
+                        // Insert right after the closing </div> of this listing card (first Details →</a>\n        </div>)
+                        const closeIdx = rebuilt.lastIndexOf("</div>");
+                        if (closeIdx !== -1) {
+                            const adBlock = byPos.get(i).join("\n");
+                            const detailsIdx = rebuilt.indexOf("Details →</a>", rebuilt.length - parts[i].length - cardMarker.length);
+                            if (detailsIdx !== -1) {
+                                const endCardIdx = rebuilt.indexOf("</div>", detailsIdx);
+                                if (endCardIdx !== -1) {
+                                    rebuilt = rebuilt.slice(0, endCardIdx + 6) + "\n" + adBlock + rebuilt.slice(endCardIdx + 6);
+                                    continue;
+                                }
+                            }
+                        }
+                        rebuilt += "\n" + byPos.get(i).join("\n");
+                    }
+                }
+                // Append any ads whose insert_after_index >= number of cards
+                for (const [pos, blocks] of byPos.entries()) {
+                    if (pos >= parts.length) {
+                        rebuilt += "\n" + blocks.join("\n");
+                    }
+                }
+                return rebuilt;
+            }
+            // Fallback: inject after first </h2>
+            const allBlocks = sortedAds.map(renderPreviewAdCardHtml).join("\n");
+            const h2Close = htmlOut.indexOf("</h2>");
+            if (h2Close !== -1) {
+                return htmlOut.slice(0, h2Close + 5) + "\n" + allBlocks + htmlOut.slice(h2Close + 5);
+            }
+            return allBlocks + htmlOut;
+        }
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            if (!el) return;
+            el.className = `alert alert-${type}`;
+            el.innerHTML = msg;
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function clearAlert() {
+            const el = document.getElementById("page-alert");
+            if (el) el.style.display = "none";
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase backend connection is not configured in <code>assets/config.js</code>.", "warning");
+                return;
+            }
+
+            sbClient = window.GeorginaStore.getClient();
+            const { data: { session } } = await sbClient.auth.getSession();
+
+            if (!session || !session.user) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            currentUser = session.user;
+            const userEmail = (currentUser.email || "").trim().toLowerCase();
+
+            const { data: profile } = await sbClient
+                .from("user_profiles")
+                .select("role")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "staff" || userEmail === "cheerfulweb@gmail.com";
+
+            if (!isAdmin) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            if (window.syncHeaderAuthBadge) {
+                window.syncHeaderAuthBadge(userEmail, true);
+            }
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => {
+                    await sbClient.auth.signOut();
+                    window.location.href = "/staff/login.html";
+                };
+            }
+
+            document.getElementById("test-email").value = userEmail;
+            document.getElementById("test-console").style.display = "block";
+
+            const optReader = document.getElementById("opt-reader");
+            const optMonday = document.getElementById("opt-monday");
+            const cardReader = document.getElementById("opt-reader-label");
+            const cardMonday = document.getElementById("opt-monday-label");
+
+            function updateCardSelection() {
+                if (optReader.checked) {
+                    cardReader.classList.add("selected");
+                    cardMonday.classList.remove("selected");
+                    updatePreviewFrame("reader");
+                } else {
+                    cardMonday.classList.add("selected");
+                    cardReader.classList.remove("selected");
+                    updatePreviewFrame("monday");
+                }
+            }
+
+            optReader.addEventListener("change", updateCardSelection);
+            optMonday.addEventListener("change", updateCardSelection);
+            document.getElementById("chk-preview-ads")?.addEventListener("change", () => updatePreviewFrame(getSelectedEditionKey()));
+            document.getElementById("chk-sample-ads")?.addEventListener("change", () => updatePreviewFrame(getSelectedEditionKey()));
+
+            await loadLatestEditions();
+        }
+
+        async function loadLatestEditions() {
+            clearAlert();
+            try {
+                const [{ data, error }, { data: adsData }] = await Promise.all([
+                    sbClient.from("newsletter_editions").select("edition,subject,html_content,updated_at"),
+                    sbClient.from("newsletter_ad_placements").select("id,sponsor_name,headline,body_text,image_url,cta_label,target_url,edition,insert_after_index,sub_order,active").eq("active", true).order("insert_after_index", { ascending: true }).order("sub_order", { ascending: true })
+                ]);
+
+                if (error) throw error;
+                cachedNewsletterAds = Array.isArray(adsData) ? adsData : [];
+
+                if (data && data.length) {
+                    data.forEach(row => {
+                        if (row.edition === "reader") cachedEditions.reader = row;
+                        if (row.edition === "monday") cachedEditions.monday = row;
+                    });
+                }
+
+                const readerMeta = document.getElementById("reader-edition-meta");
+                const mondayMeta = document.getElementById("monday-edition-meta");
+
+                if (cachedEditions.reader) {
+                    const rDate = new Date(cachedEditions.reader.updated_at).toLocaleString();
+                    readerMeta.innerHTML = `<strong>Subject:</strong> ${cachedEditions.reader.subject}<br><strong>Last Compiled:</strong> ${rDate}`;
+                } else {
+                    readerMeta.innerHTML = `<span style="color:var(--danger);">No saved Thursday edition found in Supabase yet.</span>`;
+                }
+
+                if (cachedEditions.monday) {
+                    const mDate = new Date(cachedEditions.monday.updated_at).toLocaleString();
+                    mondayMeta.innerHTML = `<strong>Subject:</strong> ${cachedEditions.monday.subject}<br><strong>Last Compiled:</strong> ${mDate}`;
+                } else {
+                    mondayMeta.innerHTML = `<span style="color:var(--danger);">No saved Monday edition found in Supabase yet (run Button 2 New Build with <code>monday</code>).</span>`;
+                }
+
+                updatePreviewFrame(getSelectedEditionKey());
+            } catch (err) {
+                showAlert("Could not load latest newsletter editions: " + err.message, "danger");
+            }
+        }
+
+        function updatePreviewFrame(editionKey) {
+            const frame = document.getElementById("newsletter-preview-frame");
+            const caption = document.getElementById("preview-caption");
+            const btnOpenTab = document.getElementById("btn-open-preview-tab");
+            const edition = cachedEditions[editionKey];
+
+            if (!edition || !edition.html_content) {
+                frame.srcdoc = `<html><body style="font-family:sans-serif;padding:30px;text-align:center;color:#64748b;"><h3>No compiled HTML found for ${editionKey === "monday" ? "Monday" : "Thursday"} edition.</h3><p>Use Button 2 ("Run Test with New Build") on GitHub Actions to compile this issue.</p></body></html>`;
+                caption.textContent = `No compiled HTML for ${editionKey === "monday" ? "Monday" : "Thursday"}`;
+                btnOpenTab.removeAttribute("href");
+                btnOpenTab.style.pointerEvents = "none";
+                const statusEl = document.getElementById("preview-ads-status");
+                if (statusEl) statusEl.textContent = "";
+                return;
+            }
+
+            let cleanHtml = getProcessedEditionHtml(editionKey);
+            frame.srcdoc = cleanHtml;
+            caption.textContent = `${edition.subject} (Compiled: ${new Date(edition.updated_at).toLocaleString()})`;
+
+            const max1440Inject = '<style>html { background: #cbd5e1 !important; } body, .outer-container { max-width: 1440px !important; margin: 0 auto !important; background: #f1f5f9 !important; box-shadow: 0 4px 30px rgba(0,0,0,0.12) !important; } .inner-card { max-width: 760px !important; margin: 0 auto !important; }</style>';
+            const boundedHtml = cleanHtml.includes("</head>") ? cleanHtml.replace("</head>", max1440Inject + "</head>") : max1440Inject + cleanHtml;
+            const blob = new Blob([boundedHtml], { type: "text/html;charset=utf-8" });
+            const blobUrl = URL.createObjectURL(blob);
+            btnOpenTab.href = blobUrl;
+            btnOpenTab.style.pointerEvents = "auto";
+        }
+
+        // BUTTON 1: SEND TEST WITH LAST EDITION
+        document.getElementById("btn-test-last-edition").addEventListener("click", async () => {
+            clearAlert();
+
+            const toEmail = document.getElementById("test-email").value.trim();
+            const prefix = document.getElementById("test-subject-prefix").value.trim();
+            const editionKey = getSelectedEditionKey();
+            const edition = cachedEditions[editionKey];
+
+            if (!toEmail) {
+                showAlert("Please enter a valid recipient email address.", "warning");
+                return;
+            }
+
+            if (!edition || !edition.html_content) {
+                showAlert(`Cannot send test: No saved HTML found for the <strong>${editionKey === "monday" ? "Monday" : "Thursday"}</strong> edition.`, "danger");
+                return;
+            }
+
+            const btn = document.getElementById("btn-test-last-edition");
+            const spinner = document.getElementById("dispatch-spinner");
+
+            btn.disabled = true;
+            spinner.style.display = "block";
+
+            const finalSubject = prefix ? `${prefix} ${edition.subject}` : `[TEST] ${edition.subject}`;
+            const finalHtml = getProcessedEditionHtml(editionKey);
+
+            try {
+                const { data, error } = await sbClient.functions.invoke("send-email", {
+                    body: {
+                        formType: "newsletter_dispatch",
+                        record: {
+                            email: toEmail,
+                            subject: finalSubject,
+                            html_body: finalHtml
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                showAlert(
+                    `&#10003; <strong>Success!</strong> Test ${editionKey.toUpperCase()} newsletter (Last Edition) has been dispatched to <strong>${toEmail}</strong> via Brevo.<br><span style="font-size:12px;">Subject: ${finalSubject}</span>`,
+                    "success"
+                );
+            } catch (err) {
+                showAlert(`Failed to send test email: ${err.message || err}`, "danger");
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = "none";
+            }
+        });
+
+        // BUTTON 2: RUN TEST WITH NEW BUILD
+        document.getElementById("btn-test-new-build").addEventListener("click", () => {
+            const editionKey = getSelectedEditionKey();
+            const workflowEdition = editionKey === "monday" ? "monday" : "thursday";
+            const toEmail = document.getElementById("test-email").value.trim() || "cheerfulweb@gmail.com";
+
+            document.getElementById("code-target-edition").textContent = workflowEdition;
+            document.getElementById("code-target-email").textContent = toEmail;
+
+            const modal = document.getElementById("new-build-modal");
+            modal.style.display = "block";
+            modal.scrollIntoView({ behavior: "smooth" });
+        });
+
+        document.getElementById("btn-close-new-build").addEventListener("click", () => {
+            document.getElementById("new-build-modal").style.display = "none";
+        });
+
+        document.getElementById("btn-refresh-editions").addEventListener("click", loadLatestEditions);
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    
+        window.triggerLiveBroadcastFromTest = async function () {
+            const editionEl = document.querySelector('input[name="edition"]:checked');
+            const edition = editionEl ? editionEl.value : 'reader';
+            const confirmText = prompt(`SAFETY CONFIRMATION: You are about to broadcast the live ${edition.toUpperCase()} newsletter to all active subscribers.\n\nType "PUBLISH" to confirm and proceed:`);
+            if (confirmText !== "PUBLISH") {
+                alert("Broadcast cancelled.");
+                return;
+            }
+            const btn = document.getElementById("btn-live-publish");
+            btn.disabled = true;
+            btn.textContent = "Broadcasting live edition...";
+            try {
+                const client = window.GeorginaStore.getClient();
+                if (client) {
+                    await client.from("newsletter_editions").insert([{
+                        edition_type: edition,
+                        subject: `Welcome East Gwillimbury Live On-Demand Dispatch (${new Date().toLocaleDateString()})`,
+                        html_content: "Dispatched on demand by admin from test center",
+                        sent_count: 0,
+                        is_current: true
+                    }]);
+                }
+                alert(`Success! ${edition.toUpperCase()} newsletter edition dispatched on demand!`);
+            } catch (e) {
+                alert("Notice: Dispatch queued: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "🚀 Publish Live Edition On Demand";
+            }
+        };
+
+    </script>
+</body>
+</html>

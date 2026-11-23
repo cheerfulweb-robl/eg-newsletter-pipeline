@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Email Subscription • Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="assets/styles.css?v=67.7">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.7"></script>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="confirm-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/news/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="container" style="max-width: 760px; margin-top: 28px;">
+        <div class="card" style="text-align: center; padding: 32px 24px;">
+            <div id="confirm-badge" class="badge-pill" style="margin-bottom: 12px;">Verifying Subscription...</div>
+            <h1 id="confirm-heading" style="font-size: 26px; margin-bottom: 10px;">Confirming Your Email Address...</h1>
+            <p id="confirm-message" style="color: var(--muted); font-size: 15px; max-width: 560px; margin: 0 auto 20px auto;">
+                Please wait a moment while we activate your Welcome East Gwillimbury newsletter subscription.
+            </p>
+            <div id="confirm-actions" style="display: none; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <a href="https://welcomeeg.ca" class="btn btn-primary">Explore Local Perks &amp; Deals</a>
+                <a href="portal.html" class="btn btn-secondary">Submit a Local Event</a>
+            </div>
+            <div id="resend-status" style="margin-top: 12px; font-size: 13px; color: var(--success); display: none;"></div>
+        </div>
+
+        <div id="latest-edition-wrapper" style="display: none; margin-top: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <h2 style="font-size: 18px; margin: 0;">Latest Edition Preview</h2>
+                <span id="latest-edition-subject" style="font-size: 13px; color: var(--muted);"></span>
+            </div>
+            <div id="latest-edition-content" class="card" style="padding: 0; overflow: hidden;"></div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let confirmedSubscriber = null;
+
+        async function loadLatestEditionPreview(client, editionType, token) {
+            try {
+                const targetEdition = editionType === "vendor" ? "vendor" : "reader";
+                const { data, error } = await client
+                    .from("newsletter_editions")
+                    .select("edition,subject,html_content,updated_at")
+                    .eq("edition", targetEdition)
+                    .maybeSingle();
+
+                if (!error && data && data.html_content) {
+                    const wrapper = document.getElementById("latest-edition-wrapper");
+                    const subjEl = document.getElementById("latest-edition-subject");
+                    const contentEl = document.getElementById("latest-edition-content");
+
+                    subjEl.textContent = data.subject || "";
+                    const cleanHtml = String(data.html_content)
+                        .replace(/\{\{UNSUBSCRIBE_TOKEN\}\}/g, encodeURIComponent(token || ""))
+                        .replace(/href="\/go\.html/g, 'target="_blank" rel="noopener noreferrer" href="https://welcomeeg.ca/news/go.html')
+                        .replace(/href="\/portal\.html/g, 'target="_blank" rel="noopener noreferrer" href="https://welcomeeg.ca/news/portal.html')
+                        .replace(/href="\/unsubscribe\.html/g, 'target="_blank" rel="noopener noreferrer" href="https://welcomeeg.ca/news/unsubscribe.html')
+                        .replace(/u=%2Fportal\.html/g, 'u=https%3A%2F%2Fwelcomeeg.ca%2Fnews%2Fportal.html');
+                    const iframe = document.createElement("iframe");
+                    iframe.style.width = "100%";
+                    iframe.style.minHeight = "900px";
+                    iframe.style.border = "0";
+                    iframe.setAttribute("sandbox", "allow-popups allow-popups-to-escape-sandbox");
+                    iframe.srcdoc = cleanHtml;
+                    contentEl.innerHTML = "";
+                    contentEl.appendChild(iframe);
+                    wrapper.style.display = "block";
+                }
+            } catch (e) {
+                console.warn("Could not load latest edition preview:", e);
+            }
+        }
+        (async function () {
+            const params = new URLSearchParams(window.location.search);
+            const token = (params.get("token") || "").trim();
+            const badge = document.getElementById("confirm-badge");
+            const heading = document.getElementById("confirm-heading");
+            const msg = document.getElementById("confirm-message");
+            const actions = document.getElementById("confirm-actions");
+
+            const client = window.GeorginaStore.getClient();
+            if (!token || !client) {
+                badge.textContent = "Invalid Link";
+                heading.textContent = "Confirmation Link Incomplete";
+                msg.textContent = "We couldn't find a valid confirmation token in this link. Please try subscribing again on the Welcome East Gwillimbury Newsletter page.";
+                actions.style.display = "flex";
+                return;
+            }
+
+            try {
+                const { data, error } = await client.rpc("confirm_newsletter_subscriber", {
+                    token_input: token
+                });
+
+                if (error) throw error;
+
+                if (data && data.confirmed) {
+                    confirmedSubscriber = data;
+                    badge.textContent = "Subscription Active";
+                    badge.style.background = "#dcfce7";
+                    badge.style.color = "#166534";
+                    heading.textContent = "Your Email Address is Confirmed!";
+                    const escText = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+                    msg.innerHTML = `Thank you${data.first_name ? ", <b>" + escText(data.first_name) + "</b>" : ""}! Your email (<b>${escText(data.email)}</b>) is now verified and active. Your first newsletter will arrive with the next edition. You can read the latest edition below.`;
+                    actions.style.display = "flex";
+
+                    await loadLatestEditionPreview(client, data.audience_type || "reader", token);
+                } else {
+                    badge.textContent = "Not Found";
+                    heading.textContent = "Subscription Token Not Found";
+                    msg.textContent = "We could not match this confirmation link to an existing subscription. Please subscribe again on the newsletter home page.";
+                    actions.style.display = "flex";
+                }
+            } catch (err) {
+                badge.textContent = "Verification Error";
+                heading.textContent = "Could Not Confirm Subscription";
+                msg.textContent = err.message || String(err);
+                actions.style.display = "flex";
+            }
+
+        })();
+    </script>
+</body>
+</html>

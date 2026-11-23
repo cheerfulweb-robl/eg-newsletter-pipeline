@@ -1,0 +1,756 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Gallery — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        
+        .admin-nav-bar a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .admin-nav-bar a:hover {
+            background: var(--bg-hover, #f1f5f9);
+            border-color: var(--border);
+        }
+        .admin-nav-bar a.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .match-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .match-badge-domain {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .match-badge-exact_url {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .match-badge-prefix {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+    
+/* Unified Admin Navigation Sub-Bar with Robust Pill Buttons */
+.admin-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-nav-group-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-primary a {
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.admin-nav-group-primary a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.admin-nav-group-primary a.active {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0369a1;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+}
+
+.admin-nav-group-external {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-external .external-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.admin-nav-group-external a {
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.admin-nav-group-external a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.admin-nav-group-external a.btn-crm-link {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.admin-nav-group-external a.btn-crm-link:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+    /* Staff Portal Left Sidebar & Modern Shell Layout */
+.admin-shell {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: #00008b;
+    color: #ffffff;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-right: 1px solid #1e3a8a;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e3a8a;
+    }
+}
+
+.admin-content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+}
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- ADMIN LEFT SIDEBAR MENU (STAFF PORTAL) -->
+        
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <!-- Breadcrumb / Admin Nav -->
+        <!-- Unified Admin Navigation Bar -->
+        
+        <div id="page-alert" role="status" aria-live="polite" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Manage the Top Photo Strip</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Add or Reorder Photos:</strong> Upload community photos or business ads to the clothesline strip at the top of the website, and use <strong>Earlier / Later</strong> to change their order.</li>
+        <li><strong>Make Ads Stand Out:</strong> Check <strong>Sponsored Ad Spot</strong> (or <strong>Complimentary</strong> for free ads) to give a photo a 25% larger shimmering frame and click tracking.</li>
+    </ol>
+</details>
+
+        <style>
+            .gal-list { display: grid; gap: 12px; }
+            .gal-item { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 14px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+            .gal-item.is-hidden { opacity: .72; background: #f8fafc; }
+            .gal-thumb { width: 64px; height: 80px; object-fit: cover; background: #fbfaf6; border: 4px solid #fbfaf6; border-bottom-width: 11px; box-shadow: 0 1px 3px rgba(0,0,0,.35); cursor: zoom-in; }
+            .gal-thumb.hl { outline: 2px solid #FFB627; }
+            .gal-fields { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); min-width: 0; }
+            .gal-fields label { font-size: 12px; font-weight: 700; min-width: 0; }
+            .gal-wide { grid-column: 1 / -1; }
+            .gal-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; grid-column: 1 / -1; }
+            .gal-order { font-size: 12px; font-weight: 800; color: var(--muted); margin-right: auto; }
+            .gal-uploads { display: grid; gap: 4px; font-size: 12.5px; margin-top: 8px; }
+            .gal-drop { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; background: #f8fafc; }
+            .gal-drop.over { border-color: #0284c7; background: #eff6ff; }
+            @media (max-width: 560px) { .gal-item { grid-template-columns: 1fr; } }
+        </style>
+
+        <section id="gallery-console" style="display: none;">
+            <div class="card" style="margin-bottom: 20px;">
+                <h1 style="margin: 0 0 4px 0; font-size: 22px;">&#128444;&#65039; Home Gallery</h1>
+                <p style="margin: 0; font-size: 13px; color: var(--muted); max-width: 860px;">
+                    The photos hanging on the clothesline at the top of the Home page, in this order, left to right. The row shows as many as fit the
+                    visitor's screen (about 20 on a laptop, about 10 on a phone), so put the most important ones first. Hovering a photo shows its text;
+                    clicking opens it full screen. Uploads are resized, watermarked with the Welcome East Gwillimbury logo and saved in <code>/gallery/</code>
+                    on this site. Times are Toronto time.
+                </p>
+                <p id="site-note" style="margin: 8px 0 0; font-size: 12.5px; font-weight: 700; color: #92400e;"></p>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h2 style="margin: 0 0 8px 0; font-size: 18px;">Add photos</h2>
+                <div class="gal-drop" id="gal-drop">
+                    <p style="margin: 0 0 10px; font-size: 13px;">Drop photos here, or</p>
+                    <label class="btn btn-primary" for="gal-file" style="cursor: pointer;">Choose photos&hellip;</label>
+                    <input type="file" id="gal-file" accept="image/jpeg,image/png,image/webp" multiple style="position: absolute; width: 1px; height: 1px; opacity: 0;">
+                    <p style="margin: 10px 0 0; font-size: 12px; color: var(--muted);">JPG, PNG or WebP, up to 2 MB each (auto-compressed to WebP). iPhone HEIC photos: share or export as JPG first. New photos go to the end of the line with the text "Send us your images!".</p>
+                </div>
+                <div class="gal-uploads" id="gal-uploads"></div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 18px;">Photos on the line <span id="gal-count" style="font-weight: 600; color: var(--muted); font-size: 14px;"></span></h2>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <select id="gal-filter" class="form-control" style="width: auto; font-size: 12px; padding: 5px 10px;" onchange="render()">
+                            <option value="all">All (Photos &amp; Ads)</option>
+                            <option value="ads_all">All Sponsored Ads</option>
+                            <option value="ads_paid">Paid Ads only</option>
+                            <option value="ads_comp">Complimentary Ads only</option>
+                            <option value="community">Community Photos only</option>
+                        </select>
+                        <a href="/" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">View Site &#8599;</a>
+                        <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">&#8635; Refresh</button>
+                    </div>
+                </div>
+                <div class="gal-list" id="gal-list"></div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <datalist id="gal-targets"></datalist>
+
+    <script>
+        const DEFAULT_TEXT = "Send us your images!";
+        let client = null;
+        let session = null;
+        let rows = [];
+        let targets = []; // { label, url } for events, sales, dining and businesses
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+            el.scrollIntoView({ block: "nearest" });
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+        function escapeHtml(str) {
+            return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Toronto wall-clock time <-> UTC, independent of the computer's own time zone.
+        function torontoParts(ms) {
+            const p = {};
+            new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+                .formatToParts(new Date(ms)).forEach(x => { p[x.type] = x.value; });
+            return p;
+        }
+        function torontoOffsetMs(ms) {
+            const p = torontoParts(ms);
+            return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - Math.floor(ms / 60000) * 60000;
+        }
+        function torontoLocalToIso(value) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value || "");
+            if (!m) return null;
+            const wall = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+            let utc = wall - torontoOffsetMs(wall);
+            utc = wall - torontoOffsetMs(utc);
+            return new Date(utc).toISOString();
+        }
+        function isoToTorontoLocal(iso) {
+            if (!iso) return "";
+            const p = torontoParts(new Date(iso).getTime());
+            return `${p.year}-${p.month}-${p.day}T${String(+p.hour % 24).padStart(2, "0")}:${p.minute}`;
+        }
+
+        function statusOf(r) {
+            const now = Date.now();
+            if (!r.active) return "Hidden";
+            if (r.starts_at && now < new Date(r.starts_at).getTime()) return "Scheduled";
+            if (r.ends_at && now >= new Date(r.ends_at).getTime()) return "Ended";
+            return "Showing";
+        }
+
+        // Same rules as the site (src/utils/searchSuggestions.js classifyRow)
+        function listingUrl(l) {
+            const cat = String(l.category || "").toLowerCase().trim();
+            const dining = ["dining", "restaurant", "food_and_drink", "dining_deals"].includes(cat);
+            return `${dining ? "/dining/" : "/events/"}${encodeURIComponent(l.slug || l.id)}`;
+        }
+        async function loadTargets() {
+            const [ev, biz] = await Promise.all([
+                client.from("vendor_events").select("id, title, business_name, category, slug").eq("status", "approved").order("created_at", { ascending: false }).limit(400),
+                client.from("directory_listings").select("name, slug").order("name", { ascending: true }).limit(1500)
+            ]);
+            targets = [];
+            (ev.data || []).forEach(l => {
+                const t = String(l.title || "").replace(/^\[Sale\]\s*/i, "");
+                targets.push({ label: `${t}${l.business_name && l.business_name !== t ? " (" + l.business_name + ")" : ""}`, url: listingUrl(l) });
+            });
+            (biz.data || []).forEach(b => { if (b.slug && b.name) targets.push({ label: `${b.name} (business page)`, url: `/businesses/${encodeURIComponent(b.slug)}` }); });
+            document.getElementById("gal-targets").innerHTML = targets.map(t => `<option value="${escapeHtml(t.label)}"></option>`).join("");
+        }
+        function urlForLabel(text) {
+            const t = targets.find(x => x.label === text);
+            return t ? t.url : null;
+        }
+        function labelForUrl(url) {
+            const t = targets.find(x => x.url === url);
+            return t ? t.label : "";
+        }
+
+        async function load() {
+            clearAlert();
+            const { data, error } = await client.from("home_gallery").select("*").order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+            if (error) { showAlert("Could not load the gallery: " + error.message + " (has the 20261123 database update been run?)", "danger"); return; }
+            rows = data || [];
+            render();
+        }
+
+        function render() {
+            const showing = rows.filter(r => statusOf(r) === "Showing").length;
+            const fMode = (document.getElementById("gal-filter")?.value || "all");
+            const visibleRows = rows.filter(r => {
+                if (fMode === "ads_all") return !!r.is_sponsored;
+                if (fMode === "ads_paid") return !!r.is_sponsored && !r.is_complimentary;
+                if (fMode === "ads_comp") return !!r.is_sponsored && !!r.is_complimentary;
+                if (fMode === "community") return !r.is_sponsored;
+                return true;
+            });
+            document.getElementById("gal-count").textContent = `(${showing} showing, ${rows.length} in total)`;
+            document.getElementById("gal-list").innerHTML = visibleRows.map((r, i) => {
+                const st = statusOf(r);
+                const linkText = r.link_url ? (labelForUrl(r.link_url) || r.link_url) : "";
+                const adBadge = r.is_sponsored
+                    ? (r.is_complimentary
+                        ? `<span style="padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:800;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;">&#127873; COMPLIMENTARY AD</span>`
+                        : `<span style="padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:800;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;">&#128179; PAID AD</span>`)
+                    : `<span style="padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:700;background:#f1f5f9;color:#475569;">&#128247; COMMUNITY</span>`;
+                return `<div class="gal-item${st === "Showing" ? "" : " is-hidden"}" data-id="${escapeHtml(r.id)}">
+                    <div><img class="gal-thumb${r.highlight ? " hl" : ""}" src="${escapeHtml(r.thumb_url)}" alt="" data-full="${escapeHtml(r.image_url)}" title="Open the full-size photo"></div>
+                    <div class="gal-fields">
+                        <label class="gal-wide">Hover text
+                            <input type="text" class="form-control" data-f="hover_text" maxlength="140" value="${escapeHtml(r.hover_text || DEFAULT_TEXT)}">
+                        </label>
+                        <label>Sponsor Name (if ad)
+                            <input type="text" class="form-control" data-f="sponsor_name" maxlength="120" placeholder="Business or sponsor name" value="${escapeHtml(r.sponsor_name || "")}">
+                        </label>
+                        <label>Links to (event, sale, dining or business; or paste a web address)
+                            <input type="text" class="form-control" data-f="link" list="gal-targets" maxlength="500" placeholder="No link" value="${escapeHtml(linkText)}">
+                        </label>
+                        <label>Link wording (optional)
+                            <input type="text" class="form-control" data-f="link_label" maxlength="120" placeholder="the listing" value="${escapeHtml(r.link_label || "")}">
+                        </label>
+                        <label>Show from (optional)
+                            <input type="datetime-local" class="form-control" data-f="starts_at" value="${escapeHtml(isoToTorontoLocal(r.starts_at))}">
+                        </label>
+                        <label>Hide after (optional)
+                            <input type="datetime-local" class="form-control" data-f="ends_at" value="${escapeHtml(isoToTorontoLocal(r.ends_at))}">
+                        </label>
+                        <label style="display: flex; gap: 8px; align-items: center;"><input type="checkbox" data-f="is_sponsored"${r.is_sponsored ? " checked" : ""}> &#11088; Sponsored Ad Spot (25% larger + shimmering frame)</label>
+                        <label style="display: flex; gap: 8px; align-items: center;"><input type="checkbox" data-f="is_complimentary"${r.is_complimentary ? " checked" : ""}> &#127873; Complimentary (Admin-granted)</label>
+                        <label style="display: flex; gap: 8px; align-items: center;"><input type="checkbox" data-f="highlight"${r.highlight ? " checked" : ""}> Highlight (gold edge, "Local spotlight")</label>
+                        <label style="display: flex; gap: 8px; align-items: center;"><input type="checkbox" data-f="active"${r.active ? " checked" : ""}> Show sitewide on public pages</label>
+                        <div class="gal-actions">
+                            <span class="gal-order">#${i + 1} &middot; ${st} &middot; ${adBadge}${r.is_sponsored ? ` &middot; Clicks: <strong>${Number(r.clicks || 0)}</strong>` : ""}</span>
+                            <button type="button" class="btn btn-secondary btn-sm" data-move="-1"${i === 0 ? " disabled" : ""} aria-label="Move earlier">&#8592; Earlier</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-move="1"${i === visibleRows.length - 1 ? " disabled" : ""} aria-label="Move later">Later &#8594;</button>
+                            <button type="button" class="btn btn-primary btn-sm" data-save>Save</button>
+                            <button type="button" class="btn btn-danger btn-sm" data-delete>Delete</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join("") || `<p style="color: var(--muted); margin: 0;">No photos match this filter.</p>`;
+        }
+
+        function friendlyError(error) {
+            const m = String(error && error.message || "");
+            if (error && (error.code === "42501" || /row-level security|permission denied/i.test(m))) return "Only admins can change the gallery.";
+            if (/home_gallery_link/.test(m)) return "The link must be a listing from the list or a web address starting with https://";
+            if (/home_gallery_window/.test(m)) return "\"Hide after\" must be later than \"Show from\".";
+            if (/home_gallery_text_len/.test(m)) return "Hover text must be 1 to 140 characters.";
+            if (/home_gallery_image|home_gallery_thumb/.test(m)) return "That photo address is not in a Welcome East Gwillimbury /gallery/ folder.";
+            return m || "Something went wrong.";
+        }
+
+        async function saveItem(el) {
+            const id = el.dataset.id;
+            const get = (f) => el.querySelector(`[data-f="${f}"]`);
+            const linkRaw = get("link").value.trim();
+            let link_url = null;
+            if (linkRaw) {
+                link_url = urlForLabel(linkRaw);
+                if (!link_url) {
+                    let u = linkRaw;
+                    if (/^www\./i.test(u)) u = "https://" + u;
+                    if (u.startsWith("/")) link_url = u;
+                    else {
+                        try { const p = new URL(u); if ((p.protocol === "https:" || p.protocol === "http:") && !p.username && !p.password) link_url = p.toString(); } catch (_) {}
+                    }
+                    if (!link_url) { showAlert("Pick a listing from the suggestions, or paste a full web address starting with https://", "warning"); return; }
+                }
+            }
+            const payload = {
+                hover_text: get("hover_text").value.trim() || DEFAULT_TEXT,
+                sponsor_name: get("sponsor_name").value.trim() || null,
+                link_url,
+                link_label: link_url ? (get("link_label").value.trim() || null) : null,
+                starts_at: torontoLocalToIso(get("starts_at").value),
+                ends_at: torontoLocalToIso(get("ends_at").value),
+                is_sponsored: get("is_sponsored").checked || get("is_complimentary").checked,
+                is_complimentary: get("is_complimentary").checked,
+                highlight: get("highlight").checked,
+                active: get("active").checked
+            };
+            if (payload.starts_at && payload.ends_at && payload.ends_at <= payload.starts_at) { showAlert("\"Hide after\" must be later than \"Show from\".", "warning"); return; }
+            const { error } = await client.from("home_gallery").update(payload).eq("id", id).select("id").single();
+            if (error) { showAlert(friendlyError(error), "danger"); return; }
+            await load();
+            showAlert("Photo saved.", "success");
+        }
+
+        async function moveItem(id, dir) {
+            const i = rows.findIndex(r => r.id === id);
+            const j = i + dir;
+            if (i < 0 || j < 0 || j >= rows.length) return;
+            const order = rows.map(r => r.id);
+            [order[i], order[j]] = [order[j], order[i]];
+            // Renumber everything so the order is always clean (10, 20, 30...)
+            const updates = order.map((rid, k) => ({ id: rid, sort_order: (k + 1) * 10 })).filter(u => (rows.find(r => r.id === u.id) || {}).sort_order !== u.sort_order);
+            for (const u of updates) {
+                const { error } = await client.from("home_gallery").update({ sort_order: u.sort_order }).eq("id", u.id).select("id").single();
+                if (error) { showAlert(friendlyError(error), "danger"); break; }
+            }
+            await load();
+        }
+
+        async function callUpload(form) {
+            form.append("access_token", session.access_token);
+            const resp = await fetch("/api/gallery_upload.php", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` }, body: form });
+            let data = null;
+            try { data = await resp.json(); } catch (_) {}
+            if (!resp.ok || !data || !data.success) throw new Error((data && data.error) || `The upload service answered with error ${resp.status}.`);
+            return data;
+        }
+
+        async function deleteItem(id) {
+            const r = rows.find(x => x.id === id);
+            if (!r || !window.confirm("Delete this photo from the gallery and from the web host? This cannot be undone. To keep it but stop showing it, untick \"Show on the Home page\" instead.")) return;
+            const { error } = await client.from("home_gallery").delete().eq("id", id).select("id").single();
+            if (error) { showAlert(friendlyError(error), "danger"); return; }
+            // Remove the files too when they live on this site
+            const name = String(r.image_url).split("/").pop();
+            if (new URL(r.image_url).host === location.host) {
+                const fd = new FormData(); fd.append("action", "delete"); fd.append("name", name);
+                try { await callUpload(fd); } catch (e) { showAlert("Removed from the gallery, but the files could not be deleted: " + e.message, "warning"); await load(); return; }
+            }
+            await load();
+            showAlert("Photo deleted.", "success");
+        }
+
+        async function compressToWebpFile(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const MAX_DIM = 1400;
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > MAX_DIM || h > MAX_DIM) {
+                            const ratio = Math.min(MAX_DIM / w, MAX_DIM / h);
+                            w = Math.round(w * ratio);
+                            h = Math.round(h * ratio);
+                        }
+                        const canvas = document.createElement("canvas");
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                        canvas.toBlob((blob) => {
+                            if (blob && blob.type === "image/webp") {
+                                const webpName = file.name.replace(/\.[^.]+$/, "") + ".webp";
+                                resolve(new File([blob], webpName, { type: "image/webp" }));
+                            } else {
+                                resolve(file);
+                            }
+                        }, "image/webp", 0.85);
+                    };
+                    img.onerror = () => resolve(file);
+                    img.src = ev.target.result;
+                };
+                reader.onerror = () => resolve(file);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadFiles(files) {
+            const list = document.getElementById("gal-uploads");
+            let next = rows.reduce((m, r) => Math.max(m, r.sort_order || 0), 0);
+            for (const file of files) {
+                const line = document.createElement("div");
+                line.textContent = `Uploading ${file.name}…`;
+                list.prepend(line);
+                if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { line.textContent = `${file.name}: use a JPG, PNG or WebP photo (HEIC: export as JPG first).`; line.style.color = "#b91c1c"; continue; }
+                if (file.size > 2 * 1024 * 1024) { line.textContent = `${file.name}: larger than 2 MB.`; line.style.color = "#b91c1c"; continue; }
+                try {
+                    const optimizedFile = await compressToWebpFile(file);
+                    const fd = new FormData(); fd.append("action", "upload"); fd.append("photo", optimizedFile, optimizedFile.name);
+                    const up = await callUpload(fd);
+                    next += 10;
+                    const { error } = await client.from("home_gallery").insert({ image_url: up.image_url, thumb_url: up.thumb_url, hover_text: DEFAULT_TEXT, sort_order: next, active: true }).select("id").single();
+                    if (error) throw new Error(friendlyError(error));
+                    line.textContent = `${file.name}: added.`; line.style.color = "#047857";
+                } catch (e) {
+                    line.textContent = `${file.name}: ${e.message}`; line.style.color = "#b91c1c";
+                }
+            }
+            await load();
+        }
+
+        document.getElementById("gal-file").addEventListener("change", (e) => { const f = [...e.target.files]; e.target.value = ""; if (f.length) uploadFiles(f); });
+        const drop = document.getElementById("gal-drop");
+        ["dragenter", "dragover"].forEach(t => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+        ["dragleave", "drop"].forEach(t => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+        drop.addEventListener("drop", (e) => { const f = [...(e.dataTransfer?.files || [])]; if (f.length) uploadFiles(f); });
+
+        document.getElementById("gal-list").addEventListener("click", (e) => {
+            const item = e.target.closest(".gal-item");
+            if (!item) return;
+            const img = e.target.closest(".gal-thumb");
+            if (img) { window.open(img.dataset.full, "_blank", "noopener"); return; }
+            const b = e.target.closest("button");
+            if (!b) return;
+            if (b.hasAttribute("data-save")) saveItem(item);
+            else if (b.hasAttribute("data-delete")) deleteItem(item.dataset.id);
+            else if (b.dataset.move) moveItem(item.dataset.id, Number(b.dataset.move));
+        });
+        document.getElementById("btn-refresh").addEventListener("click", load);
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("The database connection is not configured.", "warning");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data } = await client.auth.getSession();
+            session = data && data.session;
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").trim().toLowerCase();
+            const sideEmail = document.getElementById("sidebar-user-email");
+            if (sideEmail) sideEmail.textContent = userEmail;
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => { await client.auth.signOut(); window.location.href = "/staff/login.html"; };
+            }
+            // Keep the sign-in token fresh for uploads
+            client.auth.onAuthStateChange((_e, s) => { if (s) session = s; });
+            document.getElementById("site-note").textContent = location.host.startsWith("staging.")
+                ? "You are on the STAGING site: photos uploaded here are stored on staging but also appear on the live site (they share one database). After release, manage the gallery on welcomeeg.ca."
+                : "";
+            document.getElementById("gallery-console").style.display = "block";
+            await loadTargets();
+            await load();
+        }
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

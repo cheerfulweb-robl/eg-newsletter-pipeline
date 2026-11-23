@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "brand": {
+    "name": "Welcome East Gwillimbury",
+    "legal_name": "Welcome East Gwillimbury Media & Community Retention",
+    "tagline": "Local Discovery, Community Connection & Resident Perks",
+    "website": "https://welcomeeg.ca",
+    "established": 2026,
+    "headquarters": "Town of East Gwillimbury, Ontario, Canada",
+    "market_coverage": [
+      "Keswick",
+      "Sutton",
+      "Jackson's Point",
+      "Pefferlaw",
+      "Udora",
+      "Baldwin",
+      "Port Bolster"
+    ],
+    "industry": "Local Community Media, Civic Technology & Merchant Marketplace",
+    "mission": "To welcome new residents, champion independent local merchants, and connect East Gwillimbury households with weekly community events, town discoveries, and exclusive local perks.",
+    "vision": "To become East Gwillimbury's most trusted civic front door—uniting newcomers, long-time residents, and hometown businesses through thoughtful storytelling and high-value local rewards."
+  },
+  "visual_identity": {
+    "logo": {
+      "primary_vector_url": "https://welcomeeg.ca/welcome-eg-logo.png",
+      "favicon_url": "https://welcomeeg.ca/favicon.png",
+      "description": "Two-part heritage lockup: 'WELCOME' set in East Gwillimbury Sage uppercase serif, followed by 'East Gwillimbury' in flowing Heritage Terracotta calligraphy.",
+      "composition": {
+        "wordmark_prefix": {
+          "text": "WELCOME",
+          "color": "#2D5043",
+          "color_alt": "#5E7A62",
+          "style": "Spaced Small Caps / Classical Heritage Serif"
+        },
+        "wordmark_main": {
+          "text": "East Gwillimbury",
+          "color": "#C25E3E",
+          "color_alt": "#C8674B",
+          "style": "Elegant Signature Script / Humanist Italic Calligraphy"
+        }
+      },
+      "clearspace": "Minimum 24px or 0.5x the height of the 'W' glyph on all four sides.",
+      "minimum_sizes": {
+        "digital_screen": "32px height",
+        "print": "0.5 inches (12.7 mm) height"
+      },
+      "usage_rules": {
+        "permitted": [
+          "Display on clean white, crisp snow, or soft linen backgrounds (#FFFFFF, #F8FAFC, #FFFBEB)",
+          "Reverse monochrome white lockup on Deep Midnight Slate (#0F172A) or Cheerful Navy (#00008B)",
+          "Maintain original aspect ratio and generous horizontal breathing room"
+        ],
+        "prohibited": [
+          "Never stretch, skew, rotate, or distort the logo proportions",
+          "Never place on busy, clashing, or low-contrast photographic backgrounds without a scrim",
+          "Never substitute unapproved neon, pastel, or gradient fills on the wordmark",
+          "Never separate 'East Gwillimbury' from 'WELCOME' without explicit brand sign-off"
+        ]
+      }
+    },
+    "color_palette": {
+      "primary": {
+        "name": "Cheerful Navy",
+        "hex": "#00008B",
+        "rgb": "rgb(0, 0, 139)",
+        "hsl": "hsl(240, 100%, 27%)",
+        "cmyk": "100, 100, 0, 45",
+        "role": "Primary brand anchor, desktop headers, navigation bar, high-contrast primary call-to-actions, and resident verified badges.",
+        "contrast_ratio_on_white": "15.4:1 (WCAG AAA compliant)"
+      },
+      "secondary": {
+        "name": "Heritage Terracotta",
+        "hex": "#C25E3E",
+        "rgb": "rgb(194, 94, 62)",
+        "hsl": "hsl(15, 52%, 50%)",
+        "cmyk": "0, 52, 68, 24",
+        "role": "Logo wordmark accent, warm editorial callouts, seasonal community highlights, and merchant spotlight badges."
+      },
+      "tertiary": {
+        "name": "East Gwillimbury Sage",
+        "hex": "#2D5043",
+        "rgb": "rgb(45, 80, 67)",
+        "hsl": "hsl(158, 28%, 25%)",
+        "cmyk": "44, 0, 16, 69",
+        "role": "'WELCOME' logo prefix, park and lake environmental badges, nature guides, and civic trail schedules."
+      },
+      "highlight": {
+        "name": "Golden Amber",
+        "hex": "#FBBF24",
+        "rgb": "rgb(251, 191, 36)",
+        "hsl": "hsl(43, 96%, 56%)",
+        "cmyk": "0, 24, 86, 2",
+        "role": "Spotlight banner accents, sponsored cards, star ratings, active offer tags, and VIP perks."
+      },
+      "dark_neutral": {
+        "name": "Deep Midnight Slate",
+        "hex": "#0F172A",
+        "rgb": "rgb(15, 23, 42)",
+        "hsl": "hsl(222, 47%, 11%)",
+        "cmyk": "64, 45, 0, 90",
+        "role": "Secondary sub-navigation drawers, high-contrast footer backgrounds, calendar headers, and modal overlays."
+      },
+      "body_text": {
+        "name": "Slate Body Text",
+        "hex": "#1F2937",
+        "rgb": "rgb(31, 41, 55)",
+        "hsl": "hsl(215, 28%, 17%)",
+        "cmyk": "44, 25, 0, 78",
+        "role": "Primary typography for articles, event listings, merchant terms, and long-form storytelling."
+      },
+      "light_neutrals": [
+        {
+          "name": "Crisp Snow",
+          "hex": "#FFFFFF",
+          "rgb": "rgb(255, 255, 255)",
+          "role": "Primary canvas, card containers, dialog surfaces, and button text."
+        },
+        {
+          "name": "Linen Slate",
+          "hex": "#F8FAFC",
+          "rgb": "rgb(248, 250, 252)",
+          "role": "Page background canvas and subtle card divisions."
+        },
+        {
+          "name": "Warm Honey Glow",
+          "hex": "#FFFBEB",
+          "rgb": "rgb(255, 251, 235)",
+          "role": "Hamper welcome cards, partner spotlight backgrounds, and coupon containers."
+        }
+      ],
+      "functional": {
+        "success_emerald": {
+          "hex": "#047857",
+          "rgb": "rgb(4, 120, 87)",
+          "role": "Verified subscriber badges, confirmed hamper claims, and free admission badges."
+        },
+        "expiring_rose": {
+          "hex": "#BE123C",
+          "rgb": "rgb(190, 18, 60)",
+          "role": "Ending Soon sales tags, limited-time warnings, and deadline countdowns."
+        }
+      }
+    },
+    "typography": {
+      "primary_font_family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "editorial_accent_family": "Playfair Display, Georgia, 'Times New Roman', serif",
+      "google_fonts_embed": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap",
+      "hierarchy": {
+        "display_hero": {
+          "font_family": "Inter",
+          "weight": "900 (Black)",
+          "size": "44px - 60px",
+          "line_height": "1.05",
+          "letter_spacing": "-0.03em",
+          "usage": "Homepage headline, newsletter volume titles, milestone campaign hero banners."
+        },
+        "heading_h1": {
+          "font_family": "Inter",
+          "weight": "900 (Black)",
+          "size": "30px - 38px",
+          "line_height": "1.15",
+          "letter_spacing": "-0.025em",
+          "usage": "Section headers (Two-Week Events Calendar, Local Store Sales, Welcome Hamper)."
+        },
+        "heading_h2": {
+          "font_family": "Inter",
+          "weight": "800 (ExtraBold)",
+          "size": "22px - 26px",
+          "line_height": "1.25",
+          "letter_spacing": "-0.015em",
+          "usage": "Card titles, directory category headings, modal dialog titles."
+        },
+        "heading_h3": {
+          "font_family": "Inter",
+          "weight": "700 (Bold)",
+          "size": "16px - 18px",
+          "line_height": "1.35",
+          "letter_spacing": "0em",
+          "usage": "Listing headers, merchant names, calendar day labels."
+        },
+        "body_regular": {
+          "font_family": "Inter",
+          "weight": "500 (Medium)",
+          "size": "14px - 15px",
+          "line_height": "1.6",
+          "usage": "Editorial body text, event summaries, newsletter paragraphs."
+        },
+        "body_small": {
+          "font_family": "Inter",
+          "weight": "500 (Medium)",
+          "size": "12px - 13px",
+          "line_height": "1.5",
+          "usage": "Timestamps, venue addresses, terms & conditions, metadata."
+        },
+        "ui_badges_eyebrow": {
+          "font_family": "Inter",
+          "weight": "900 (Black)",
+          "size": "10px - 11px",
+          "line_height": "1.2",
+          "letter_spacing": "0.08em",
+          "text_transform": "uppercase",
+          "usage": "Category pills (DINING, COMMUNITY, MARKETS, ENDING SOON, SPONSORED)."
+        },
+        "buttons_cta": {
+          "font_family": "Inter",
+          "weight": "900 (Black)",
+          "size": "12px - 14px",
+          "line_height": "1.0",
+          "letter_spacing": "0.04em",
+          "text_transform": "uppercase",
+          "usage": "Action buttons ('CLAIM PERK', 'BOOK SPOT', 'DETAILS ->', 'SAVE')."
+        }
+      }
+    },
+    "ui_components": {
+      "border_radii": {
+        "card_container": "24px to 32px (rounded-3xl)",
+        "inner_card": "16px (rounded-2xl)",
+        "button": "12px to 16px (rounded-xl)",
+        "pill_badge": "9999px (rounded-full) or 6px (rounded-md)"
+      },
+      "shadows": {
+        "card_resting": "0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)",
+        "card_hover": "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)",
+        "modal_overlay": "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+      }
+    }
+  },
+  "brand_voice": {
+    "core_archetype": "The Welcoming Civic Neighbor & Trusted Hometown Curator",
+    "tone_attributes": [
+      {
+        "trait": "Warm & Welcoming",
+        "description": "Approachable, kind, and enthusiastic without being loud. We make newcomers feel immediately at home in East Gwillimbury."
+      },
+      {
+        "trait": "Dependable & Civic-Minded",
+        "description": "Accurate dates, verified addresses, real town updates, CASL-compliant privacy, and trustworthy merchant relationships."
+      },
+      {
+        "trait": "Hometown Champion",
+        "description": "Proudly local. We celebrate East Gwillimbury's beaches, heritage farms, Keswick cafes, and Sutton artisan workshops."
+      },
+      {
+        "trait": "Action-Oriented & Clear",
+        "description": "Direct pricing, transparent terms, instant calendar exports, zero clutter, and friction-free digital perk redemption."
+      }
+    ],
+    "editorial_dos_and_donts": {
+      "do": [
+        "Mention specific East Gwillimbury hamlets (Keswick, Sutton, Jackson's Point, Pefferlaw, Udora).",
+        "Highlight free and family-friendly activities clearly so parents can plan weekends easily.",
+        "Include prices, discounts, exact hours, and wheelchair/stroller accessibility details.",
+        "Champion independent mom-and-pop stores, tradespeople, and community volunteer groups."
+      ],
+      "dont": [
+        "Never use generic corporate buzzwords ('synergy', 'disruptive', 'paradigm').",
+        "Never publish vague event dates without exact days, times, and venue addresses.",
+        "Never employ bait-and-switch deals or unverified claims.",
+        "Avoid cynicism or political divisiveness—we exist to bring the community together."
+      ]
+    },
+    "key_phrases": [
+      "This Weekend in East Gwillimbury",
+      "Welcome to East Gwillimbury Country",
+      "Support Local • Shop Hometown",
+      "Your Community Front Door",
+      "Fresh Discoveries Every Week",
+      "Claim Your Resident Digital Perk Pass"
+    ]
+  },
+  "target_audiences": [
+    {
+      "segment": "New Resident Households (Welcome Hamper Recipients)",
+      "profile": "Families and couples who recently relocated to East Gwillimbury from the GTA or elsewhere, seeking trusted local dentists, mechanics, schools, parks, and retail favorites.",
+      "value_delivered": "Curated Welcome Hamper loaded with physical gifts, verified digital perk passes, town survival guides, and garbage/recycling schedules."
+    },
+    {
+      "segment": "Established Local Residents & Families",
+      "profile": "Long-time residents looking for things to do this weekend, community meat draws, live music, holiday parades, library workshops, and local store sales.",
+      "value_delivered": "Two-week calendar, 6-week town planner, mobile digital wallet, and Thursday morning weekly community newsletter."
+    },
+    {
+      "segment": "Independent Local Business Owners & Artisans",
+      "profile": "Retailers, restaurants, contractors, and service providers seeking direct, qualified local resident reach without spending thousands on social media ads.",
+      "value_delivered": "Guaranteed welcome pack distribution to verified new movers, sponsored weekend spotlight ad cards, free community sale postings, and cashier redemption verification."
+    },
+    {
+      "segment": "Civic & Community Organizations",
+      "profile": "Legion branches, libraries, historical societies, BIA associations, sports clubs, and festival committees.",
+      "value_delivered": "Free automated event scraping, rapid community event submissions, .ics calendar exports, and wide distribution."
+    }
+  ],
+  "imagery_and_art_direction": {
+    "style": "Bright, authentic, lakeside community lifestyle photography. High natural daylight, crisp waterscapes, real people, and genuine local storefronts.",
+    "motifs": [
+      "East Gwillimbury shorelines, docks, and beach sunsets (Jackson's Point, De La Salle)",
+      "Charming High Street historic brick storefronts in Sutton and bustling Keswick plazas",
+      "Autumn harvest markets, winter skating at East Gwillimbury Ice Palace, and summer festival fairs",
+      "Fresh bakery goods, artisan crafts, hardware tools, and family garden centre visits"
+    ],
+    "avoid": [
+      "Sterile stock photos with non-Canadian architecture",
+      "Dark, moody, desaturated filters",
+      "Overly stylized CGI illustrations that lose touch with small-town warmth"
+    ]
+  },
+  "pomelli_export_metadata": {
+    "source": "Welcome East Gwillimbury Web Architecture & Brand Kit",
+    "compatible_tools": [
+      "Google Labs Pomelli (labs.google.com/pomelli)",
+      "Google Brand Studio AI",
+      "Canva Brand Kit",
+      "Figma Tokens Studio"
+    ],
+    "contact": {
+      "publisher": "Welcome East Gwillimbury Media",
+      "email": "connect@welcomeeg.ca",
+      "support": "https://welcomeeg.ca/help"
+    }
+  }
+}

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Hamper Redemptions • Welcome East Gwillimbury</title>
+    <meta name="description" content="Public Welcome Hamper coupon code redemption page for participating East Gwillimbury businesses.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/news/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .hamper-input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 15px;
+            background: #ffffff;
+            color: #0f172a;
+        }
+        .hamper-input:focus { outline: 2px solid #00008b; outline-offset: 1px; border-color: #00008b; }
+        fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="hamper-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link active font-bold text-[#00008b]" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/news/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-news-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="max-w-xl mx-auto px-4 sm:px-6 py-10 space-y-6">
+        <div class="text-center space-y-2">
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-[#00008b]">Welcome Hamper &bull; Participating Businesses</p>
+            <h1 class="text-3xl font-black text-slate-900">Redeem a Coupon Code</h1>
+            <p class="text-sm text-slate-600">No business sign-in required. Enter or scan a customer&rsquo;s 8-character Welcome Hamper code below to check and redeem their offer.</p>
+        </div>
+
+        <!-- Public Redemption Form -->
+        <section id="r-main" class="space-y-5">
+            <form id="r-check-form" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-3" novalidate>
+                <label for="r-code" class="block text-sm font-bold text-slate-800">Enter 8-Character Coupon Code</label>
+                <input id="r-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" class="hamper-input font-mono text-2xl tracking-[0.2em] uppercase text-center" placeholder="WG7K3M9Q">
+                <button type="submit" id="r-check-btn" class="w-full px-6 py-3.5 rounded-xl bg-[#00008b] hover:bg-blue-900 text-white font-black text-xs uppercase tracking-wider">Check Code</button>
+                <p class="text-xs text-slate-500 text-center">Tip: scanning the customer&rsquo;s QR code with your phone or tablet camera opens this page with the code already filled in.</p>
+            </form>
+
+            <section id="r-result" class="hidden bg-white rounded-3xl border shadow-sm p-6 space-y-3" aria-live="polite"></section>
+        </section>
+
+        <p id="r-error" class="hidden text-center text-sm font-bold text-red-700" role="alert"></p>
+
+        <!-- Instructions for Participating Businesses -->
+        <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50 text-[#00008b] font-black text-sm">?</span>
+                <h2 class="text-lg font-black text-slate-900">How Participating Businesses Use This Page</h2>
+            </div>
+            <ol class="space-y-3 text-sm text-slate-700 list-decimal pl-5">
+                <li>
+                    <strong class="text-slate-900">Ask for the resident&rsquo;s Welcome Hamper coupon:</strong>
+                    Approved new East Gwillimbury residents receive a digital Welcome Hamper wallet containing a QR code and an 8-character code starting with <code class="font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-900">WG</code> (for example, <code class="font-mono font-bold bg-slate-100 px-1.5 py-0.5 rounded text-slate-900">WG7K3M9Q</code>).
+                </li>
+                <li>
+                    <strong class="text-slate-900">Scan the QR code or type the 8-character code:</strong>
+                    Point any smartphone or tablet camera at the customer&rsquo;s QR code to open this page with their code pre-filled, or type the code into the box above and tap <strong>Check Code</strong>.
+                </li>
+                <li>
+                    <strong class="text-slate-900">Verify the business &amp; offer details:</strong>
+                    The screen displays the participating business name, the exact offer title, any terms or minimum purchase notes, the resident&rsquo;s first name, and whether the code is valid, expired, or already used.
+                </li>
+                <li>
+                    <strong class="text-slate-900">Tap &ldquo;Redeem Now&rdquo; twice to complete redemption:</strong>
+                    When the customer is ready to use the offer at checkout, tap <strong>Redeem Now</strong> and tap once more to confirm. Each code is single-use and is immediately marked as redeemed so it cannot be used again.
+                </li>
+            </ol>
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 space-y-1">
+                <p class="font-bold text-slate-800">Want to offer a Welcome Hamper perk for new East Gwillimbury residents?</p>
+                <p>Visit <a href="/hamper/" class="text-[#00008b] font-bold underline">The Welcome Hamper page</a> to register a business offer or email <a href="mailto:contact@welcomeeg.ca" class="text-[#00008b] font-bold underline">contact@welcomeeg.ca</a>.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Standard Site Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/hamper/redeem.html">🎟️ Redemptions (Hamper Codes)</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            function $(id) { return document.getElementById(id); }
+            function el(tag, cls, text) {
+                const n = document.createElement(tag);
+                if (cls) n.className = cls;
+                if (text !== undefined && text !== null) n.textContent = text;
+                return n;
+            }
+            function cleanCode(v) { return String(v || "").toUpperCase().replace(/[\s-]/g, ""); }
+            function validCode(c) { return /^WG[A-HJ-NP-Z2-9]{6}$/.test(c); }
+            function fmt(ts) {
+                if (!ts) return "";
+                const d = new Date(ts);
+                return isNaN(d) ? "" : d.toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" });
+            }
+
+            function resultBox(tone) {
+                const box = $("r-result");
+                box.textContent = "";
+                box.className = "bg-white rounded-3xl border shadow-sm p-6 space-y-3 " +
+                    (tone === "ok" ? "border-emerald-300" : tone === "bad" ? "border-red-300" : "border-slate-200");
+                box.classList.remove("hidden");
+                return box;
+            }
+
+            async function check(db, code) {
+                const box = resultBox("");
+                box.appendChild(el("p", "text-sm text-slate-600", "Checking code..."));
+                const { data, error } = await db.rpc("hamper_merchant_check", { code_input: code });
+                if (error) {
+                    const b = resultBox("bad");
+                    b.appendChild(el("p", "font-bold text-red-700", error.message));
+                    return;
+                }
+                if (!data || !data.found) {
+                    const b = resultBox("bad");
+                    b.appendChild(el("h2", "text-lg font-black text-red-700", "❌ Coupon code not found"));
+                    b.appendChild(el("p", "text-sm text-slate-600", "Please double-check the 8-character code and try again. Valid codes start with WG followed by 6 letters and numbers."));
+                    return;
+                }
+                const usable = data.status === "available" && !data.expired;
+                const b = resultBox(usable ? "ok" : "bad");
+                b.appendChild(el("p", "font-mono text-xl font-black tracking-[0.2em] text-slate-900", data.code));
+                if (data.business_name) {
+                    b.appendChild(el("p", "text-xs font-black uppercase tracking-wider text-[#00008b]", data.business_name));
+                }
+                b.appendChild(el("h2", "text-lg font-black text-slate-900", data.offer_title));
+                if (data.offer_details) b.appendChild(el("p", "text-sm text-slate-600", data.offer_details));
+                if (data.terms) b.appendChild(el("p", "text-xs text-slate-500", "Terms: " + data.terms));
+                b.appendChild(el("p", "text-sm text-slate-700", "Coupon holder: " + (data.holder || "Resident")));
+
+                if (data.status === "redeemed") {
+                    b.appendChild(el("p", "font-black text-red-700", "❌ Already redeemed on " + fmt(data.redeemed_at) + "."));
+                    return;
+                }
+                if (data.status !== "available") {
+                    b.appendChild(el("p", "font-black text-red-700", "❌ This coupon has been cancelled."));
+                    return;
+                }
+                if (data.expired) {
+                    b.appendChild(el("p", "font-black text-red-700", "❌ This coupon has expired."));
+                    return;
+                }
+
+                b.appendChild(el("p", "font-black text-emerald-700", "✅ Valid coupon. Redeeming marks it as used; it cannot be used again."));
+                const btn = el("button", "w-full px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase tracking-wider disabled:opacity-60", "Redeem Now");
+                btn.type = "button";
+                let armed = false;
+                btn.addEventListener("click", async function () {
+                    if (!armed) {
+                        armed = true;
+                        btn.textContent = "Tap Again to Confirm Redemption";
+                        btn.classList.replace("bg-emerald-600", "bg-amber-600");
+                        setTimeout(function () {
+                            if (armed && !btn.disabled) {
+                                armed = false;
+                                btn.textContent = "Redeem Now";
+                                btn.classList.replace("bg-amber-600", "bg-emerald-600");
+                            }
+                        }, 6000);
+                        return;
+                    }
+                    btn.disabled = true;
+                    btn.textContent = "Redeeming...";
+                    const res = await db.rpc("hamper_merchant_redeem", { code_input: data.code });
+                    const done = resultBox(res.error ? "bad" : "ok");
+                    if (res.error) {
+                        done.appendChild(el("h2", "text-lg font-black text-red-700", "❌ Not redeemed"));
+                        done.appendChild(el("p", "text-sm text-slate-700", res.error.message));
+                    } else {
+                        done.appendChild(el("h2", "text-xl font-black text-emerald-700", "✅ Coupon Redeemed"));
+                        done.appendChild(el("p", "font-mono text-lg font-black tracking-[0.2em]", data.code));
+                        if (data.business_name) {
+                            done.appendChild(el("p", "text-xs font-black uppercase tracking-wider text-[#00008b]", data.business_name));
+                        }
+                        done.appendChild(el("p", "text-sm text-slate-700", data.offer_title + " • " + fmt(new Date())));
+                        $("r-code").value = "";
+                    }
+                });
+                b.appendChild(btn);
+            }
+
+            document.addEventListener("DOMContentLoaded", async function () {
+                if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                    $("r-error").textContent = "This service is not available right now. Please try again later.";
+                    $("r-error").classList.remove("hidden");
+                    return;
+                }
+                const db = window.GeorginaStore.getClient();
+                const urlCode = cleanCode(new URLSearchParams(window.location.search).get("code"));
+                const startCode = validCode(urlCode) ? urlCode : "";
+
+                $("r-check-form").addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    const code = cleanCode($("r-code").value);
+                    $("r-code").value = code;
+                    if (!validCode(code)) {
+                        const b = resultBox("bad");
+                        b.appendChild(el("p", "font-bold text-red-700", "Codes start with WG followed by 6 letters and numbers (for example, WG7K3M9Q)."));
+                        return;
+                    }
+                    check(db, code);
+                });
+
+                if (startCode) {
+                    $("r-code").value = startCode;
+                    check(db, startCode);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

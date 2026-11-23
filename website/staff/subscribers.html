@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Subscribers — Welcome East Gwillimbury Staff</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .status-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .status-active { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .status-pending { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .status-unsubscribed { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .metric-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .metric-card .num {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.1;
+            color: #00008b;
+        }
+        .metric-card .lbl {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 4px;
+        }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="subscribers-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="container admin-content-area" style="max-width: 1440px; margin: 0 auto; padding: 18px 20px;">
+        <div id="page-alert" role="status" style="display: none; margin-bottom: 20px;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Manage Newsletter Subscribers</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>View &amp; Search Your List:</strong> See everyone signed up to receive both the Monday and Thursday community newsletters.</li>
+        <li><strong>Pause or Remove:</strong> Pause or delete any email address if someone asks to be removed (people who click Unsubscribe in an email are removed automatically).</li>
+    </ol>
+</details>
+
+        <!-- Metric Summary Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="num" id="stat-total">0</div>
+                <div class="lbl">Total Subscribers</div>
+            </div>
+            <div class="metric-card">
+                <div class="num" id="stat-active" style="color: #166534;">0</div>
+                <div class="lbl">Active Members</div>
+            </div>
+            <div class="metric-card">
+                <div class="num" id="stat-pending" style="color: #854d0e;">0</div>
+                <div class="lbl">Pending Confirmation</div>
+            </div>
+            <div class="metric-card">
+                <div class="num" id="stat-disabled" style="color: #991b1b;">0</div>
+                <div class="lbl">Disabled / Unsubscribed (CASL)</div>
+            </div>
+        </div>
+
+        <!-- Subscribers Card -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                <div>
+                    <h1 style="margin: 0 0 4px 0; font-size: 22px; color: #00008b;">Community &amp; Reader Newsletter Subscribers</h1>
+                    <p style="margin: 0; color: var(--muted); font-size: 13px;">
+                        Manage subscribers collected from community sign-ups, website forms, and Hamper claims. One-click CASL disable or permanent deletion.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="filter-search" class="form-control" placeholder="Search email, name, community..." style="width: 250px; max-width: 100%; font-size: 13px; padding: 7px 12px; margin: 0;">
+                    <select id="filter-status" class="form-control" style="width: 160px; max-width: 100%; font-size: 13px; padding: 7px 12px; margin: 0;">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active Only</option>
+                        <option value="pending">Pending Confirmation</option>
+                        <option value="unsubscribed">Disabled / Unsubscribed</option>
+                    </select>
+                    <button type="button" id="btn-export" class="btn btn-secondary btn-sm">📥 Export (CSV)</button>
+                    <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Audience</th>
+                            <th>Community</th>
+                            <th>Signed Up</th>
+                            <th>Unsubscribed Date (CASL)</th>
+                            <th style="text-align: right; white-space: nowrap;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subs-tbody">
+                        <tr><td colspan="8" style="text-align: center; color: var(--muted); padding: 24px;">Loading subscribers...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Live Newsletter Publishing & Dispatch Section -->
+        <div class="card" style="border: 2px solid #00008b; background: #ffffff;">
+            <div style="margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h2 style="margin: 0 0 4px 0; font-size: 19px; color: #00008b;">🚀 Live Newsletter Broadcast on Demand</h2>
+                <p style="margin: 0; color: var(--muted); font-size: 13px;">
+                    Trigger an immediate publication broadcast to active verified subscribers.
+                </p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                <label style="font-size: 13px; font-weight: 700; color: #1e3a8a;">Edition to Publish:</label>
+                <select id="dispatch-edition" class="form-control" style="width: 280px; max-width: 100%; font-weight: 700; margin: 0;">
+                    <option value="reader">Thursday Edition (Weekend Listings)</option>
+                    <option value="vendor">Monday Edition (Mon&ndash;Fri Listings)</option>
+                </select>
+                <button type="button" id="btn-dispatch" class="btn btn-primary" style="background:#00008b;">Trigger Broadcast</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/hamper/redeem.html">🎟️ Redemptions (Hamper Codes)</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let client = null;
+        let allSubscribers = [];
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+        function escapeHtml(s) {
+            return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function jsArg(value) {
+            return escapeHtml(JSON.stringify(String(value == null ? "" : value)));
+        }
+
+        async function loadSubscribers() {
+            clearAlert();
+            try {
+                let subs = [];
+                const rpcRes = await client.rpc("get_all_subscribers_admin");
+                if (!rpcRes.error && Array.isArray(rpcRes.data)) {
+                    subs = rpcRes.data;
+                } else {
+                    const { data, error } = await client.from("newsletter_subscribers").select("*").order("created_at", { ascending: false });
+                    if (error) throw error;
+                    subs = data || [];
+                }
+                allSubscribers = subs;
+                updateMetrics();
+                renderTable();
+            } catch (err) {
+                showAlert("Could not load subscribers: " + (err.message || err), "danger");
+            }
+        }
+
+        function updateMetrics() {
+            const total = allSubscribers.length;
+            const active = allSubscribers.filter(s => s.status === "active").length;
+            const pending = allSubscribers.filter(s => s.status === "pending").length;
+            const disabled = allSubscribers.filter(s => s.status === "unsubscribed").length;
+
+            document.getElementById("stat-total").textContent = total.toLocaleString();
+            document.getElementById("stat-active").textContent = active.toLocaleString();
+            document.getElementById("stat-pending").textContent = pending.toLocaleString();
+            document.getElementById("stat-disabled").textContent = disabled.toLocaleString();
+        }
+
+        function renderTable() {
+            const searchVal = (document.getElementById("filter-search").value || "").toLowerCase().trim();
+            const statusVal = document.getElementById("filter-status").value || "";
+
+            const filtered = allSubscribers.filter(sub => {
+                if (statusVal && sub.status !== statusVal) return false;
+                if (searchVal) {
+                    const text = `${sub.email || ""} ${sub.first_name || ""} ${sub.last_name || ""} ${sub.name || ""} ${sub.community_area || ""}`.toLowerCase();
+                    if (!text.includes(searchVal)) return false;
+                }
+                return true;
+            });
+
+            const tbody = document.getElementById("subs-tbody");
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:24px;">No subscribers match the current filter.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(sub => {
+                const isUnsub = sub.status === "unsubscribed";
+                const displayName = sub.name || `${sub.first_name || ""} ${sub.last_name || ""}`.trim() || sub.first_name || "—";
+                const unsubDate = sub.unsubscribed_at ? String(sub.unsubscribed_at).slice(0, 10) : "—";
+                const createdDate = sub.created_at ? String(sub.created_at).slice(0, 10) : "—";
+
+                return `<tr>
+                    <td><span class="status-badge status-${escapeHtml(sub.status || "pending")}">${escapeHtml(sub.status || "pending")}</span></td>
+                    <td><strong>${escapeHtml(sub.email)}</strong></td>
+                    <td>${escapeHtml(displayName)}</td>
+                    <td><span style="font-size:12px; font-weight:700; text-transform:capitalize;">${escapeHtml(sub.audience_type || "reader")}</span></td>
+                    <td>${escapeHtml(sub.community_area || "All East Gwillimbury")}</td>
+                    <td style="font-size:12px;">${escapeHtml(createdDate)}</td>
+                    <td style="font-size:12px; color:${sub.unsubscribed_at ? '#991b1b' : 'inherit'};">${escapeHtml(unsubDate)}</td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        ${isUnsub
+                            ? `<button type="button" class="btn btn-success btn-sm" onclick="toggleStatus(${jsArg(sub.id)}, 'active')">✓ Re-Enable</button>`
+                            : `<button type="button" class="btn btn-warning btn-sm" onclick="toggleStatus(${jsArg(sub.id)}, 'unsubscribed')">🚫 Disable (CASL)</button>`
+                        }
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteSubscriber(${jsArg(sub.id)}, ${jsArg(sub.email)})">🗑️ Delete</button>
+                    </td>
+                </tr>`;
+            }).join("");
+        }
+
+        window.toggleStatus = async function(id, newStatus) {
+            const action = newStatus === "unsubscribed" ? "DISABLE / UNSUBSCRIBE (sets CASL unsubscribed date)" : "RE-ENABLE as ACTIVE";
+            if (!confirm(`Are you sure you want to ${action} this subscriber?`)) return;
+
+            clearAlert();
+            try {
+                const rpcRes = await client.rpc("wg_admin_set_subscriber_status", { sub_id: id, status_input: newStatus });
+                if (rpcRes.error || (rpcRes.data && !rpcRes.data.success)) {
+                    const payload = {
+                        status: newStatus,
+                        unsubscribed_at: newStatus === "unsubscribed" ? new Date().toISOString() : null
+                    };
+                    const { error } = await client.from("newsletter_subscribers").update(payload).eq("id", id);
+                    if (error) throw error;
+                }
+                showAlert(`Subscriber ${newStatus === 'active' ? 're-enabled as Active' : 'disabled / unsubscribed'}.`, "success");
+                await loadSubscribers();
+            } catch (err) {
+                showAlert("Could not update subscriber: " + (err.message || err), "danger");
+            }
+        };
+
+        window.deleteSubscriber = async function(id, email) {
+            if (!confirm(`PERMANENTLY DELETE subscriber: ${email}?\n\nThis removes their record completely from Supabase. This cannot be undone.`)) return;
+
+            clearAlert();
+            try {
+                const rpcRes = await client.rpc("wg_admin_delete_subscriber", { sub_id: id });
+                if (rpcRes.error || (rpcRes.data && !rpcRes.data.success)) {
+                    const { error } = await client.from("newsletter_subscribers").delete().eq("id", id);
+                    if (error) throw error;
+                }
+                showAlert(`Deleted subscriber ${email}.`, "success");
+                await loadSubscribers();
+            } catch (err) {
+                showAlert("Could not delete subscriber: " + (err.message || err), "danger");
+            }
+        };
+
+        document.getElementById("filter-search").addEventListener("input", renderTable);
+        document.getElementById("filter-status").addEventListener("change", renderTable);
+        document.getElementById("btn-refresh").addEventListener("click", loadSubscribers);
+
+        document.getElementById("btn-export").addEventListener("click", () => {
+            const headers = ["Status", "Email", "Name", "Audience", "Community Area", "Signed Up Date", "Unsubscribed Date (CASL)"];
+            const searchVal = (document.getElementById("filter-search").value || "").toLowerCase().trim();
+            const statusVal = document.getElementById("filter-status").value || "";
+            const shown = allSubscribers.filter(sub => {
+                if (statusVal && sub.status !== statusVal) return false;
+                return !searchVal || `${sub.email || ""} ${sub.first_name || ""} ${sub.last_name || ""} ${sub.name || ""} ${sub.community_area || ""}`.toLowerCase().includes(searchVal);
+            });
+            if (!shown.length) { showAlert("No subscribers match the current filter.", "warning"); return; }
+            const rows = shown.map(s => [
+                s.status || "pending",
+                s.email,
+                s.name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || s.first_name || "",
+                s.audience_type || "reader",
+                s.community_area || "All East Gwillimbury",
+                (s.created_at || "").slice(0, 10),
+                s.unsubscribed_at ? String(s.unsubscribed_at).slice(0, 10) : ""
+            ]);
+
+            const escapeCsv = (val) => {
+                let s = String(val == null ? "" : val);
+                if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+                return `"${s.replace(/"/g, '""')}"`;
+            };
+            const csv = [headers.join(","), ...rows.map(r => r.map(escapeCsv).join(","))].join("\r\n");
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `welcome-georgina-subscribers-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById("btn-dispatch").addEventListener("click", async () => {
+            const ed = document.getElementById("dispatch-edition").value;
+            const conf = prompt(`SAFETY CONFIRMATION: Type "PUBLISH" to broadcast the live ${ed.toUpperCase()} edition to all active subscribers:`);
+            if (conf !== "PUBLISH") return;
+
+            showAlert("Dispatching newsletter broadcast via Brevo...", "info");
+            try {
+                const { data, error } = await client.functions.invoke("send-email", {
+                    body: { formType: "newsletter_dispatch", record: { edition: ed } }
+                });
+                if (error) throw error;
+                showAlert(`Broadcast initiated successfully for ${ed} edition.`, "success");
+            } catch (err) {
+                showAlert("Broadcast failed: " + (err.message || err), "danger");
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Database configuration not found.", "danger");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) {
+                window.location.href = "/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            if (window.syncHeaderAuthBadge) {
+                window.syncHeaderAuthBadge(session.user.email, true);
+            }
+            await loadSubscribers();
+        });
+    </script>
+</body>
+</html>

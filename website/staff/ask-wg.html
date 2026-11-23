@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask WG Chats &amp; Leads — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=70.4">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=70.4"></script>
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+        .awg-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .awg-tab { padding: 8px 16px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; font-weight: 800; font-size: 13px; cursor: pointer; color: #334155; }
+        .awg-tab.active { background: #00008b; border-color: #00008b; color: #fff; }
+        .awg-pill { display: inline-block; padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; }
+        .awg-pill-new { background: #dbeafe; color: #1e40af; }
+        .awg-pill-replied { background: #dcfce7; color: #166534; }
+        .awg-pill-arch { background: #f1f5f9; color: #475569; }
+        .awg-chat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; max-height: 220px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 6px; }
+        .awg-turn-user { align-self: flex-end; background: #00008b; color: #fff; padding: 6px 10px; border-radius: 10px; max-width: 85%; }
+        .awg-turn-bot { align-self: flex-start; background: #fff; color: #1e293b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 10px; max-width: 85%; }
+        .awg-modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+        .awg-modal { background: #fff; border-radius: 16px; max-width: 560px; width: 100%; padding: 22px; box-shadow: 0 20px 50px rgba(15,23,42,0.25); }
+    </style>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Welcome East Gwillimbury Staff Portal — Ask WG Chats &amp; Leads Inbox.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='/welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+                <div>
+                    <h1 style="margin:0; font-size:24px; color:#00008b;">Ask WG Chats &amp; Leads</h1>
+                    <p style="margin:4px 0 0 0; font-size:13px; color:#475569;">Review Ask WG conversations, reply to visitor/business leads by email, and archive or delete resolved items.</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="reloadAll()">Refresh</button>
+            </div>
+
+            <div id="awg-alert" class="alert" style="display:none; margin-bottom:14px;"></div>
+
+            <div class="awg-tabs">
+                <button type="button" class="awg-tab active" id="tab-leads" onclick="switchTab('leads')">Leads Inbox (<span id="count-leads">0</span>)</button>
+                <button type="button" class="awg-tab" id="tab-chats" onclick="switchTab('chats')">Saved Chats (<span id="count-chats">0</span>)</button>
+            </div>
+
+            <!-- LEADS PANEL -->
+            <div id="panel-leads" class="card">
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <select id="filter-leads-status" class="form-control" style="width:auto; margin:0;" onchange="renderLeads()">
+                            <option value="new">New Leads</option>
+                            <option value="replied">Replied</option>
+                            <option value="archived">Archived</option>
+                            <option value="">All Leads</option>
+                        </select>
+                        <label style="font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="select-all-leads" onchange="toggleSelectAll('lead', this.checked)">
+                            <span>Select All</span>
+                        </label>
+                    </div>
+                    <div id="leads-bulk-bar" style="display:none; gap:6px; align-items:center;">
+                        <span id="leads-selected-count" style="font-size:12px; font-weight:800; color:#00008b;">0 selected</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="bulkAction('lead', 'archive')">Archive Selected</button>
+                        <button type="button" class="btn btn-danger btn-sm" style="background:#dc2626; color:#fff;" onclick="bulkAction('lead', 'delete')">Delete Selected</button>
+                    </div>
+                </div>
+                <div id="leads-list">Loading leads...</div>
+            </div>
+
+            <!-- CHATS PANEL -->
+            <div id="panel-chats" class="card" style="display:none;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <select id="filter-chats-status" class="form-control" style="width:auto; margin:0;" onchange="renderChats()">
+                            <option value="open">Open Chats</option>
+                            <option value="replied">Replied</option>
+                            <option value="archived">Archived</option>
+                            <option value="">All Chats</option>
+                        </select>
+                        <label style="font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="checkbox" id="select-all-chats" onchange="toggleSelectAll('chat', this.checked)">
+                            <span>Select All</span>
+                        </label>
+                    </div>
+                    <div id="chats-bulk-bar" style="display:none; gap:6px; align-items:center;">
+                        <span id="chats-selected-count" style="font-size:12px; font-weight:800; color:#00008b;">0 selected</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="bulkAction('chat', 'archive')">Archive Selected</button>
+                        <button type="button" class="btn btn-danger btn-sm" style="background:#dc2626; color:#fff;" onclick="bulkAction('chat', 'delete')">Delete Selected</button>
+                    </div>
+                </div>
+                <div id="chats-list">Loading chats...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- REPLY MODAL -->
+    <div id="reply-modal-backdrop" class="awg-modal-backdrop">
+        <div class="awg-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h2 style="margin:0; font-size:18px; color:#00008b;">Reply to Lead</h2>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeReplyModal()">Close</button>
+            </div>
+            <p id="reply-meta" style="font-size:12px; color:#475569; margin:0 0 12px 0;"></p>
+            <form id="reply-form" style="display:flex; flex-direction:column; gap:10px;">
+                <input type="hidden" id="reply-lead-id">
+                <div>
+                    <label for="reply-subject" style="font-size:12px; font-weight:700;">Email Subject</label>
+                    <input type="text" id="reply-subject" class="form-control" required value="Re: Your Welcome East Gwillimbury Inquiry">
+                </div>
+                <div>
+                    <label for="reply-body" style="font-size:12px; font-weight:700;">Reply Message *</label>
+                    <textarea id="reply-body" class="form-control" rows="6" required placeholder="Write your reply here..."></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeReplyModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="reply-submit-btn">Send Reply Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>&copy; 2026 Welcome East Gwillimbury &bull; East Gwillimbury, Ontario, Canada</p>
+        </div>
+    </footer>
+
+    <script>
+        let sbClient = null;
+        let cachedLeads = [];
+        let cachedChats = [];
+        let activeTab = "leads";
+
+        function escapeHtml(v) {
+            return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+        function jsArg(v) {
+            return escapeHtml(JSON.stringify(v ?? ""));
+        }
+        function showAlert(msg, type) {
+            const el = document.getElementById("awg-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.textContent = msg;
+            el.style.display = "block";
+        }
+        function statusPill(st) {
+            const s = String(st || "new").toLowerCase();
+            if (s === "replied") return `<span class="awg-pill awg-pill-replied">&#10003; Replied</span>`;
+            if (s === "archived") return `<span class="awg-pill awg-pill-arch">Archived</span>`;
+            return `<span class="awg-pill awg-pill-new">${escapeHtml(s.toUpperCase())}</span>`;
+        }
+
+        window.updateBulkUi = function(kind) {
+            const cls = kind === "chat" ? ".chat-select-cb" : ".lead-select-cb";
+            const barId = kind === "chat" ? "chats-bulk-bar" : "leads-bulk-bar";
+            const cntId = kind === "chat" ? "chats-selected-count" : "leads-selected-count";
+            const n = document.querySelectorAll(`${cls}:checked`).length;
+            const bar = document.getElementById(barId);
+            const cnt = document.getElementById(cntId);
+            if (bar) bar.style.display = n > 0 ? "flex" : "none";
+            if (cnt) cnt.textContent = `${n} selected`;
+        };
+
+        window.toggleSelectAll = function(kind, checked) {
+            const cls = kind === "chat" ? ".chat-select-cb" : ".lead-select-cb";
+            document.querySelectorAll(cls).forEach(cb => { cb.checked = checked; });
+            updateBulkUi(kind);
+        };
+
+        window.bulkAction = async function(kind, action) {
+            const cls = kind === "chat" ? ".chat-select-cb" : ".lead-select-cb";
+            const ids = Array.from(document.querySelectorAll(`${cls}:checked`)).map(cb => cb.value);
+            if (!ids.length) return;
+            const table = kind === "chat" ? "discovery_conversations" : "discovery_leads";
+            if (action === "delete" && !confirm(`Permanently delete ${ids.length} selected ${kind}(s)?`)) return;
+            const res = action === "delete"
+                ? await sbClient.from(table).delete().in("id", ids)
+                : await sbClient.from(table).update({ status: "archived" }).in("id", ids);
+            if (res.error) { showAlert("Bulk action failed: " + res.error.message, "danger"); return; }
+            showAlert(`${action === "delete" ? "Deleted" : "Archived"} ${ids.length} ${kind}(s).`, "success");
+            await reloadAll();
+        };
+
+        window.switchTab = function(t) {
+            activeTab = t;
+            document.getElementById("tab-leads").classList.toggle("active", t === "leads");
+            document.getElementById("tab-chats").classList.toggle("active", t === "chats");
+            document.getElementById("panel-leads").style.display = t === "leads" ? "block" : "none";
+            document.getElementById("panel-chats").style.display = t === "chats" ? "block" : "none";
+        };
+
+        window.reloadAll = async function() {
+            const [leadsRes, chatsRes] = await Promise.all([
+                sbClient.from("discovery_leads").select("*").order("created_at", { ascending: false }).limit(200),
+                sbClient.from("discovery_conversations").select("*").order("updated_at", { ascending: false }).limit(200),
+            ]);
+            if (leadsRes.error) showAlert("Could not load leads: " + leadsRes.error.message, "danger");
+            if (chatsRes.error) showAlert("Could not load chats: " + chatsRes.error.message, "danger");
+            cachedLeads = leadsRes.data || [];
+            cachedChats = chatsRes.data || [];
+            document.getElementById("count-leads").textContent = cachedLeads.filter(l => l.status === "new").length;
+            document.getElementById("count-chats").textContent = cachedChats.filter(c => c.status === "open").length;
+            renderLeads();
+            renderChats();
+        };
+
+        function renderMessagesHtml(msgs) {
+            if (!Array.isArray(msgs) || !msgs.length) return "<p style='color:#64748b;font-size:12px;'>No messages recorded.</p>";
+            return `<div class="awg-chat-box">${msgs.map(m =>
+                `<div class="${m.role === "user" ? "awg-turn-user" : "awg-turn-bot"}"><strong>${m.role === "user" ? "Visitor" : "Ask WG"}:</strong> ${escapeHtml(m.text)}</div>`
+            ).join("")}</div>`;
+        }
+
+        window.renderLeads = function() {
+            const f = document.getElementById("filter-leads-status").value;
+            const list = cachedLeads.filter(l => !f || l.status === f);
+            const el = document.getElementById("leads-list");
+            const sa = document.getElementById("select-all-leads");
+            if (sa) sa.checked = false;
+            updateBulkUi("lead");
+            if (!list.length) { el.innerHTML = "<p style='color:#64748b;'>No leads in this view.</p>"; return; }
+
+            el.innerHTML = list.map(l => {
+                const linkedChat = l.conversation_id ? cachedChats.find(c => c.id === l.conversation_id) : null;
+                return `<div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px; background:#fff;">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <input type="checkbox" class="lead-select-cb" value="${escapeHtml(l.id)}" onchange="updateBulkUi('lead')" aria-label="Select lead">
+                            <strong>${escapeHtml(l.name)}</strong> &bull; <a href="mailto:${escapeHtml(l.email)}">${escapeHtml(l.email)}</a>
+                            ${l.phone ? ` &bull; ${escapeHtml(l.phone)}` : ""}
+                            ${l.business_name ? ` &bull; <strong>${escapeHtml(l.business_name)}</strong>` : ""}
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <span class="awg-pill awg-pill-arch">${escapeHtml(l.lead_type)}</span>
+                            ${statusPill(l.status)}
+                            <span style="font-size:11px; color:#64748b;">${escapeHtml(String(l.created_at || "").slice(0, 16).replace("T", " "))}</span>
+                        </div>
+                    </div>
+                    <p style="margin:0 0 8px 0; font-size:13px; color:#1e293b; white-space:pre-wrap;">${escapeHtml(l.message)}</p>
+                    ${l.admin_reply ? `<div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:8px 10px; font-size:12px; margin-bottom:8px;"><strong>Replied (${escapeHtml(String(l.replied_at || "").slice(0, 10))}):</strong> ${escapeHtml(l.admin_reply)}</div>` : ""}
+                    ${linkedChat ? `<details style="margin-bottom:8px;"><summary style="font-size:12px; font-weight:700; cursor:pointer; color:#00008b;">View linked chat (${(linkedChat.messages || []).length} messages)</summary><div style="margin-top:6px;">${renderMessagesHtml(linkedChat.messages)}</div></details>` : ""}
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="openReplyModal(${jsArg(l.id)})">Reply by Email</button>
+                        ${l.status !== "archived"
+                            ? `<button type="button" class="btn btn-secondary btn-sm" onclick="setLeadStatus(${jsArg(l.id)}, 'archived')">Archive</button>`
+                            : `<button type="button" class="btn btn-secondary btn-sm" onclick="setLeadStatus(${jsArg(l.id)}, 'new')">Reopen</button>`}
+                        <button type="button" class="btn btn-danger btn-sm" style="background:#dc2626; color:#fff;" onclick="deleteLead(${jsArg(l.id)})">Delete</button>
+                    </div>
+                </div>`;
+            }).join("");
+        };
+
+        window.renderChats = function() {
+            const f = document.getElementById("filter-chats-status").value;
+            const list = cachedChats.filter(c => !f || c.status === f);
+            const el = document.getElementById("chats-list");
+            const sa = document.getElementById("select-all-chats");
+            if (sa) sa.checked = false;
+            updateBulkUi("chat");
+            if (!list.length) { el.innerHTML = "<p style='color:#64748b;'>No chats in this view.</p>"; return; }
+
+            el.innerHTML = list.map(c => {
+                const linkedLead = c.lead_id ? cachedLeads.find(l => l.id === c.lead_id) : null;
+                return `<div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px; background:#fff;">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                        <div style="font-size:12px; color:#475569; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <input type="checkbox" class="chat-select-cb" value="${escapeHtml(c.id)}" onchange="updateBulkUi('chat')" aria-label="Select chat">
+                            <span><strong>Intent:</strong> ${escapeHtml(c.intent || "general")}</span> &bull;
+                            <span><strong>Community:</strong> ${escapeHtml(c.community || "all")}</span> &bull;
+                            <span><strong>Page:</strong> ${escapeHtml(c.source_page || "/")}</span>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            ${linkedLead ? `<span class="awg-pill awg-pill-replied">Lead: ${escapeHtml(linkedLead.name)}</span>` : ""}
+                            ${statusPill(c.status)}
+                            <span style="font-size:11px; color:#64748b;">${escapeHtml(String(c.updated_at || "").slice(0, 16).replace("T", " "))}</span>
+                        </div>
+                    </div>
+                    ${renderMessagesHtml(c.messages)}
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                        ${linkedLead ? `<button type="button" class="btn btn-primary btn-sm" onclick="openReplyModal(${jsArg(linkedLead.id)})">Reply to Lead</button>` : ""}
+                        ${c.status !== "archived"
+                            ? `<button type="button" class="btn btn-secondary btn-sm" onclick="setChatStatus(${jsArg(c.id)}, 'archived')">Archive</button>`
+                            : `<button type="button" class="btn btn-secondary btn-sm" onclick="setChatStatus(${jsArg(c.id)}, 'open')">Reopen</button>`}
+                        <button type="button" class="btn btn-danger btn-sm" style="background:#dc2626; color:#fff;" onclick="deleteChat(${jsArg(c.id)})">Delete</button>
+                    </div>
+                </div>`;
+            }).join("");
+        };
+
+        window.openReplyModal = function(leadId) {
+            const l = cachedLeads.find(x => x.id === leadId);
+            if (!l) return;
+            document.getElementById("reply-lead-id").value = l.id;
+            document.getElementById("reply-meta").textContent = `To: ${l.name} <${l.email}> (${l.lead_type})`;
+            document.getElementById("reply-subject").value = `Re: Your Welcome East Gwillimbury Inquiry`;
+            document.getElementById("reply-body").value = "";
+            document.getElementById("reply-modal-backdrop").style.display = "flex";
+        };
+        window.closeReplyModal = function() {
+            document.getElementById("reply-modal-backdrop").style.display = "none";
+        };
+
+        window.setLeadStatus = async function(id, status) {
+            const { error } = await sbClient.from("discovery_leads").update({ status }).eq("id", id);
+            if (error) { showAlert("Update failed: " + error.message, "danger"); return; }
+            await reloadAll();
+        };
+        window.deleteLead = async function(id) {
+            if (!confirm("Permanently delete this lead?")) return;
+            const { error } = await sbClient.from("discovery_leads").delete().eq("id", id);
+            if (error) { showAlert("Delete failed: " + error.message, "danger"); return; }
+            await reloadAll();
+        };
+        window.setChatStatus = async function(id, status) {
+            const { error } = await sbClient.from("discovery_conversations").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+            if (error) { showAlert("Update failed: " + error.message, "danger"); return; }
+            await reloadAll();
+        };
+        window.deleteChat = async function(id) {
+            if (!confirm("Permanently delete this chat transcript?")) return;
+            const { error } = await sbClient.from("discovery_conversations").delete().eq("id", id);
+            if (error) { showAlert("Delete failed: " + error.message, "danger"); return; }
+            await reloadAll();
+        };
+
+        document.getElementById("reply-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("reply-submit-btn");
+            btn.disabled = true;
+            btn.textContent = "Sending...";
+            try {
+                const { data, error } = await sbClient.functions.invoke("discovery-reply", {
+                    body: {
+                        lead_id: document.getElementById("reply-lead-id").value,
+                        subject: document.getElementById("reply-subject").value.trim(),
+                        reply_message: document.getElementById("reply-body").value.trim(),
+                    }
+                });
+                if (error || !data?.success) throw new Error(data?.error || error?.message || "Reply failed");
+                closeReplyModal();
+                showAlert("Reply sent and lead marked as replied.", "success");
+                await reloadAll();
+            } catch (err) {
+                showAlert("Reply error: " + err.message, "danger");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Send Reply Email";
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            sbClient = window.GeorginaStore ? window.GeorginaStore.getClient() : null;
+            if (!sbClient) { showAlert("Supabase not configured.", "danger"); return; }
+            const { data: { session } } = await sbClient.auth.getSession();
+            if (!session) {
+                window.location.href = "/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            const { data: prof } = await sbClient.from("user_profiles").select("role, active").eq("id", session.user.id).maybeSingle();
+            if (!prof || !prof.active || !["admin", "super_admin"].includes(String(prof.role || "").toLowerCase())) {
+                window.location.replace("/staff/admin-approvals.html");
+                return;
+            }
+            await reloadAll();
+        });
+    </script>
+</body>
+</html>

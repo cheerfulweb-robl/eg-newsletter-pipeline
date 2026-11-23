@@ -1,0 +1,317 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin &amp; Staff Sign In &bull; Welcome East Gwillimbury</title>
+    <!-- Standard Main Site Tailwind & Production CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .auth-container {
+            max-width: 480px;
+            margin: 40px auto 60px;
+        }
+        .auth-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 32px 28px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .auth-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 8px 0;
+        }
+        .auth-header p {
+            font-size: 14px;
+            color: var(--muted);
+            margin: 0;
+        }
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--muted);
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .auth-toggle a {
+            font-weight: 700;
+            color: #00008b;
+        }
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="login-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-login-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="container">
+        <div id="portal-alert" style="display: none; max-width: 480px; margin: 0 auto 20px;"></div>
+
+        <div class="auth-container">
+            <div id="signin-box" class="auth-card">
+                <div class="auth-header">
+                    <span class="badge-pill">&#128737;&#65039; Restricted Staff Area</span>
+                    <h1>Admin &amp; Staff Sign In</h1>
+                    <p>Password authentication reserved exclusively for Welcome East Gwillimbury administrators and editorial staff.</p>
+                </div>
+
+                <form id="staff-login-form">
+                    <div class="form-group">
+                        <label for="login-email">Staff Email Address *</label>
+                        <input type="email" id="login-email" class="form-control" required placeholder="admin@welcomeeg.ca">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password *</label>
+                        <input type="password" id="login-password" class="form-control" required placeholder="••••••••••••">
+                    </div>
+                    <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">
+                        Sign In to Staff Operations &rarr;
+                    </button>
+                </form>
+
+                <div class="auth-toggle">
+                    Are you an Event Submitter or Community Partner?<br>
+                    <a href="/news/login.html">Use Passwordless Magic Link Sign In (/news/login.html) &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Standard Main Site 4-Column Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.src='https://welcomeeg.ca/welcome-eg-logo.png'">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Community &amp; Calendars</h4>
+                    <ul class="footer-links">
+                        <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                        <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                        <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Subscribe to Weekly Briefing &rarr;</a></li>
+                        <li><a href="/newsletter">📰 Newsletter Archive &amp; Past Editions</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Submissions</h4>
+                    <ul class="footer-links">
+                        <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                        <li><a href="/submit-event">📅 Submit an Event</a></li>
+                        <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                        <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                        <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                        
+                        
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4 class="footer-heading">Portals &amp; Administration</h4>
+                    <ul class="footer-links">
+                        <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                        <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                        <li><a href="/knowledge-base">❓ Help Center &amp; Knowledge Base</a></li>
+                        <li><a href="/terms">📜 Terms of Service</a></li>
+                        <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                        <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                        <li><a href="/press">📢 Pressroom &amp; Media Kit</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const STAFF_EMAIL_ALLOWLIST = [
+            "cheerfulweb@gmail.com",
+            "stillcheerful@gmail.com",
+            "admin@welcomeeg.ca",
+            "info@welcomeeg.ca",
+            "editorial@welcomeeg.ca",
+            "support@welcomeeg.ca",
+            "robert@welcomeeg.ca"
+        ];
+
+        function isStaffEmail(email) {
+            const clean = String(email || "").trim().toLowerCase();
+            return STAFF_EMAIL_ALLOWLIST.includes(clean) || clean.endsWith("@welcomeeg.ca");
+        }
+
+        function getSafeRedirectTarget() {
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get("redirect");
+            if (redirectUrl) {
+                try {
+                    const parsed = new URL(redirectUrl, window.location.origin);
+                    if (parsed.origin === window.location.origin) {
+                        return parsed.pathname + parsed.search;
+                    }
+                } catch (_) {}
+            }
+            return "/staff/admin-approvals.html";
+        }
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("portal-alert");
+            if (!el) return;
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        async function verifyStaffAuthorization(client, user) {
+            if (!user) return false;
+            if (isStaffEmail(user.email)) return true;
+            try {
+                const { data: prof } = await client.from("user_profiles").select("role").eq("id", user.id).maybeSingle();
+                const r = String(prof?.role || "").toLowerCase();
+                return ["admin", "super_admin", "staff", "editorial", "sales_rep"].includes(r);
+            } catch (_) {
+                return false;
+            }
+        }
+
+        async function checkExistingAuth() {
+            const client = window.GeorginaStore.getClient();
+            if (!client) return;
+            const { data } = await client.auth.getSession();
+            if (data && data.session && data.session.user) {
+                const authorized = await verifyStaffAuthorization(client, data.session.user);
+                if (authorized) {
+                    window.location.href = getSafeRedirectTarget();
+                }
+            }
+        }
+        checkExistingAuth();
+
+        document.getElementById("staff-login-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = document.getElementById("login-email").value.trim().toLowerCase();
+            const password = document.getElementById("login-password").value;
+            const btn = document.getElementById("btn-login-submit");
+
+            btn.disabled = true;
+            btn.textContent = "Verifying Staff Credentials...";
+
+            const client = window.GeorginaStore.getClient();
+            if (!client) {
+                showAlert("Supabase authentication service is unavailable.", "warning");
+                btn.disabled = false;
+                btn.textContent = "Sign In to Staff Operations →";
+                return;
+            }
+
+            const { data, error } = await client.auth.signInWithPassword({ email, password });
+            if (error) {
+                showAlert(error.message, "warning");
+                btn.disabled = false;
+                btn.textContent = "Sign In to Staff Operations →";
+                return;
+            }
+
+            const authorized = await verifyStaffAuthorization(client, data.user);
+            if (!authorized) {
+                await client.auth.signOut();
+                showAlert("Access Denied: /staff/login.html is restricted to authorized Welcome East Gwillimbury staff. Event submitters please sign in using a Magic Link at /news/login.html.", "warning");
+                btn.disabled = false;
+                btn.textContent = "Sign In to Staff Operations →";
+                return;
+            }
+
+            try {
+                localStorage.setItem("wg_wallet_email", email);
+                localStorage.setItem("wg_user_role", "admin");
+            } catch (_) {}
+
+            window.location.href = getSafeRedirectTarget();
+        });
+    </script>
+</body>
+</html>

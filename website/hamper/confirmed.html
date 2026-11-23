@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Email • Welcome Hamper</title>
+    <meta name="description" content="Welcome Hamper email confirmation.">
+    <meta name="robots" content="noindex">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/news/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .hamper-input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 15px;
+            background: #ffffff;
+            color: #0f172a;
+        }
+        .hamper-input:focus { outline: 2px solid #00008b; outline-offset: 1px; border-color: #00008b; }
+        fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="hamper-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link active font-bold text-[#00008b]" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/news/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-news-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+        <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 text-center space-y-4">
+            <div id="c-icon" class="text-5xl">&#8987;</div>
+            <h1 id="c-title" class="text-2xl font-black text-slate-900">Confirming your email&hellip;</h1>
+            <p id="c-text" class="text-sm text-slate-600 leading-relaxed">One moment please.</p>
+            <div id="c-actions" class="hidden flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                <a href="/hamper/wallet.html" class="px-6 py-3 rounded-xl bg-[#00008b] hover:bg-blue-900 text-white font-black text-xs uppercase tracking-wider">Check my application</a>
+                <a href="/hamper/" class="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs uppercase tracking-wider">About the Welcome Hamper</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Standard Site Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.src='https://welcomeeg.ca/welcome-eg-logo.png'">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Community &amp; Calendars</h4>
+                    <ul class="footer-links">
+                        <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                        <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                        <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Subscribe to Weekly Briefing &rarr;</a></li>
+                        <li><a href="/newsletter">📰 Newsletter Archive &amp; Past Editions</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Submissions</h4>
+                    <ul class="footer-links">
+                        <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                        <li><a href="/submit-event">📅 Submit an Event</a></li>
+                        <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                        <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                        <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Portals &amp; Administration</h4>
+                    <ul class="footer-links">
+                        <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                        <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                        <li><a href="/knowledge-base">❓ Help Center &amp; Knowledge Base</a></li>
+                        <li><a href="/terms">📜 Terms of Service</a></li>
+                        <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                        <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                        <li><a href="/press">📢 Pressroom &amp; Media Kit</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (function () {
+            function show(icon, title, text) {
+                document.getElementById("c-icon").textContent = icon;
+                document.getElementById("c-title").textContent = title;
+                document.getElementById("c-text").textContent = text;
+                document.getElementById("c-actions").classList.remove("hidden");
+            }
+
+            document.addEventListener("DOMContentLoaded", async function () {
+                const token = new URLSearchParams(window.location.search).get("token") || "";
+                // Keep the one-time token out of the address bar and browser history.
+                try { window.history.replaceState(null, "", window.location.pathname); } catch (_) {}
+
+                if (!/^[0-9a-f]{48}$/.test(token)) {
+                    show("⚠️", "This link is not valid", "Please use the button in your confirmation email, or apply again.");
+                    return;
+                }
+                if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                    show("⚠️", "Please try again later", "The confirmation service is not available right now.");
+                    return;
+                }
+                const db = window.GeorginaStore.getClient();
+                let message = "";
+                try {
+                    const { data, error } = await db.functions.invoke("send-email", {
+                        body: { formType: "hamper_verify", record: { token: token } }
+                    });
+                    if (!error && data && data.success) {
+                        const name = data.first_name ? ", " + data.first_name : "";
+                        show("✅", "Thank you" + name + "! Your email is confirmed.",
+                            "Your Welcome Hamper application is now with our team. We check every proof of residence by hand and will email you when it is approved. The program opens in Spring 2027.");
+                        return;
+                    }
+                    message = (data && data.error) || (error && error.message) || "";
+                    if (error && error.context && typeof error.context.json === "function") {
+                        try { const body = await error.context.json(); if (body && body.error) message = body.error; } catch (_) {}
+                    }
+                } catch (e) {
+                    message = e.message || String(e);
+                }
+                show("⚠️", "We could not confirm this link", message || "Please try again or apply again.");
+            });
+        })();
+    </script>
+</body>
+</html>

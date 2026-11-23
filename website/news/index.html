@@ -1,0 +1,343 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome East Gwillimbury • Community News & Upcoming Events</title>
+    <!-- Standard Main Site Tailwind & Production CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/news/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="news-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/news/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-news-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    
+
+    <main class="container">
+        <section class="hero">
+            <div>
+                <span class="badge-pill">Twice-Weekly Community Newsletter — Monday & Thursday</span>
+                <h1>Every East Gwillimbury Story, Concert, Market &amp; Local Event in One Email.</h1>
+                <p>
+                    One free sign-up includes both Monday (Mon–Fri listings) and Thursday (this coming weekend & next weekend, Fri–Sun) editions across Town of East Gwillimbury,
+                    Stephen Leacock Theatre, East Gwillimbury Public Library, Chamber of Commerce, local venues,
+                    and York Region Meetup groups so you never miss what's happening around East Gwillimbury.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2 style="font-size: 20px; margin-bottom: 6px;">Join Both Monday & Thursday Editions</h2>
+                <p style="font-size: 13px; color: var(--muted); margin-top: 0; margin-bottom: 16px;">
+                    One sign-up subscribes you to both Monday (Mon–Fri) and Thursday (this coming & next weekend, Fri–Sun) editions. One-click unsubscribe anytime.
+                </p>
+                <div id="sub-alert" style="display: none;"></div>
+                <form id="subscribe-form">
+                    <input type="hidden" id="sub-audience" value="reader">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                        <div class="form-group">
+                            <label for="sub-first-name">First Name *</label>
+                            <input type="text" id="sub-first-name" class="form-control" required placeholder="e.g., Sarah">
+                        </div>
+                        <div class="form-group">
+                            <label for="sub-last-name">Last Name *</label>
+                            <input type="text" id="sub-last-name" class="form-control" required placeholder="e.g., Smith">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="sub-email">Email Address *</label>
+                        <input type="email" id="sub-email" class="form-control" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="sub-area">Community Area</label>
+                        <select id="sub-area" class="form-control">
+                            <option value="All East Gwillimbury">All of East Gwillimbury</option>
+                            <option value="Baldwin">Baldwin</option>
+                            <option value="Franklin">Franklin</option>
+                            <option value="Brown Hill">Brown Hill</option>
+                            <option value="Egypt">Egypt</option>
+                            <option value="Brown Hill">Brown Hill</option>
+                            <option value="Sharon">Jackson&#39;s Point</option>
+                            <option value="Holland Landing">Holland Landing</option>
+                            <option value="Queensville">Queensville</option>
+                            <option value="Ravenshoe">Ravenshoe</option>
+                            <option value="Holt">Holt</option>
+                            <option value="Mount Albert">Mount Albert</option>
+                            <option value="Brown Hill">Brown Hill</option>
+                            <option value="Virginia">Virginia</option>
+                            <option value="River Drive Park">River Drive Park</option>
+                            <option value="Out of Area">Out of Area</option>
+                        </select>
+                    </div>
+                    <button type="submit" id="sub-btn" class="btn btn-primary" style="width: 100%;">
+                        Subscribe to Welcome East Gwillimbury
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section class="grid-3" style="margin-bottom: 36px;">
+            <div class="card">
+                <h3 style="font-size: 17px; color: var(--primary);">1. Local Journalism &amp; Town Hall</h3>
+                <p style="font-size: 14px; color: var(--muted); margin-bottom: 0;">
+                    Curated headlines from The NewmarketToday, Explore East Gwillimbury, Choose East Gwillimbury, Council Highlights,
+                    Media Releases, and Town Public Notices.
+                </p>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 17px; color: var(--primary);">2. Arts, Library &amp; Venues</h3>
+                <p style="font-size: 14px; color: var(--muted); margin-bottom: 0;">
+                    Upcoming live shows at Stephen Leacock Theatre, East Gwillimbury Public Library workshops, The Briars Resort,
+                    Hospice East Gwillimbury, Eventbrite, and Meetup groups.
+                </p>
+            </div>
+            <div class="card">
+                <h3 style="font-size: 17px; color: var(--primary);">3. Small Vendors &amp; Pop-Up Markets</h3>
+                <p style="font-size: 14px; color: var(--muted); margin-bottom: 0;">
+                    Local East Gwillimbury vendors can submit individual events and special promotions directly for inclusion in upcoming newsletter editions.
+                </p>
+            </div>
+        </section>
+
+        <section class="card" style="background: #f0f9ff; border-color: #bae6fd;">
+            <div class="grid-2" style="align-items: center;">
+                <div>
+                    <h2 style="margin-bottom: 8px; color: #0369a1;">Small Business, Artisan, Farm, or Community Group?</h2>
+                    <p style="margin: 0; font-size: 14px; color: #334155;">
+                        Create a free East Gwillimbury Vendor account to submit upcoming events and sales promotions for admin approval—plus track how many readers click your listings!
+                    </p>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+                    <a href="portal.html" class="btn btn-primary">Vendor Signup &amp; Event Submission &rarr;</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Standard Main Site 4-Column Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.src='https://welcomeeg.ca/welcome-eg-logo.png'">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Community &amp; Calendars</h4>
+                    <ul class="footer-links">
+                        <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                        <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                        <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Subscribe to Weekly Briefing &rarr;</a></li>
+                        <li><a href="/newsletter">📰 Newsletter Archive &amp; Past Editions</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Submissions</h4>
+                    <ul class="footer-links">
+                        <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                        <li><a href="/submit-event">📅 Submit an Event</a></li>
+                        <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                        <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                        <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                        
+                        
+                        
+                    </ul>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Portals &amp; Administration</h4>
+                    <ul class="footer-links">
+                        <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                        <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                        <li><a href="/knowledge-base">❓ Help Center &amp; Knowledge Base</a></li>
+                        <li><a href="/terms">📜 Terms of Service</a></li>
+                        <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                        <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                        <li><a href="/press">📢 Pressroom &amp; Media Kit</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById("subscribe-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const alertBox = document.getElementById("sub-alert");
+            const btn = document.getElementById("sub-btn");
+            const firstName = document.getElementById("sub-first-name").value.trim();
+            const lastName = document.getElementById("sub-last-name").value.trim();
+            const fullName = `${firstName} ${lastName}`.trim();
+            const email = document.getElementById("sub-email").value.trim().toLowerCase();
+            const audience = document.getElementById("sub-audience").value;
+            const area = document.getElementById("sub-area").value;
+
+            if (!firstName || !lastName) {
+                alertBox.className = "alert alert-warning";
+                alertBox.style.display = "block";
+                alertBox.textContent = "Please provide both First Name and Last Name.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Sending Confirmation Email...";
+
+            try {
+                const client = window.GeorginaStore.getClient();
+                if (client) {
+                    const { data: subData, error: rpcError } = await client.rpc("register_newsletter_subscriber", {
+                        email_input: email,
+                        first_name_input: firstName,
+                        area_input: area,
+                        audience_input: audience
+                    });
+                    if (rpcError) {
+                        throw rpcError;
+                    }
+
+                    // Best-effort update of last_name / name if columns exist in DB
+                    try {
+                        await client.from("newsletter_subscribers").update({
+                            last_name: lastName,
+                            name: fullName
+                        }).eq("email", email);
+                    } catch (_) {}
+
+                    // Step 1 of 2: Send clean confirmation email
+                    const { error: fnError } = await client.functions.invoke("send-email", {
+                        body: {
+                            formType: "newsletter_signup",
+                            record: {
+                                ...(subData || {}),
+                                email: email,
+                                first_name: firstName,
+                                last_name: lastName,
+                                name: fullName,
+                                community_area: area,
+                                audience_type: audience
+                            }
+                        }
+                    });
+                    if (fnError) {
+                        console.warn("Confirmation email invoke warning:", fnError);
+                    }
+                } else {
+                    const subs = window.GeorginaStore.getLocalList("gd_subscribers", []);
+                    const existing = subs.find(s => s.email === email);
+                    if (!existing) {
+                        subs.push({
+                            id: "sub-" + Date.now(),
+                            email: email,
+                            first_name: firstName,
+                            last_name: lastName,
+                            name: fullName,
+                            community_area: area,
+                            audience_type: audience,
+                            status: "pending",
+                            unsubscribe_token: "tok-" + Math.random().toString(36).slice(2, 10),
+                            created_at: new Date().toISOString()
+                        });
+                        window.GeorginaStore.setLocalList("gd_subscribers", subs);
+                    } else {
+                        existing.first_name = firstName;
+                        existing.last_name = lastName;
+                        existing.name = fullName;
+                        existing.community_area = area;
+                        existing.audience_type = audience;
+                        window.GeorginaStore.setLocalList("gd_subscribers", subs);
+                    }
+                }
+
+                alertBox.className = "alert alert-success";
+                alertBox.style.display = "block";
+                const escText = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+                alertBox.innerHTML = `<strong>Check your inbox!</strong> We just sent a confirmation email to <b>${escText(email)}</b>.<br>Click <b>&#10003; Confirm My Email Address</b> in that email to activate your subscription.<br><small style="display:block;margin-top:6px;color:#92400e;">⚠️ <b>Didn't see it?</b> Please check your Spam or Junk folder and mark it as "Not Spam" or move it to your inbox!</small>`;
+                document.getElementById("subscribe-form").reset();
+            } catch (err) {
+                alertBox.className = "alert alert-warning";
+                alertBox.style.display = "block";
+                alertBox.textContent = "Could not complete signup: " + (err.message || err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Subscribe to Welcome East Gwillimbury";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "site_id": "eg",
+  "domain": "welcomeeg.ca",
+  "site_name": "Welcome East Gwillimbury",
+  "tagline": "Community events, live arts, markets and regional gatherings across East Gwillimbury including Holland Landing, Mount Albert, Queensville, Sharon, River Drive Park, Holt, Franklin, Brown Hill, and Ravenshoe.",
+  "default_municipality": "East Gwillimbury, ON",
+  "public_html_folder": "public_html/eg/",
+  "deploy_prefix": "welcomeeg_production_deploy",
+  "contact_email": "contact@welcomeeg.ca",
+  "supabase": {
+    "project_ref": "cyxomkhydsmttefanalx",
+    "url": "https://cyxomkhydsmttefanalx.supabase.co",
+    "anon_key": "sb_publishable_o21_dFCXCHW2fvVJNS45Tw_sFVcprqw"
+  },
+  "analytics": {
+    "gtm_id": "",
+    "clarity_id": ""
+  },
+  "communities": [
+    "Holland Landing",
+    "Mount Albert",
+    "Queensville",
+    "Sharon",
+    "River Drive Park",
+    "Holt",
+    "Franklin",
+    "Brown Hill",
+    "Ravenshoe",
+    "Out of Area"
+  ],
+  "hashtags": [
+    "#WelcomeEG",
+    "#Queensville",
+    "#MountAlbert",
+    "#Sharon",
+    "#HollandLanding",
+    "#Events",
+    "#Lifestyle"
+  ]
+}

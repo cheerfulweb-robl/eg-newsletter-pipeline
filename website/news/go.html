@@ -1,0 +1,234 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting • Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="assets/styles.css?v=67.7">
+    <script src="/shared/config.js?v=67.7"></script>
+</head>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+    <div class="card" style="max-width: 480px; text-align: center;">
+        <h2 id="heading" style="font-size: 18px; margin-bottom: 8px;">Opening Article / Event...</h2>
+        <p id="target-label" style="font-size: 14px; color: var(--muted); margin-bottom: 16px;">
+            Taking you to the full details from Welcome East Gwillimbury.
+        </p>
+        <p id="warning" hidden style="font-size: 14px; margin-bottom: 16px;">
+            This link leads to <strong id="target-host"></strong>, which is not a site Welcome East Gwillimbury
+            has approved. Continue only if you trust it.
+        </p>
+        <a id="fallback-link" href="index.html" class="btn btn-primary">Continue Now &rarr;</a>
+        <p id="back-wrap" hidden style="margin-top: 14px;">
+            <a href="index.html" style="font-size: 14px;">Go back to Welcome East Gwillimbury</a>
+        </p>
+    </div>
+
+    <script>
+        (async function () {
+            const params = new URLSearchParams(window.location.search);
+
+            // Website links (v59): ?k=listing|directory|hamper_offer&id=<uuid>&p=<page>.
+            // The destination comes from the database, never from the address bar, so these
+            // redirect straight away and cannot be pointed at other sites.
+            const kind = params.get("k");
+            const itemId = (params.get("id") || "").trim();
+            if (kind) {
+                const home = "https://welcomeeg.ca/";
+                const showGone = () => {
+                    document.getElementById("heading").textContent = "This link is no longer available";
+                    document.getElementById("target-label").textContent = "The listing may have ended or been removed.";
+                    document.getElementById("fallback-link").href = home;
+                    document.getElementById("fallback-link").textContent = "Go to Welcome East Gwillimbury →";
+                };
+                if (!["listing", "directory", "hamper_offer", "search_sponsor"].includes(kind) || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(itemId)) {
+                    showGone();
+                    return;
+                }
+                document.getElementById("heading").textContent = "Opening the business website...";
+                document.getElementById("fallback-link").href = home;
+                let visitor = "";
+                try {
+                    visitor = localStorage.getItem("gd_visitor_hash") || "";
+                    if (!visitor) {
+                        visitor = "v-" + Math.random().toString(36).slice(2, 11) + "-" + Date.now().toString(36);
+                        localStorage.setItem("gd_visitor_hash", visitor);
+                    }
+                } catch (_) { visitor = ""; }
+                try {
+                    const cfg = window.GEORGINA_CONFIG || {};
+                    const sbUrl = String(cfg.SUPABASE_URL || "").replace(/\/$/, "");
+                    const sbKey = cfg.SUPABASE_ANON_KEY;
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 6000);
+                    // Sponsored "Try searching" keywords (v63) are recorded by their own function.
+                    const isSponsor = kind === "search_sponsor";
+                    const res = await fetch(sbUrl + "/rest/v1/rpc/" + (isSponsor ? "wg_record_sponsor_click" : "wg_track_click"), {
+                        method: "POST",
+                        headers: { "apikey": sbKey, "Authorization": "Bearer " + sbKey, "Content-Type": "application/json" },
+                        body: JSON.stringify(isSponsor
+                            ? { id_input: itemId, page_input: (params.get("p") || "").slice(0, 60), visitor_input: visitor }
+                            : { kind_input: kind, id_input: itemId, page_input: (params.get("p") || "").slice(0, 60), visitor_input: visitor }),
+                        signal: ctrl.signal
+                    });
+                    clearTimeout(timer);
+                    const url = res.ok ? await res.json() : null;
+                    let dest = null;
+                    try {
+                        const u = new URL(url);
+                        if ((u.protocol === "https:" || u.protocol === "http:") && !u.username && !u.password) dest = u.href;
+                    } catch (_) { dest = null; }
+                    if (dest) {
+                        document.getElementById("fallback-link").href = dest;
+                        window.location.replace(dest);
+                    } else {
+                        showGone();
+                    }
+                } catch (_) {
+                    showGone();
+                }
+                return;
+            }
+            let rawTarget = (params.get("u") || "").trim();
+            while (rawTarget && /^https?%3A/i.test(rawTarget)) {
+                try {
+                    rawTarget = decodeURIComponent(rawTarget).trim();
+                } catch (e) {
+                    break;
+                }
+            }
+            if (rawTarget.startsWith("/news/")) {
+                rawTarget = "https://welcomeeg.ca" + rawTarget;
+            } else if (rawTarget.startsWith("/claim") || rawTarget.startsWith("/partner") || rawTarget.startsWith("/hamper") || rawTarget.startsWith("/wallet") || rawTarget.startsWith("/redemption") || rawTarget.startsWith("/verify")) {
+                rawTarget = "https://welcomeeg.ca/events";
+            } else if (rawTarget.startsWith("/admin")) {
+                rawTarget = "https://welcomeeg.ca/staff/admin-approvals.html";
+            } else if (rawTarget.startsWith("/")) {
+                rawTarget = "https://welcomeeg.ca/news" + rawTarget;
+            } else if (/^www\./i.test(rawTarget)) {
+                rawTarget = "https://" + rawTarget;
+            }
+            if (/tixhub\.com/i.test(rawTarget) && /[?&]width=$/i.test(rawTarget)) {
+                rawTarget = rawTarget + "1024";
+            }
+            if (rawTarget.includes("calendar.georginalibrary.ca/default/detail/")) {
+                rawTarget = rawTarget.replace(
+                    "calendar.georginalibrary.ca/default/detail/",
+                    "calendar.georginalibrary.ca/default/Detail/"
+                );
+            }
+
+            const cleanText = (s) => String(s || "").replace(/\u2022|•|â€¢/g, "-").replace(/[\u2013\u2014–—]/g, "-").trim();
+            const title = cleanText(params.get("t")) || "Newsletter Link";
+            const source = cleanText(params.get("s")) || "Welcome East Gwillimbury";
+            const category = params.get("c") || "general";
+            const issueDate = params.get("d") || new Date().toISOString().slice(0, 10);
+
+            // Sites we send visitors to automatically. Any other destination
+            // shows a confirmation page instead of redirecting silently.
+            // Matches the domain itself and any subdomain of it.
+            const ALLOWED_DOMAINS = [
+                "welcomeeg.ca",
+                "georgina.ca",
+                "artgalleryofgeorgina.ca",
+                "exploregeorgina.ca",
+                "georginachamber.com",
+                "georginalibrary.ca",
+                "georginapost.com",
+                "georginafarmersmarket.ca",
+                "hospicegeorgina.com",
+                "salvationarmygeorgina.ca",
+                "briars.ca",
+                "thebriars.ca",
+                "choosegeorgina.ca",
+                "meetup.com",
+                "eventbrite.ca",
+                "eventbrite.com",
+                "tixhub.com",
+                "mount albertlegion.org",
+                "mount albertfair.com",
+                "routescc.org"
+            ];
+            function isAllowedHost(hostname) {
+                const host = String(hostname || "").toLowerCase();
+                return ALLOWED_DOMAINS.some(d => host === d || host.endsWith("." + d));
+            }
+
+            // Validate target URL protocol strictly via URL parser (allow only http: / https:)
+            let safeUrl = "https://welcomeeg.ca/news/";
+            let targetHost = "welcomeeg.ca";
+            try {
+                const parsedTarget = new URL(rawTarget);
+                if ((parsedTarget.protocol === "http:" || parsedTarget.protocol === "https:") && !parsedTarget.username && !parsedTarget.password) {
+                    safeUrl = parsedTarget.href;
+                    targetHost = parsedTarget.hostname;
+                }
+            } catch (_) {
+                safeUrl = "https://welcomeeg.ca/news/";
+            }
+            const trustedTarget = isAllowedHost(targetHost);
+            document.getElementById("fallback-link").href = safeUrl;
+            document.getElementById("target-label").textContent = title + " (" + source + ")";
+            if (!trustedTarget) {
+                document.getElementById("heading").textContent = "You're leaving Welcome East Gwillimbury";
+                document.getElementById("target-host").textContent = targetHost;
+                document.getElementById("warning").hidden = false;
+                document.getElementById("back-wrap").hidden = false;
+                document.getElementById("fallback-link").textContent = "Continue to site \u2192";
+            }
+
+            // Create or retrieve anonymous visitor hash for unique click counting
+            let visitorHash = localStorage.getItem("gd_visitor_hash");
+            if (!visitorHash) {
+                visitorHash = "v-" + Math.random().toString(36).slice(2, 11) + "-" + Date.now().toString(36);
+                localStorage.setItem("gd_visitor_hash", visitorHash);
+            }
+
+            const payload = {
+                issue_date: issueDate,
+                article_title: title,
+                source_name: source,
+                category: category,
+                target_url: safeUrl,
+                visitor_hash: visitorHash,
+                user_agent: (navigator.userAgent || "").slice(0, 180)
+            };
+
+            try {
+                if (window.GeorginaStore && window.GeorginaStore.isSupabaseConfigured()) {
+                    const sbUrl = window.GEORGINA_CONFIG.SUPABASE_URL.replace(/\/$/, "");
+                    const sbKey = window.GEORGINA_CONFIG.SUPABASE_ANON_KEY;
+                    await Promise.race([
+                        fetch(sbUrl + "/rest/v1/link_clicks", {
+                            method: "POST",
+                            headers: {
+                                "apikey": sbKey,
+                                "Authorization": "Bearer " + sbKey,
+                                "Content-Type": "application/json",
+                                "Prefer": "return=minimal"
+                            },
+                            body: JSON.stringify(payload),
+                            keepalive: true
+                        }),
+                        new Promise(resolve => setTimeout(resolve, 400))
+                    ]);
+                } else if (window.GeorginaStore) {
+                    const clicks = window.GeorginaStore.getLocalList("gd_clicks", window.GeorginaStore.SEED_CLICKS);
+                    clicks.unshift({
+                        id: "clk-" + Date.now(),
+                        ...payload,
+                        clicked_at: new Date().toISOString()
+                    });
+                    window.GeorginaStore.setLocalList("gd_clicks", clicks);
+                }
+            } catch (e) {
+                // Never block redirect if logging fails
+            }
+
+            // Approved destinations redirect straight away. Anything else waits for the visitor to confirm.
+            if (trustedTarget) {
+                window.location.replace(safeUrl);
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Directory Editor — Welcome East Gwillimbury</title>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=70.4">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+    <script src="/shared/config.js?v=70.4"></script>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+                <div>
+                    <h1 style="margin:0;">&#127970; Business Directory Editor</h1>
+                    <p style="margin:6px 0 0;">Review and update business addresses, external website URLs, phone numbers, and categories in <code>directory_listings</code>.</p>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-secondary" onclick="regenerateSitemap()" id="btn-regen-sitemap">&#128506; Regenerate sitemap.xml</button>
+                    <button type="button" class="btn btn-secondary" onclick="syncAllDirectoryToScraper()" id="btn-sync-scraper">&#128260; Sync Websites to Scraper</button>
+                    <a href="/staff/lead-hunter.html" class="btn btn-secondary">&#127919; Lead Hunter</a>
+                    <button type="button" class="btn btn-secondary" onclick="openCsvImportModal()">&#128229; Import CSV</button>
+                    <button type="button" class="btn btn-primary" onclick="openBusinessModal(null)">+ Add Business</button>
+                </div>
+            </div>
+
+            <div id="page-alert" class="alert" style="display:none;margin-bottom:16px;"></div>
+
+            <details class="wg-admin-guide">
+                <summary>&#128214; Beginner's Guide: How to Edit Business Listings &amp; Websites</summary>
+                <div class="wg-admin-guide-body">
+                    <ol>
+                        <li><strong>Fix Wrong Addresses or Websites:</strong> Search by business name or click <strong>Needs Website Review</strong> to find businesses missing an external website or pointing to an internal <code>welcomeeg.ca</code> link.</li>
+                        <li><strong>External Websites Only:</strong> A business's Website URL must be its own external site (or left blank to display <em>"No website provided"</em> on its <code>/businesses/</code> page). Never save a <code>welcomeeg.ca</code> URL as a business's website.</li>
+                        <li><strong>Verify Before Saving:</strong> Use the <em>Test Link &#8599;</em> button inside the editor to confirm the URL opens the correct business website.</li>
+                    </ol>
+                </div>
+            </details>
+
+            <details class="wg-admin-guide">
+                <summary>&#128229; Beginners Guide: Importing bulk businesses from csv file</summary>
+                <div class="wg-admin-guide-body">
+                    <ol>
+                        <li><strong>Upload &amp; Preview CSV:</strong> Click <strong>Import CSV</strong> and select your Google Maps / Places CSV file. All rows import as <strong>Pending Approval</strong> (<code>status: "pending"</code>, <code>source: "csv_import"</code>) and are never live or synced to the scraper until you approve them.</li>
+                        <li><strong>Duplicates vs. Different Addresses:</strong> Exact duplicates (same name and same street address) are unchecked automatically. Businesses with the same or similar name at a <strong>different address</strong> (e.g., two locations on Woodbine) are kept checked and highlighted in yellow for your manual review—merge side-by-side unit listings if needed, or approve both separately.</li>
+                        <li><strong>Review Each Pending Business:</strong> After importing, the page automatically opens <strong>Pending Approval</strong>. Before clicking <strong>Approve</strong>, check and update:
+                            <ul>
+                                <li><strong>Custom Business Photo:</strong> CSVs have no photos (listings use the default image until you upload one).</li>
+                                <li><strong>Public Description / About:</strong> Optional short public bio shown on <code>/businesses/...</code>.</li>
+                                <li><strong>Listing Type:</strong> Switch from <em>Business</em> to <em>Venue / Hall / Park</em> for parks, schools, or community halls.</li>
+                                <li><strong>Mapped Category:</strong> Spot-check auto-mapped Google types (e.g., mislabeled <em>Ranch</em>, <em>Manufacturer</em>, or <em>Point Of Interest</em> entries).</li>
+                                <li><strong>Address, Phone &amp; Website:</strong> Fix typos, add missing phone numbers or websites, and reject/ignore non-business junk pins.</li>
+                                <li><strong>Private Admin Notes:</strong> Add any internal outreach, walk-in, or claim notes (visible to admins only).</li>
+                            </ul>
+                        </li>
+                        <li><strong>Approve &amp; Refresh Sitemap:</strong> Click <strong>Approve</strong> (or <strong>Save Changes</strong> with <em>Approved</em> in Edit) for each verified business, then click <strong>Regenerate sitemap.xml</strong> when your batch review is complete.</li>
+                    </ol>
+                </div>
+            </details>
+
+            <!-- Summary Filter Pills -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                <button type="button" class="btn btn-primary btn-sm" id="pill-all" onclick="setReviewFilter('all')">All Businesses (<span id="cnt-all">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-pending" onclick="setReviewFilter('pending')">&#9203; Pending Approval (<span id="cnt-pending">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-approved" onclick="setReviewFilter('approved')">&#9989; Approved (<span id="cnt-approved">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-rejected" onclick="setReviewFilter('rejected')">&#10060; Rejected (<span id="cnt-rejected">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-review" onclick="setReviewFilter('needs_review')">&#9888; Needs Website Review (<span id="cnt-review">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-internal" onclick="setReviewFilter('internal_link')">&#128683; Internal WG Links (<span id="cnt-internal">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-missing-addr" onclick="setReviewFilter('missing_addr')">&#128205; Missing Address (<span id="cnt-missing-addr">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-missing-photo" onclick="setReviewFilter('missing_photo')">&#128247; Missing Photo (<span id="cnt-missing-photo">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-missing-desc" onclick="setReviewFilter('missing_desc')">&#128221; Missing Description (<span id="cnt-missing-desc">0</span>)</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="pill-claims" onclick="setReviewFilter('claims')" style="display:none;">&#127991;&#65039; Business Claims (<span id="cnt-claims">0</span>)</button>
+            </div>
+
+            <!-- Search & Filters -->
+            <section class="card" style="margin-bottom:20px;">
+                <div class="grid-3">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="biz-search">Search Name, Address, or Website</label>
+                        <input type="text" id="biz-search" class="form-control" placeholder="e.g. Corner House, Queensville Lions, East Gwillimbury Arms...">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="biz-filter-community">Community Area</label>
+                        <select id="biz-filter-community" class="form-control">
+                            <option value="all">All Communities</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="biz-filter-status">Approval Status</label>
+                        <select id="biz-filter-status" class="form-control">
+                            <option value="all">All Statuses</option>
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Table -->
+            <section class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 style="margin:0;">Directory Listings (<span id="shown-count">0</span>)</h3>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="loadBusinesses()">&#8635; Refresh</button>
+                </div>
+                <div id="biz-table-wrap" style="overflow-x:auto;">
+                    <p style="color:var(--muted);">Loading business directory...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit / Add Business Modal -->
+    <div id="modal-edit-biz" class="modal-overlay">
+        <div class="modal-dialog">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+                <h3 id="modal-biz-title" style="margin:0;">Edit Business Listing</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeBusinessModal()">&times;</button>
+            </div>
+            <form id="biz-form" onsubmit="saveBusiness(event)">
+                <input type="hidden" id="edit-biz-id">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="edit-biz-name">Business Name *</label>
+                        <input type="text" id="edit-biz-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-biz-slug">URL Slug (<code>/businesses/...</code>)</label>
+                        <input type="text" id="edit-biz-slug" class="form-control" placeholder="auto-generated-from-name">
+                        <small id="edit-biz-slug-hint" style="display:none;color:var(--muted);font-size:11px;">Locked after creation so shared links never break.</small>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="edit-biz-location">Street Address / Location *</label>
+                        <input type="text" id="edit-biz-location" class="form-control" placeholder="e.g. 240 Church St, Holland Landing, ON" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-biz-community">Community Area *</label>
+                        <select id="edit-biz-community" class="form-control" data-wg-communities required></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-biz-link">External Website URL (leave blank if none — shows &ldquo;No website provided&rdquo;)</label>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <input type="url" id="edit-biz-link" class="form-control" style="flex:1;min-width:220px;" placeholder="https://example.ca">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="testBizLink()">Test Link &#8599;</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-biz-link').value='';updateLinkWarning();">Clear</button>
+                    </div>
+                    <div id="edit-biz-link-warn" style="display:none;margin-top:6px;padding:8px 10px;border-radius:8px;background:#fef2f2;color:#991b1b;font-size:12px;font-weight:700;">
+                        &#9888; This URL points to welcomeeg.ca instead of the business's own external website. Clear it or replace with the verified external URL.
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="edit-biz-phone">Phone Number</label>
+                        <input type="tel" id="edit-biz-phone" class="form-control" maxlength="14" oninput="formatBizPhoneInput(this)" placeholder="(905) 555-0123">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-biz-category">Category</label>
+                        <input type="text" id="edit-biz-category" class="form-control" list="biz-category-list" placeholder="e.g. Dining & Restaurant">
+                        <datalist id="biz-category-list"></datalist>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="edit-biz-listing-type">Listing Type</label>
+                        <select id="edit-biz-listing-type" class="form-control">
+                            <option value="business">Business</option>
+                            <option value="venue">Venue / Hall / Park</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-biz-source">Source</label>
+                        <select id="edit-biz-source" class="form-control">
+                            <option value="curated">Curated</option>
+                            <option value="submitted">Submitted</option>
+                            <option value="csv_import">CSV Import</option>
+                            <option value="scraped">Scraped</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-biz-status">Status</label>
+                        <select id="edit-biz-status" class="form-control">
+                            <option value="approved">Approved</option>
+                            <option value="pending">Pending</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="padding:12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                        <label style="margin:0;font-weight:800;font-size:13px;color:#0f172a;">&#128248; Business Photo</label>
+                        <span id="edit-biz-image-badge" style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;background:#f1f5f9;color:#475569;">Default Photo</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <img id="edit-biz-image-preview" src="/placeholder-500x500.jpg" alt="Business Photo" style="width:76px;height:76px;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;" onclick="if(this.src) window.open(this.src,'_blank','noopener')" title="Click to view full photo">
+                        <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px;">
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <input type="file" id="edit-biz-image-file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleBizPhotoUpload(event)">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('edit-biz-image-file').click()">&#128228; Upload Photo</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="clearBizPhoto()">Use Default</button>
+                            </div>
+                            <input type="text" id="edit-biz-image-url" class="form-control" style="font-size:12px;padding:6px 10px;" placeholder="https://... or upload a photo above (leave blank for default)" oninput="syncBizPhotoPreview()">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-biz-notes">Public Description / About (shown on <code>/businesses/...</code> page)</label>
+                    <textarea id="edit-biz-notes" class="form-control" rows="2" placeholder="Optional public description shown on this business's directory page..."></textarea>
+                </div>
+                <div class="form-group" id="admin-notes-group" style="padding:12px;border-radius:10px;background:#fefce8;border:1px solid #fde047;">
+                    <label for="edit-biz-admin-notes" style="color:#854d0e;font-weight:800;">&#128274; Private Admin Notes (Admins Only &mdash; Never Exposed to Claimed Businesses or Visitors)</label>
+                    <textarea id="edit-biz-admin-notes" class="form-control" rows="3" placeholder="Internal admin notes (outreach history, verification details, billing/claim notes)..."></textarea>
+                    <small id="admin-notes-hint" style="display:block;margin-top:4px;color:#854d0e;font-size:11px;">Stored in a separate admin-only table protected by row-level security.</small>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeBusinessModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-biz">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Import CSV Modal -->
+    <div id="modal-import-csv" class="modal-overlay">
+        <div class="modal-dialog" style="max-width:900px;width:95vw;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+                <h3 style="margin:0;">&#128229; Import Businesses from Google Maps / Places CSV</h3>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeCsvImportModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="csv-file-input">Select CSV File (e.g. <code>walkin-route-*.csv</code>)</label>
+                <input type="file" id="csv-file-input" accept=".csv,text/csv" class="form-control" onchange="handleCsvFileSelect(event)">
+                <small style="color:var(--muted);">Reads <strong>Business Name</strong>, <strong>Primary Type</strong>, <strong>Address</strong> (+ Unit), <strong>Phone</strong>, and <strong>Website</strong>. Duplicates already in the directory are unchecked automatically.</small>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                <span style="font-size:12px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fde68a;padding:5px 10px;border-radius:8px;">&#9203; All CSV rows are imported as <strong>Pending Approval</strong> for your manual review (never synced to scraper or live directory until approved).</span>
+                <span id="csv-summary" style="font-size:12px;font-weight:700;color:var(--muted);"></span>
+            </div>
+            <div id="csv-preview-wrap" style="max-height:380px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:8px;margin-bottom:16px;">
+                <p style="color:var(--muted);margin:8px;">Choose a CSV file above to preview businesses before importing.</p>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeCsvImportModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-import-csv" onclick="runCsvImport()" disabled>Import Selected (0)</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128197; Community &amp; Calendars</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">Events Calendar</a></li>
+                            <li><a href="/directory">Business Directory</a></li>
+                            <li><a href="/press">Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128274; Accounts &amp; Legal</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/staff/admin-approvals.html">Admin &amp; Staff Operations</a></li>
+                            <li><a href="/terms">Terms of Service</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                            <li><a href="/corrections">Corrections</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. We are not responsible for errors or omissions.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let sbClient = null;
+        let allBusinesses = [];
+        let pendingClaims = [];
+        let adminNotesByBizId = {};
+        let currentUserId = null;
+        let currentUserIsAdmin = false;
+        let adminNotesTableReady = true;
+        let reviewFilter = "all";
+        let currentBizPage = 1;
+        const BIZ_PAGE_SIZE = 50;
+
+        const COMMUNITIES = [
+            "Baldwin", "Franklin", "Brown Hill", "Egypt", "Brown Hill",
+            "Sharon", "Holland Landing", "Queensville", "Ravenshoe",
+            "Holt", "Mount Albert", "Brown Hill", "Virginia", "River Drive Park", "Out of Area"
+        ];
+
+        function formatBizPhoneValue(raw) {
+            let digits = String(raw || "").replace(/\D/g, "");
+            if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+            digits = digits.slice(0, 10);
+            if (digits.length === 0) return "";
+            if (digits.length <= 3) return `(${digits}`;
+            if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+            return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+        }
+
+        window.formatBizPhoneInput = function (input) {
+            if (!input) return;
+            input.value = formatBizPhoneValue(input.value);
+        };
+
+        function escapeHtml(s) {
+            return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function slugify(s) {
+            return String(s || "").toLowerCase().trim()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 120);
+        }
+
+        function isInternalWgLink(url) {
+            return /^https?:\/\/(www\.)?welcomeeg\.ca(\/|$)/i.test(String(url || "").trim());
+        }
+
+        function needsWebsiteReview(b) {
+            const u = String(b.link || "").trim();
+            return !u || isInternalWgLink(u) || !/^https?:\/\//i.test(u);
+        }
+
+        function safeHttpUrl(url) {
+            const raw = String(url || "").trim();
+            return /^https?:\/\/[^/\s]+/i.test(raw) ? raw : "";
+        }
+
+        function safeImageUrl(url) {
+            const raw = String(url || "").trim();
+            if (/^https?:\/\/[^/\s]+/i.test(raw)) return raw;
+            if (/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/i.test(raw)) return raw;
+            if (/^\/[A-Za-z0-9_.\-/]+$/.test(raw)) return raw;
+            return "";
+        }
+
+        function showAlert(msg, type, link) {
+            const el = document.getElementById("page-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.textContent = String(msg || "").replace(/<[^>]+>/g, "");
+            if (link && link.href && link.text) {
+                el.appendChild(document.createTextNode(" "));
+                const a = document.createElement("a");
+                a.href = link.href;
+                a.textContent = link.text;
+                a.style.fontWeight = "700";
+                a.style.textDecoration = "underline";
+                if (link.newTab) {
+                    a.target = "_blank";
+                    a.rel = "noopener noreferrer";
+                }
+                el.appendChild(a);
+            }
+            el.style.display = "block";
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        function populateCommunitySelects() {
+            const filterSel = document.getElementById("biz-filter-community");
+            const editSel = document.getElementById("edit-biz-community");
+            COMMUNITIES.forEach(c => {
+                const o1 = document.createElement("option");
+                o1.value = c; o1.textContent = c;
+                filterSel.appendChild(o1);
+                const o2 = document.createElement("option");
+                o2.value = c; o2.textContent = c;
+                editSel.appendChild(o2);
+            });
+        }
+
+        window.setReviewFilter = function (f) {
+            reviewFilter = f;
+            currentBizPage = 1;
+            ["all", "pending", "approved", "rejected", "review", "internal", "missing-addr", "missing-photo", "missing-desc", "claims"].forEach(k => {
+                const btn = document.getElementById("pill-" + k);
+                if (!btn) return;
+                const active = (k === "all" && f === "all") ||
+                    (k === "pending" && f === "pending") ||
+                    (k === "approved" && f === "approved") ||
+                    (k === "rejected" && f === "rejected") ||
+                    (k === "review" && f === "needs_review") ||
+                    (k === "internal" && f === "internal_link") ||
+                    (k === "missing-addr" && f === "missing_addr") ||
+                    (k === "missing-photo" && f === "missing_photo") ||
+                    (k === "missing-desc" && f === "missing_desc") ||
+                    (k === "claims" && f === "claims");
+                btn.className = active ? "btn btn-primary btn-sm" : "btn btn-secondary btn-sm";
+            });
+            renderBusinesses();
+        };
+
+        function populateCategoryDatalist(businesses) {
+            const dl = document.getElementById("biz-category-list");
+            if (!dl) return;
+            const defaults = [
+                "Arts & Culture", "Bakery & Cafe", "Community Organization",
+                "Dining & Restaurant", "Fitness & Recreation", "Health & Wellness",
+                "Home & Garden Services", "Local Business", "Professional Services",
+                "Retail & Shopping", "Tourism & Accommodation"
+            ];
+            const set = new Set(defaults);
+            (businesses || []).forEach(b => {
+                const c = String(b.category || "").trim();
+                if (c) set.add(c);
+            });
+            dl.innerHTML = Array.from(set).sort((a, b) => a.localeCompare(b))
+                .map(c => `<option value="${escapeHtml(c)}">`).join("");
+        }
+
+        window.loadBusinesses = async function () {
+            if (!sbClient) return;
+            const { data, error } = await sbClient
+                .from("directory_listings")
+                .select("id, slug, old_slugs, name, category, community, location, phone, link, image_url, status, listing_type, source, notes, created_at, updated_at")
+                .order("name", { ascending: true })
+                .limit(2000);
+            if (error) {
+                showAlert("Failed to load directory listings: " + escapeHtml(error.message), "danger");
+                return;
+            }
+            allBusinesses = data || [];
+            populateCategoryDatalist(allBusinesses);
+
+            adminNotesByBizId = {};
+            if (currentUserIsAdmin) {
+                const { data: noteRows, error: noteErr } = await sbClient
+                    .from("directory_listing_admin_notes")
+                    .select("business_id, notes")
+                    .limit(2000);
+                if (noteErr) {
+                    adminNotesTableReady = false;
+                } else {
+                    adminNotesTableReady = true;
+                    (noteRows || []).forEach(r => {
+                        if (r.business_id && String(r.notes || "").trim()) {
+                            adminNotesByBizId[r.business_id] = String(r.notes);
+                        }
+                    });
+                }
+
+                const claimsPill = document.getElementById("pill-claims");
+                if (claimsPill) claimsPill.style.display = "inline-flex";
+                const { data: claimRows } = await sbClient
+                    .from("business_claims")
+                    .select("*")
+                    .in("status", ["pending", "pending_verification"])
+                    .order("created_at", { ascending: false })
+                    .limit(200);
+                pendingClaims = claimRows || [];
+                const cntClaims = document.getElementById("cnt-claims");
+                if (cntClaims) cntClaims.textContent = pendingClaims.filter(c => c.status === "pending").length;
+            }
+
+            document.getElementById("cnt-all").textContent = allBusinesses.length;
+            document.getElementById("cnt-pending").textContent = allBusinesses.filter(b => b.status === "pending").length;
+            document.getElementById("cnt-approved").textContent = allBusinesses.filter(b => (b.status || "approved") === "approved").length;
+            document.getElementById("cnt-rejected").textContent = allBusinesses.filter(b => b.status === "rejected").length;
+            document.getElementById("cnt-review").textContent = allBusinesses.filter(needsWebsiteReview).length;
+            document.getElementById("cnt-internal").textContent = allBusinesses.filter(b => isInternalWgLink(b.link)).length;
+            document.getElementById("cnt-missing-addr").textContent = allBusinesses.filter(b => !String(b.location || "").trim()).length;
+            document.getElementById("cnt-missing-photo").textContent = allBusinesses.filter(b => !String(b.image_url || "").trim()).length;
+            document.getElementById("cnt-missing-desc").textContent = allBusinesses.filter(b => (b.status || "approved") === "approved" && !String(b.notes || "").trim()).length;
+            renderBusinesses();
+        };
+
+        window.setBizPage = function (p) {
+            currentBizPage = Math.max(1, p);
+            renderBusinesses();
+            const wrap = document.getElementById("biz-table-wrap");
+            if (wrap) wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+
+        function renderClaimsTable() {
+            document.getElementById("shown-count").textContent = pendingClaims.length;
+            const wrap = document.getElementById("biz-table-wrap");
+            if (!pendingClaims.length) {
+                wrap.innerHTML = `<p style="color:var(--muted);">No business claims waiting for review.</p>`;
+                return;
+            }
+            wrap.innerHTML = `
+                <table class="data-table" style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th>Business</th>
+                            <th>Claimant &amp; Contact</th>
+                            <th>Verification Proof</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pendingClaims.map(c => {
+                            const proofBadge = c.domain_matched
+                                ? `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:#ecfdf5;color:#047857;font-size:11px;font-weight:800;">&#9989; Domain Verified</span>`
+                                : c.verification_method === "document_upload"
+                                ? `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:#eff6ff;color:#1d4ed8;font-size:11px;font-weight:800;">&#128196; Document</span>`
+                                : `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:800;">&#128222; Phone Callback</span>`;
+                            return `
+                                <tr>
+                                    <td>
+                                        <strong>${escapeHtml(c.business_name)}</strong>
+                                        ${c.already_claimed ? `<div style="font-size:11px;color:#b45309;font-weight:700;">&#9888; Already has owner</div>` : ""}
+                                    </td>
+                                    <td>
+                                        <div><strong>${escapeHtml(c.claimant_name)}</strong> (${escapeHtml(c.claimant_role || "Owner")})</div>
+                                        <div style="font-size:12px;">${escapeHtml(c.claimant_email)}</div>
+                                        <div style="font-size:11px;color:#64748b;">${escapeHtml(c.claimant_phone || "—")}</div>
+                                        ${c.notes ? `<div style="font-size:11px;color:#475569;margin-top:4px;">${escapeHtml(c.notes)}</div>` : ""}
+                                    </td>
+                                    <td>
+                                        ${proofBadge}
+                                        ${c.proof_path ? `<div><button type="button" class="btn btn-secondary btn-sm btn-view-proof" style="margin-top:4px;font-size:11px;" data-proof-path="${escapeHtml(c.proof_path)}">View Proof &#8599;</button></div>` : ""}
+                                    </td>
+                                    <td><span class="badge">${escapeHtml(c.status)}</span></td>
+                                    <td style="white-space:nowrap;">
+                                        <button type="button" class="btn btn-success btn-sm btn-decide-claim" data-claim-id="${escapeHtml(c.id)}" data-decision="approved">Approve &amp; Link</button>
+                                        <button type="button" class="btn btn-danger btn-sm btn-decide-claim" data-claim-id="${escapeHtml(c.id)}" data-decision="rejected">Reject</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join("")}
+                    </tbody>
+                </table>
+            `;
+            wrap.querySelectorAll(".btn-view-proof").forEach(btn => {
+                btn.addEventListener("click", () => viewClaimProof(btn.getAttribute("data-proof-path")));
+            });
+            wrap.querySelectorAll(".btn-decide-claim").forEach(btn => {
+                btn.addEventListener("click", () => decideClaim(btn.getAttribute("data-claim-id"), btn.getAttribute("data-decision")));
+            });
+        }
+
+        window.viewClaimProof = async function (path) {
+            if (!sbClient || !path) return;
+            if (!/^claims\/[0-9a-f-]+\/[0-9a-f-]+\.(pdf|jpg|jpeg|png|webp)$/i.test(String(path))) {
+                showAlert("Invalid proof document path.", "danger");
+                return;
+            }
+            const { data, error } = await sbClient.storage.from("claim-proofs").createSignedUrl(path, 120);
+            if (error || !data || !data.signedUrl) {
+                showAlert("Could not open proof document: " + ((error && error.message) || "unknown error"), "danger");
+                return;
+            }
+            window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+        };
+
+        window.decideClaim = async function (claimId, decision) {
+            if (!sbClient || !currentUserIsAdmin) {
+                showAlert("Admin permissions are required to decide business claims.", "danger");
+                return;
+            }
+            const claim = pendingClaims.find(c => c.id === claimId);
+            if (!claim) return;
+            const { data: res, error } = await sbClient.rpc("wg_admin_decide_claim", {
+                claim_id_input: claimId,
+                decision_input: decision
+            });
+            if (error || (res && res.success === false)) {
+                showAlert((res && res.error) || (error && error.message) || "Failed to update claim.", "warning");
+                return;
+            }
+            showAlert(`Claim for ${claim.business_name} marked ${decision}.`, "success");
+            await loadBusinesses();
+        };
+
+        function renderBusinesses() {
+            if (reviewFilter === "claims") {
+                renderClaimsTable();
+                return;
+            }
+            const q = document.getElementById("biz-search").value.trim().toLowerCase();
+            const comm = document.getElementById("biz-filter-community").value;
+            const st = document.getElementById("biz-filter-status").value;
+
+            const filtered = allBusinesses.filter(b => {
+                if (reviewFilter === "pending" && b.status !== "pending") return false;
+                if (reviewFilter === "approved" && (b.status || "approved") !== "approved") return false;
+                if (reviewFilter === "rejected" && b.status !== "rejected") return false;
+                if (reviewFilter === "needs_review" && !needsWebsiteReview(b)) return false;
+                if (reviewFilter === "internal_link" && !isInternalWgLink(b.link)) return false;
+                if (reviewFilter === "missing_addr" && String(b.location || "").trim()) return false;
+                if (reviewFilter === "missing_photo" && String(b.image_url || "").trim()) return false;
+                if (reviewFilter === "missing_desc" && ((b.status || "approved") !== "approved" || String(b.notes || "").trim())) return false;
+                if (comm !== "all" && (b.community || "") !== comm) return false;
+                if (st !== "all" && (b.status || "approved") !== st) return false;
+                if (q) {
+                    const hay = `${b.name || ""} ${b.location || ""} ${b.community || ""} ${b.category || ""} ${b.link || ""} ${b.phone || ""}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            document.getElementById("shown-count").textContent = filtered.length;
+            const wrap = document.getElementById("biz-table-wrap");
+            if (filtered.length === 0) {
+                wrap.innerHTML = `<p style="color:var(--muted);">No businesses match the current filters.</p>`;
+                return;
+            }
+
+            const totalPages = Math.max(1, Math.ceil(filtered.length / BIZ_PAGE_SIZE));
+            if (currentBizPage > totalPages) currentBizPage = totalPages;
+            const startIdx = (currentBizPage - 1) * BIZ_PAGE_SIZE;
+            const pageRows = filtered.slice(startIdx, startIdx + BIZ_PAGE_SIZE);
+
+            const pagerHtml = totalPages > 1 ? `
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;">
+                    <span style="color:var(--muted);font-weight:700;">Showing ${startIdx + 1}&ndash;${Math.min(startIdx + BIZ_PAGE_SIZE, filtered.length)} of ${filtered.length} (Page ${currentBizPage} of ${totalPages})</span>
+                    <div style="display:flex;gap:6px;">
+                        <button type="button" class="btn btn-secondary btn-sm" ${currentBizPage <= 1 ? "disabled" : ""} onclick="setBizPage(${currentBizPage - 1})">&larr; Previous</button>
+                        <button type="button" class="btn btn-secondary btn-sm" ${currentBizPage >= totalPages ? "disabled" : ""} onclick="setBizPage(${currentBizPage + 1})">Next &rarr;</button>
+                    </div>
+                </div>` : "";
+
+            wrap.innerHTML = `
+                <table class="data-table" style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th>Business &amp; Slug</th>
+                            <th>Address &amp; Community</th>
+                            <th>Website URL</th>
+                            <th>Photo</th>
+                            <th>Phone &amp; Category</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pageRows.map(b => {
+                            const internal = isInternalWgLink(b.link);
+                            const safeLink = safeHttpUrl(b.link);
+                            const missing = !String(b.link || "").trim();
+                            const webBadge = internal
+                                ? `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:800;">&#9888; Internal WG Link</span><div style="font-size:11px;color:#b91c1c;word-break:break-all;margin-top:2px;">${escapeHtml(b.link)}</div>`
+                                : missing
+                                ? `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:800;">No website provided</span>`
+                                : safeLink
+                                ? `<a href="${escapeHtml(safeLink)}" target="_blank" rel="noopener noreferrer" style="font-size:12px;word-break:break-all;color:#1d4ed8;">${escapeHtml(safeLink)} &#8599;</a>`
+                                : `<span style="font-size:11px;color:#b91c1c;">Invalid URL scheme</span>`;
+                            const safeImg = safeImageUrl(b.image_url);
+                            const photoCell = safeImg
+                                ? `<div style="display:inline-flex;align-items:center;gap:6px;"><a href="${escapeHtml(safeImg)}" target="_blank" rel="noopener noreferrer" title="View custom photo"><img src="${escapeHtml(safeImg)}" alt="" style="width:28px;height:28px;aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;"></a><span style="font-size:11px;font-weight:800;color:#047857;">Yes</span></div>`
+                                : `<span style="display:inline-block;padding:2px 8px;border-radius:99px;background:#f1f5f9;color:#64748b;font-size:11px;font-weight:700;">No</span>`;
+                            return `
+                                <tr>
+                                    <td>
+                                        <strong>${escapeHtml(b.name)}</strong>
+                                        ${adminNotesByBizId[b.id] ? `<span title="Has private admin note" style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:99px;background:#fef9c3;color:#854d0e;border:1px solid #fde047;font-size:10px;font-weight:800;">&#128274; Note</span>` : ""}
+                                        ${!String(b.notes || "").trim() ? `<span title="Missing public description" style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:99px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;font-size:10px;font-weight:800;">No description</span>` : ""}
+                                        <div style="font-size:11px;color:#64748b;">
+                                            <a href="/businesses/${encodeURIComponent(b.slug || slugify(b.name))}" target="_blank" rel="noopener">/businesses/${escapeHtml(b.slug || slugify(b.name))} &#8599;</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>${escapeHtml(b.location || "—")}</div>
+                                        <div style="font-size:11px;color:#64748b;font-weight:700;">${escapeHtml(b.community || "East Gwillimbury")}</div>
+                                    </td>
+                                    <td>${webBadge}</td>
+                                    <td style="white-space:nowrap;">${photoCell}</td>
+                                    <td>
+                                        <div style="font-size:12px;">${escapeHtml(b.phone || "—")}</div>
+                                        <div style="font-size:11px;color:#64748b;">${escapeHtml(b.category || "—")}</div>
+                                    </td>
+                                    <td><span class="badge">${escapeHtml(b.status || "approved")}</span></td>
+                                    <td style="white-space:nowrap;">
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="openBusinessModal('${b.id}')">Edit</button>
+                                        ${b.status === "pending" ? `<button type="button" class="btn btn-success btn-sm" onclick="quickApproveBiz('${b.id}')">Approve</button>` : ""}
+                                        ${internal ? `<button type="button" class="btn btn-danger btn-sm" onclick="clearInvalidLink('${b.id}')">Clear Bad Link</button>` : ""}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join("")}
+                    </tbody>
+                </table>
+                ${pagerHtml}
+            `;
+        }
+
+        function updateLinkWarning() {
+            const val = document.getElementById("edit-biz-link").value.trim();
+            document.getElementById("edit-biz-link-warn").style.display = isInternalWgLink(val) ? "block" : "none";
+        }
+
+        window.syncBizPhotoPreview = function () {
+            const rawUrl = (document.getElementById("edit-biz-image-url").value || "").trim();
+            const url = safeImageUrl(rawUrl);
+            const img = document.getElementById("edit-biz-image-preview");
+            const badge = document.getElementById("edit-biz-image-badge");
+            if (url) {
+                img.src = url;
+                badge.textContent = "Custom Photo";
+                badge.style.background = "#ecfdf5";
+                badge.style.color = "#047857";
+            } else {
+                img.src = "/placeholder-500x500.jpg";
+                badge.textContent = "Default Photo";
+                badge.style.background = "#f1f5f9";
+                badge.style.color = "#475569";
+            }
+        };
+
+        window.clearBizPhoto = function () {
+            document.getElementById("edit-biz-image-url").value = "";
+            const fileEl = document.getElementById("edit-biz-image-file");
+            if (fileEl) fileEl.value = "";
+            syncBizPhotoPreview();
+        };
+
+        window.handleBizPhotoUpload = function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith("image/")) {
+                showAlert("Please select a valid image file (JPG, PNG, WEBP).", "warning");
+                return;
+            }
+            if (file.size > 15 * 1024 * 1024) {
+                showAlert("Image file must be 15 MB or smaller.", "warning");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const img = new Image();
+                img.onload = function () {
+                    const TARGET_WIDTH = 400;
+                    let w = img.width, h = img.height;
+                    if (w > TARGET_WIDTH) {
+                        h = Math.round(h * (TARGET_WIDTH / w));
+                        w = TARGET_WIDTH;
+                    }
+                    const canvas = document.createElement("canvas");
+                    canvas.width = w;
+                    canvas.height = h;
+                    canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                    let dataUrl = canvas.toDataURL("image/webp", 0.85);
+                    if (!dataUrl.startsWith("data:image/webp")) dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                    document.getElementById("edit-biz-image-url").value = dataUrl;
+                    syncBizPhotoPreview();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.openBusinessModal = function (id) {
+            const b = id ? allBusinesses.find(x => x.id === id) : null;
+            document.getElementById("modal-biz-title").textContent = b ? `Edit: ${b.name}` : "Add New Business";
+            document.getElementById("edit-biz-id").value = b ? b.id : "";
+            document.getElementById("edit-biz-name").value = b ? (b.name || "") : "";
+            const slugEl = document.getElementById("edit-biz-slug");
+            slugEl.value = b ? (b.slug || "") : "";
+            slugEl.readOnly = Boolean(b);
+            slugEl.style.background = b ? "#f8fafc" : "";
+            document.getElementById("edit-biz-slug-hint").style.display = b ? "block" : "none";
+            document.getElementById("edit-biz-location").value = b ? (b.location || "") : "";
+            document.getElementById("edit-biz-community").value = b && COMMUNITIES.includes(b.community) ? b.community : "Holland Landing";
+            document.getElementById("edit-biz-link").value = b ? (b.link || "") : "";
+            document.getElementById("edit-biz-phone").value = b ? formatBizPhoneValue(b.phone || "") : "";
+            document.getElementById("edit-biz-category").value = b ? (b.category || "") : "";
+            const ltSel = document.getElementById("edit-biz-listing-type");
+            const ltVal = b && b.listing_type ? b.listing_type : "business";
+            if (!Array.from(ltSel.options).some(o => o.value === ltVal)) {
+                const opt = document.createElement("option");
+                opt.value = ltVal; opt.textContent = ltVal;
+                ltSel.appendChild(opt);
+            }
+            ltSel.value = ltVal;
+            const srcSel = document.getElementById("edit-biz-source");
+            const srcVal = b && b.source ? b.source : "curated";
+            if (!Array.from(srcSel.options).some(o => o.value === srcVal)) {
+                const opt = document.createElement("option");
+                opt.value = srcVal; opt.textContent = srcVal;
+                srcSel.appendChild(opt);
+            }
+            srcSel.value = srcVal;
+            document.getElementById("edit-biz-status").value = b ? (b.status || "approved") : "approved";
+            document.getElementById("edit-biz-image-url").value = b ? (b.image_url || "") : "";
+            const bizFileEl = document.getElementById("edit-biz-image-file");
+            if (bizFileEl) bizFileEl.value = "";
+            syncBizPhotoPreview();
+            document.getElementById("edit-biz-notes").value = b ? (b.notes || "") : "";
+
+            const adminGroup = document.getElementById("admin-notes-group");
+            const adminArea = document.getElementById("edit-biz-admin-notes");
+            const adminHint = document.getElementById("admin-notes-hint");
+            if (!currentUserIsAdmin) {
+                adminGroup.style.display = "none";
+                adminArea.value = "";
+            } else {
+                adminGroup.style.display = "block";
+                adminArea.disabled = !adminNotesTableReady;
+                adminArea.value = (b && adminNotesByBizId[b.id]) ? adminNotesByBizId[b.id] : "";
+                adminHint.textContent = adminNotesTableReady
+                    ? "Stored in a separate admin-only table protected by row-level security."
+                    : "Run migration 20261231_directory_admin_notes.sql in Supabase SQL Editor to enable private admin notes.";
+            }
+
+            updateLinkWarning();
+            document.getElementById("modal-edit-biz").classList.add("active");
+        };
+
+        window.closeBusinessModal = function () {
+            document.getElementById("modal-edit-biz").classList.remove("active");
+        };
+
+        window.testBizLink = function () {
+            const u = safeHttpUrl(document.getElementById("edit-biz-link").value.trim());
+            if (!u) { showAlert("Enter a valid http:// or https:// website URL to test.", "warning"); return; }
+            window.open(u, "_blank", "noopener,noreferrer");
+        };
+
+        window.quickApproveBiz = async function (id) {
+            if (!sbClient) return;
+            const b = allBusinesses.find(x => x.id === id);
+            const { error } = await sbClient.from("directory_listings").update({ status: "approved" }).eq("id", id);
+            if (error) { showAlert("Approve failed: " + escapeHtml(error.message), "danger"); return; }
+            if (b && b.link) await ensureScrapeSourceForBiz(b).catch(() => {});
+            showAlert(`Approved <strong>${escapeHtml((b && b.name) || "business")}</strong>.`, "success");
+            const urlFilter = new URLSearchParams(window.location.search).get("filter");
+            if (urlFilter === "pending") setReviewFilter("pending");
+            await loadBusinesses();
+        };
+
+        window.clearInvalidLink = async function (id) {
+            if (!sbClient) return;
+            const { error } = await sbClient.from("directory_listings").update({ link: null }).eq("id", id);
+            if (error) { showAlert("Failed to clear link: " + escapeHtml(error.message), "danger"); return; }
+            showAlert("Invalid internal link cleared. The business page will now show 'No website provided'.", "success");
+            const urlFilter = new URLSearchParams(window.location.search).get("filter");
+            if (urlFilter === "pending") setReviewFilter("pending");
+            await loadBusinesses();
+        };
+
+        function isEligibleScrapeUrl(url) {
+            const u = String(url || "").trim();
+            if (!/^https?:\/\/[^\s"<>]+$/i.test(u)) return false;
+            return !/^https?:\/\/([^/]+\.)?(welcomeeg\.ca|facebook\.com|fb\.com|instagram\.com|eventbrite\.(ca|com)|ticketmaster\.(ca|com)|meetup\.com|google\.com|goo\.gl|youtu\.be|youtube\.com|tiktok\.com|x\.com|twitter\.com)(\/|$)/i.test(u);
+        }
+
+        async function ensureScrapeSourceForBiz(biz) {
+            if (!sbClient || !biz || !isEligibleScrapeUrl(biz.link)) return false;
+            const cleanUrl = String(biz.link).trim().replace(/#.*$/, "").replace(/\/+$/, "");
+            const { data: existing } = await sbClient
+                .from("vendor_scrape_sources")
+                .select("id")
+                .ilike("scrape_url", `${cleanUrl}%`)
+                .limit(1);
+            if (existing && existing.length) return false;
+            const loc = [biz.location, biz.community].filter(Boolean).join(", ") || "East Gwillimbury, ON";
+            const { error } = await sbClient.from("vendor_scrape_sources").insert([{
+                business_name: biz.name || "Local Business",
+                scrape_url: cleanUrl,
+                default_location: loc,
+                notes: "Synced from Business Directory" + (biz.category ? " (" + biz.category + ")" : ""),
+                submitter_email: "crawler@welcomeeg.ca",
+                status: "approved"
+            }]);
+            return !error;
+        }
+
+        window.regenerateSitemap = async function () {
+            if (!sbClient) return;
+            const btn = document.getElementById("btn-regen-sitemap");
+            btn.disabled = true;
+            btn.textContent = "Regenerating...";
+            try {
+                const { data: { session } } = await sbClient.auth.getSession();
+                if (!session || !session.access_token) throw new Error("Not signed in");
+                const res = await fetch("/api/regenerate_sitemap.php", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + session.access_token }
+                });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+                showAlert(
+                    `Regenerated sitemap.xml with ${json.total_urls} URLs (${json.businesses} businesses, ${json.listings} active listings, ${json.press} press releases).`,
+                    "success",
+                    { text: "View sitemap.xml", href: "/sitemap.xml", newTab: true }
+                );
+            } catch (err) {
+                showAlert("Sitemap regeneration failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "&#128506; Regenerate sitemap.xml";
+            }
+        };
+
+        window.syncAllDirectoryToScraper = async function () {
+            if (!sbClient) return;
+            const btn = document.getElementById("btn-sync-scraper");
+            btn.disabled = true;
+            btn.textContent = "Syncing...";
+            try {
+                const [{ data: existingSources }, { data: bl }] = await Promise.all([
+                    sbClient.from("vendor_scrape_sources").select("scrape_url").limit(2000),
+                    sbClient.from("scraped_url_blacklist").select("target_url").limit(500)
+                ]);
+                const existingSet = new Set((existingSources || []).map(s => String(s.scrape_url || "").trim().replace(/#.*$/, "").replace(/\/+$/, "").toLowerCase()));
+                const blList = (bl || []).map(r => String(r.target_url || "").trim().toLowerCase()).filter(Boolean);
+                const toInsert = [];
+                const seen = new Set();
+                for (const b of allBusinesses) {
+                    if ((b.status && b.status !== "approved") || !isEligibleScrapeUrl(b.link)) continue;
+                    const cleanUrl = String(b.link).trim().replace(/#.*$/, "").replace(/\/+$/, "");
+                    const low = cleanUrl.toLowerCase();
+                    if (existingSet.has(low) || seen.has(low)) continue;
+                    if (blList.some(bad => low.includes(bad))) continue;
+                    seen.add(low);
+                    const loc = [b.location, b.community].filter(Boolean).join(", ") || "East Gwillimbury, ON";
+                    toInsert.push({
+                        business_name: b.name || "Local Business",
+                        scrape_url: cleanUrl,
+                        default_location: loc,
+                        notes: "Synced from Business Directory" + (b.category ? " (" + b.category + ")" : ""),
+                        submitter_email: "crawler@welcomeeg.ca",
+                        status: "approved"
+                    });
+                }
+                if (toInsert.length === 0) {
+                    showAlert("All eligible business websites are already in the scraping cycle.", "info");
+                    return;
+                }
+                const { error } = await sbClient.from("vendor_scrape_sources").insert(toInsert);
+                if (error) throw error;
+                showAlert(`Added <strong>${toInsert.length}</strong> eligible business website(s) to the automatic scraping cycle.`, "success");
+            } catch (err) {
+                showAlert("Sync failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "&#128260; Sync Websites to Scraper";
+            }
+        };
+
+        window.saveBusiness = async function (e) {
+            e.preventDefault();
+            if (!sbClient) return;
+            const id = document.getElementById("edit-biz-id").value.trim();
+            const name = document.getElementById("edit-biz-name").value.trim();
+            const slug = document.getElementById("edit-biz-slug").value.trim() || slugify(name);
+            const location = document.getElementById("edit-biz-location").value.trim();
+            const community = document.getElementById("edit-biz-community").value;
+            const link = document.getElementById("edit-biz-link").value.trim();
+            const phone = document.getElementById("edit-biz-phone").value.trim();
+            const category = document.getElementById("edit-biz-category").value.trim();
+            const listing_type = document.getElementById("edit-biz-listing-type").value || "business";
+            const source = document.getElementById("edit-biz-source").value || "curated";
+            const status = document.getElementById("edit-biz-status").value;
+            const image_url = (document.getElementById("edit-biz-image-url").value || "").trim();
+            const notes = document.getElementById("edit-biz-notes").value.trim();
+            const adminNotes = document.getElementById("edit-biz-admin-notes").value.trim();
+
+            if (isInternalWgLink(link)) {
+                showAlert("Cannot save a welcomeeg.ca URL as a business's external website. Clear it or enter the business's own website.", "danger");
+                return;
+            }
+
+            const payload = {
+                name,
+                location,
+                community,
+                link: link || null,
+                phone: phone || null,
+                category: category || null,
+                listing_type,
+                source,
+                status,
+                image_url: image_url || null,
+                notes: notes || null
+            };
+            if (!id) payload.slug = slug;
+
+            const btn = document.getElementById("btn-save-biz");
+            btn.disabled = true;
+            btn.textContent = "Saving...";
+            try {
+                let savedId = id;
+                if (id) {
+                    const res = await sbClient.from("directory_listings").update(payload).eq("id", id);
+                    if (res.error) throw res.error;
+                } else {
+                    const res = await sbClient.from("directory_listings").insert([payload]).select("id").single();
+                    if (res.error) throw res.error;
+                    savedId = res.data && res.data.id;
+                }
+
+                if (savedId && currentUserIsAdmin && adminNotesTableReady) {
+                    if (adminNotes) {
+                        const { error: noteErr } = await sbClient
+                            .from("directory_listing_admin_notes")
+                            .upsert({
+                                business_id: savedId,
+                                notes: adminNotes,
+                                updated_at: new Date().toISOString(),
+                                updated_by: currentUserId
+                            }, { onConflict: "business_id" });
+                        if (noteErr) throw noteErr;
+                    } else if (adminNotesByBizId[savedId]) {
+                        const { error: delErr } = await sbClient
+                            .from("directory_listing_admin_notes")
+                            .delete()
+                            .eq("business_id", savedId);
+                        if (delErr) throw delErr;
+                    }
+                }
+
+                if (status === "approved" && link) {
+                    await ensureScrapeSourceForBiz(payload).catch(() => {});
+                }
+                closeBusinessModal();
+                showAlert(`Saved <strong>${escapeHtml(name)}</strong>.`, "success");
+                const urlFilter = new URLSearchParams(window.location.search).get("filter");
+            if (urlFilter === "pending") setReviewFilter("pending");
+            await loadBusinesses();
+            } catch (err) {
+                showAlert("Save failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Save Changes";
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            populateCommunitySelects();
+            document.getElementById("biz-search").addEventListener("input", () => { currentBizPage = 1; renderBusinesses(); });
+            document.getElementById("biz-filter-community").addEventListener("change", () => { currentBizPage = 1; renderBusinesses(); });
+            document.getElementById("biz-filter-status").addEventListener("change", () => { currentBizPage = 1; renderBusinesses(); });
+            document.getElementById("edit-biz-link").addEventListener("input", updateLinkWarning);
+
+            sbClient = window.GeorginaStore ? window.GeorginaStore.getClient() : null;
+            if (!sbClient) {
+                showAlert("Supabase is not configured.", "warning");
+                return;
+            }
+            const { data: { session } } = await sbClient.auth.getSession();
+            if (!session) {
+                window.location.href = "/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            currentUserId = session.user && session.user.id ? session.user.id : null;
+            if (!currentUserId) {
+                window.location.href = "/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            const { data: prof } = await sbClient
+                .from("user_profiles")
+                .select("role, active")
+                .eq("id", currentUserId)
+                .maybeSingle();
+            const role = String((prof && prof.role) || "").toLowerCase();
+            if (!prof || !prof.active || !["admin", "super_admin", "staff", "editorial", "viewer"].includes(role)) {
+                window.location.replace("/staff/login.html");
+                return;
+            }
+            currentUserIsAdmin = ["admin", "super_admin"].includes(role);
+            const urlFilter = new URLSearchParams(window.location.search).get("filter");
+            if (urlFilter === "pending") setReviewFilter("pending");
+            await loadBusinesses();
+        });
+
+        let csvParsedRows = [];
+
+        function parseCsvText(text) {
+            const rows = [];
+            let row = [], val = "", inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (inQuotes) {
+                    if (ch === '"' && text[i + 1] === '"') { val += '"'; i++; }
+                    else if (ch === '"') { inQuotes = false; }
+                    else { val += ch; }
+                } else {
+                    if (ch === '"') { inQuotes = true; }
+                    else if (ch === ',') { row.push(val); val = ""; }
+                    else if (ch === '\r') { /* skip */ }
+                    else if (ch === '\n') { row.push(val); rows.push(row); row = []; val = ""; }
+                    else { val += ch; }
+                }
+            }
+            if (val.length || row.length) { row.push(val); rows.push(row); }
+            return rows;
+        }
+
+        function detectCommunityFromAddress(addr) {
+            const low = String(addr || "").toLowerCase();
+            for (const c of COMMUNITIES) {
+                if (c === "Out of Area") continue;
+                if (low.includes(c.toLowerCase())) return c;
+            }
+            return "Holland Landing";
+        }
+
+        window.openCsvImportModal = function () {
+            csvParsedRows = [];
+            document.getElementById("csv-file-input").value = "";
+            document.getElementById("csv-summary").textContent = "";
+            document.getElementById("csv-preview-wrap").innerHTML = `<p style="color:var(--muted);margin:8px;">Choose a CSV file above to preview businesses before importing.</p>`;
+            const btn = document.getElementById("btn-import-csv");
+            btn.disabled = true;
+            btn.textContent = "Import Selected (0)";
+            document.getElementById("modal-import-csv").classList.add("active");
+        };
+
+        window.closeCsvImportModal = function () {
+            document.getElementById("modal-import-csv").classList.remove("active");
+        };
+
+        function mapCsvCategory(rawType) {
+            const t = String(rawType || "").trim().toLowerCase();
+            if (!t) return "Local Business";
+            if (/(restaurant|bar & grill|bistro|pub|pizzeria|steak|sushi|diner|eatery)/.test(t)) return "Dining & Restaurant";
+            if (/(bakery|coffee|cafe|café|juice|tea|ice cream)/.test(t)) return "Bakery & Cafe";
+            if (/(store|shop|florist|supermarket|grocery|mall|boutique|hardware|market|retail|pharmacy)/.test(t)) return "Retail & Shopping Area";
+            if (/(health|clinic|medical|dental|wellness|chiro|physio|spa|fitness|gym)/.test(t)) return "Healthcare & Wellness";
+            if (/(art studio|gallery|museum|theatre|theater|arts)/.test(t)) return "Arts & Culture";
+            if (/(park|trail|recreation|marina|golf|arena|sport)/.test(t)) return "Recreation & Parks";
+            if (/(school|academy|education|library|learning|training)/.test(t)) return "Library & Learning";
+            if (/(non-profit|nonprofit|charity|club|church|community)/.test(t)) return "Community Organization";
+            if (/(government|municipal|town)/.test(t)) return "Municipal Government";
+            if (/(services|consultant|lawyer|legal|real estate|accounting|bookkeeping|repair|insurance)/.test(t)) return "Professional Services";
+            return "Local Business";
+        }
+
+        function cleanCsvUrl(raw) {
+            let u = String(raw || "").trim();
+            if (!u) return "";
+            if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+            if (isInternalWgLink(u)) return "";
+            try {
+                const parsed = new URL(u);
+                ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "y_source", "cmpid", "fbclid", "gclid", "mibextid"].forEach(k => parsed.searchParams.delete(k));
+                return parsed.toString();
+            } catch (_) {
+                return u;
+            }
+        }
+
+        function normalizeStreetKey(addr) {
+            const s = String(addr || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+            const m = s.match(/^(\d+[a-z]?)\s+([a-z0-9]+(?:\s+[a-z0-9]+)?)/);
+            return m ? (m[1] + " " + m[2]) : s.slice(0, 28);
+        }
+
+        function normNameKey(name) {
+            return String(name || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        }
+
+        window.handleCsvFileSelect = function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                showAlert("CSV file must be 2 MB or smaller.", "warning");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const grid = parseCsvText(String(ev.target.result || "").replace(/^\uFEFF/, ""));
+                if (grid.length < 2) {
+                    showAlert("CSV appears empty or has no data rows.", "warning");
+                    return;
+                }
+                if (grid.length > 2001) {
+                    showAlert("CSV exceeds the 2,000-row import limit. Please split the file.", "warning");
+                    return;
+                }
+                const headers = grid[0].map(h => String(h || "").trim().toLowerCase());
+                const idx = (names) => headers.findIndex(h => names.some(n => h === n || h.includes(n)));
+                const iName = idx(["business name", "name"]);
+                const iType = idx(["primary type", "category", "type"]);
+                const iAddr = idx(["address", "location"]);
+                const iUnit = idx(["unit"]);
+                const iPhone = idx(["phone"]);
+                const iWeb = idx(["website", "url", "link"]);
+
+                if (iName === -1) {
+                    showAlert("Could not find a 'Business Name' or 'Name' column in this CSV.", "danger");
+                    return;
+                }
+
+                const existingSlugs = new Set(allBusinesses.map(b => String(b.slug || "").trim().toLowerCase()));
+                const existingRecords = allBusinesses.map(b => ({
+                    nameKey: normNameKey(b.name),
+                    streetKey: normalizeStreetKey(b.location),
+                    rawName: b.name || ""
+                }));
+
+                csvParsedRows = [];
+                const seenCsvRecords = [];
+                for (let r = 1; r < grid.length; r++) {
+                    const cols = grid[r];
+                    const name = String(cols[iName] || "").trim();
+                    if (!name) continue;
+                    const rawAddr = iAddr >= 0 ? String(cols[iAddr] || "").trim() : "";
+                    const unit = iUnit >= 0 ? String(cols[iUnit] || "").trim() : "";
+                    const location = unit && rawAddr && !rawAddr.includes(unit) ? `${rawAddr} (Unit ${unit})` : rawAddr;
+                    const rawType = iType >= 0 ? String(cols[iType] || "").trim() : "";
+                    const category = mapCsvCategory(rawType);
+                    const phone = iPhone >= 0 ? formatBizPhoneValue(String(cols[iPhone] || "").trim()) : "";
+                    const link = cleanCsvUrl(iWeb >= 0 ? cols[iWeb] : "");
+                    const community = detectCommunityFromAddress(location);
+                    const nameKey = normNameKey(name);
+                    const streetKey = normalizeStreetKey(location);
+
+                    const allCompare = existingRecords.concat(seenCsvRecords);
+                    const sameNameMatches = allCompare.filter(x =>
+                        x.nameKey === nameKey ||
+                        (x.nameKey.length >= 6 && nameKey.length >= 6 && (x.nameKey.includes(nameKey) || nameKey.includes(x.nameKey)))
+                    );
+                    const exactSameAddr = sameNameMatches.some(x => !streetKey || !x.streetKey || x.streetKey === streetKey);
+                    const diffAddrMatch = !exactSameAddr && sameNameMatches.length > 0 ? sameNameMatches[0].rawName : "";
+
+                    let slug = slugify(name);
+                    if (existingSlugs.has(slug)) {
+                        const streetNum = (streetKey.match(/^(\d+[a-z]?)/) || [])[1] || String(r);
+                        slug = slugify(name + "-" + streetNum);
+                    }
+                    let suffix = 2;
+                    const baseSlug = slug;
+                    while (existingSlugs.has(slug)) {
+                        slug = baseSlug + "-" + suffix++;
+                    }
+                    existingSlugs.add(slug);
+                    seenCsvRecords.push({ nameKey, streetKey, rawName: name });
+
+                    const dupType = exactSameAddr ? "exact" : (diffAddrMatch ? "diff_addr" : "none");
+                    csvParsedRows.push({
+                        name, slug, category, rawType, community, location, phone, link,
+                        isDup: exactSameAddr,
+                        dupType,
+                        diffAddrMatch,
+                        selected: !exactSameAddr
+                    });
+                }
+
+                renderCsvPreview();
+            };
+            reader.readAsText(file, "UTF-8");
+        };
+
+        window.toggleCsvRow = function (idx, checked) {
+            if (csvParsedRows[idx]) csvParsedRows[idx].selected = checked;
+            updateCsvImportButton();
+        };
+
+        function updateCsvImportButton() {
+            const count = csvParsedRows.filter(r => r.selected).length;
+            const btn = document.getElementById("btn-import-csv");
+            btn.disabled = count === 0;
+            btn.textContent = `Import Selected to Pending (${count})`;
+        }
+
+        function renderCsvPreview() {
+            const exactDups = csvParsedRows.filter(r => r.dupType === "exact").length;
+            const diffAddr = csvParsedRows.filter(r => r.dupType === "diff_addr").length;
+            document.getElementById("csv-summary").textContent = `${csvParsedRows.length} rows parsed (${exactDups} exact duplicates, ${diffAddr} same-name / different-address)`;
+            const wrap = document.getElementById("csv-preview-wrap");
+            if (!csvParsedRows.length) {
+                wrap.innerHTML = `<p style="color:var(--muted);margin:8px;">No valid business rows found.</p>`;
+                updateCsvImportButton();
+                return;
+            }
+            wrap.innerHTML = `
+                <table class="data-table" style="width:100%;border-collapse:collapse;font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th style="width:32px;">Add</th>
+                            <th>Business Name</th>
+                            <th>Mapped Category</th>
+                            <th>Address &amp; Community</th>
+                            <th>Phone</th>
+                            <th>Website</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${csvParsedRows.map((r, i) => `
+                            <tr style="${r.dupType === "exact" ? "opacity:0.55;background:#f8fafc;" : (r.dupType === "diff_addr" ? "background:#fefce8;" : "")}">
+                                <td><input type="checkbox" ${r.selected ? "checked" : ""} onchange="toggleCsvRow(${i}, this.checked)"></td>
+                                <td>
+                                    <strong>${escapeHtml(r.name)}</strong>
+                                    ${r.dupType === "exact" ? ' <span style="font-size:10px;background:#e2e8f0;padding:1px 5px;border-radius:4px;">Duplicate (Same Address)</span>' : ""}
+                                    ${r.dupType === "diff_addr" ? ` <span style="font-size:10px;background:#fef08a;color:#854d0e;padding:1px 5px;border-radius:4px;font-weight:700;">&#9888; Same Name / Diff Address (vs ${escapeHtml(r.diffAddrMatch)})</span>` : ""}
+                                </td>
+                                <td>
+                                    <div>${escapeHtml(r.category || "Local Business")}</div>
+                                    ${r.rawType && r.rawType !== r.category ? `<div style="font-size:10px;color:#64748b;">CSV: ${escapeHtml(r.rawType)}</div>` : ""}
+                                </td>
+                                <td>${escapeHtml(r.location || "—")}<div style="font-size:10px;color:#64748b;">${escapeHtml(r.community)}</div></td>
+                                <td>${escapeHtml(r.phone || "—")}</td>
+                                <td style="max-width:180px;word-break:break-all;">${safeHttpUrl(r.link) ? `<a href="${escapeHtml(safeHttpUrl(r.link))}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.link)}</a>` : (r.link ? escapeHtml(r.link) : '<span style="color:#94a3b8;">None</span>')}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+            updateCsvImportButton();
+        }
+
+        window.runCsvImport = async function () {
+            const picked = csvParsedRows.filter(r => r.selected);
+            if (!picked.length || !sbClient) return;
+            const btn = document.getElementById("btn-import-csv");
+            btn.disabled = true;
+            btn.textContent = "Importing...";
+            try {
+                const payload = picked.map(r => ({
+                    name: r.name,
+                    slug: r.slug,
+                    category: r.category || "Local Business",
+                    community: r.community,
+                    location: r.location || null,
+                    phone: r.phone || null,
+                    link: r.link || null,
+                    source: "csv_import",
+                    listing_type: "business",
+                    status: "pending"
+                }));
+                const { error } = await sbClient.from("directory_listings").insert(payload);
+                if (error) throw error;
+
+                const diffAddrCount = picked.filter(r => r.dupType === "diff_addr").length;
+                closeCsvImportModal();
+                setReviewFilter("pending");
+                const urlFilter = new URLSearchParams(window.location.search).get("filter");
+            if (urlFilter === "pending") setReviewFilter("pending");
+            await loadBusinesses();
+                showAlert(
+                    `Imported <strong>${payload.length}</strong> business(es) into <strong>Pending Approval</strong> for your manual review${diffAddrCount ? ` (including <strong>${diffAddrCount}</strong> same-name / different-address listing(s) to verify or merge)` : ""}. Nothing is live until you approve each listing.`,
+                    "success"
+                );
+            } catch (err) {
+                showAlert("CSV import failed: " + escapeHtml(err.message), "danger");
+            } finally {
+                updateCsvImportButton();
+            }
+        };
+    </script>
+</body>
+</html>

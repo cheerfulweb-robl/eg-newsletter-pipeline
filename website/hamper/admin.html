@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Hamper Admin — Welcome East Gwillimbury</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        /* Offer form: 2 columns on desktop and tablet, 1 on phones */
+        #offer-form { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        @media (max-width: 640px) { #offer-form { grid-template-columns: 1fr !important; } }
+        /* Staff note sits on its own full-width line under each application */
+        #app-tbody tr.app-main td { border-bottom: none; }
+        #app-tbody tr.app-note td { padding-top: 0; }
+        .app-note-wrap { display: flex; gap: 8px; align-items: flex-start; }
+        .app-note-wrap textarea { flex: 1; font-size: 12px; }
+        .app-action-select { min-width: 170px; font-size: 13px; }
+        
+        .admin-nav-bar a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .admin-nav-bar a:hover {
+            background: var(--bg-hover, #f1f5f9);
+            border-color: var(--border);
+        }
+        .admin-nav-bar a.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .match-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .match-badge-domain {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .match-badge-exact_url {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .match-badge-prefix {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+    
+/* Unified Admin Navigation Sub-Bar with Robust Pill Buttons */
+.admin-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-nav-group-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-primary a {
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.admin-nav-group-primary a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.admin-nav-group-primary a.active {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0369a1;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+}
+
+.admin-nav-group-external {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-external .external-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.admin-nav-group-external a {
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.admin-nav-group-external a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.admin-nav-group-external a.btn-crm-link {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.admin-nav-group-external a.btn-crm-link:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+    /* Staff Portal Left Sidebar & Modern Shell Layout */
+.admin-shell {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: #00008b;
+    color: #ffffff;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-right: 1px solid #1e3a8a;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e3a8a;
+    }
+}
+
+.admin-content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+}
+
+.hamper-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+.hamper-tab { border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 800; cursor: pointer; }
+.hamper-tab.active { background: #00008b; color: #ffffff; border-color: #00008b; }
+.hamper-panel label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 4px; }
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="hamper-admin-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- ADMIN LEFT SIDEBAR MENU (STAFF PORTAL) -->
+        
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <!-- Breadcrumb / Admin Nav -->
+        <!-- Unified Admin Navigation Bar -->
+        
+
+        <div id="page-alert" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Manage Welcome Hamper Deals</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Add or Edit Merchant Offers:</strong> Add local business discounts for new East Gwillimbury residents, or pause an offer any time.</li>
+        <li><strong>Check Coupon Usage:</strong> See which <code>WG______</code> coupon codes were claimed and redeemed by cashiers at participating stores.</li>
+    </ol>
+</details>
+
+        <!-- AUTH GATE -->
+        <section id="auth-gate" class="card" style="display: none; max-width: 520px; margin: 40px auto; text-align: center;">
+            <h2 style="color: var(--danger); margin-bottom: 8px;">&#128274; Admin Access Required</h2>
+            <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">
+                You must be logged in as an administrator (<code>cheerfulweb@gmail.com</code>) to manage the Welcome Hamper.
+            </p>
+            <a href="/staff/login.html" class="btn btn-primary">Go to Login Page &rarr;</a>
+        </section>
+
+        <!-- WELCOME HAMPER WORKSPACE -->
+        <section id="hamper-console" style="display: none;">
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h2 style="margin: 0 0 4px 0; color: #00008b;">&#127873; Welcome Hamper</h2>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted); max-width: 760px;">
+                            New-resident applications, proof checks, merchant offers and one-time coupons.
+                            Applications appear here once the applicant confirms their email. Program opens Spring 2027.
+                        </p>
+                    </div>
+                    <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">&#8635; Refresh</button>
+                </div>
+                <div class="hamper-tabs" role="tablist">
+                    <button type="button" class="hamper-tab active" data-tab="applications">Applications <span id="count-applications"></span></button>
+                    <button type="button" class="hamper-tab" data-tab="offers">Merchant offers <span id="count-offers"></span></button>
+                    <button type="button" class="hamper-tab" data-tab="coupons">Coupons <span id="count-coupons"></span></button>
+                    <button type="button" class="hamper-tab" data-tab="contacts">Business contact requests <span id="count-contacts"></span></button>
+                </div>
+            </div>
+
+            <!-- Applications -->
+            <div class="card hamper-panel" id="panel-applications">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+                    <select id="app-filter" class="form-control" style="max-width: 230px;">
+                        <option value="review">Needs proof check</option>
+                        <option value="approved">Approved (waitlist)</option>
+                        <option value="declined">Declined</option>
+                        <option value="unverified">Email not confirmed</option>
+                        <option value="all">All applications</option>
+                    </select>
+                    <input type="search" id="app-search" class="form-control" style="max-width: 260px;" placeholder="Search name, email, address">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700;">
+                        <input type="checkbox" id="app-email-toggle" checked> Email applicants about changes
+                    </label>
+                    <button type="button" id="btn-export" class="btn btn-secondary btn-sm">&#11015; Export CSV</button>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; margin-bottom: 12px;">
+                    <strong style="font-size: 13px; color: #166534;">Issue coupons (Spring 2027 launch):</strong>
+                    <label style="font-size: 13px;">Valid until <input type="date" id="issue-expires" class="form-control" style="display: inline-block; width: auto;"></label>
+                    <button type="button" id="btn-issue-all" class="btn btn-success btn-sm">Issue to all approved</button>
+                    <span id="issue-progress" style="font-size: 12px; color: #166534;"></span>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Received</th>
+                                <th>Applicant</th>
+                                <th>Address</th>
+                                <th>Moved in</th>
+                                <th>Proof</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="app-tbody">
+                            <tr><td colspan="7" style="color: var(--muted); text-align: center;">Loading applications...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Offers -->
+            <div class="card hamper-panel" id="panel-offers" style="display: none;">
+                <form id="offer-form" style="display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 16px; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+                    <input type="hidden" id="of-id">
+                    <div><label for="of-merchant">Merchant name *</label><input id="of-merchant" list="of-directory-list" class="form-control" maxlength="120" placeholder="Start typing to pick from Directory..." required><datalist id="of-directory-list"></datalist></div>
+                    <div><label for="of-email">Merchant email (used to sign in and redeem) *</label><input id="of-email" type="email" class="form-control" maxlength="254" required></div>
+                    <div><label for="of-title">Offer title *</label><input id="of-title" class="form-control" maxlength="160" required placeholder="e.g. 15% off your first order"></div>
+                    <div><label for="of-community">Community</label><input id="of-community" class="form-control" maxlength="80" placeholder="e.g. Holland Landing"></div>
+                    <div><label for="of-website">Merchant website (optional, click-tracked)</label><input id="of-website" type="text" inputmode="url" class="form-control" maxlength="500" placeholder="https://"></div>
+                    <div><label for="of-details">Offer details</label><textarea id="of-details" class="form-control" rows="2" maxlength="1000"></textarea></div>
+                    <div><label for="of-terms">Terms</label><textarea id="of-terms" class="form-control" rows="2" maxlength="1000" placeholder="e.g. One per household. Not valid with other offers."></textarea></div>
+                    <div><label for="of-until">Offer valid until</label><input id="of-until" type="date" class="form-control"></div>
+                    <div style="display: flex; align-items: center; gap: 8px; padding-top: 22px;"><input type="checkbox" id="of-active" checked> <label for="of-active" style="margin: 0;">Active (included when coupons are issued)</label></div>
+                    <div style="display: flex; gap: 8px; align-items: flex-end;">
+                        <button type="submit" class="btn btn-primary btn-sm" id="of-save">Save offer</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="of-cancel" style="display: none;">Cancel edit</button>
+                    </div>
+                </form>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Merchant</th><th>Offer</th><th>Valid until</th><th>Issued / redeemed</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="offer-tbody"><tr><td colspan="6" style="color: var(--muted); text-align: center;">Loading offers...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Coupons -->
+            <div class="card hamper-panel" id="panel-coupons" style="display: none;">
+                <input type="search" id="coupon-search" class="form-control" style="max-width: 300px; margin-bottom: 12px;" placeholder="Search code, holder, merchant">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Code</th><th>Holder</th><th>Merchant / offer</th><th>Issued</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="coupon-tbody"><tr><td colspan="7" style="color: var(--muted); text-align: center;">Loading coupons...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Contact requests -->
+            <div class="card hamper-panel" id="panel-contacts" style="display: none;">
+                <p style="font-size: 13px; color: var(--muted); margin-top: 0;">Businesses that ticked &ldquo;Contact me about the Welcome Hamper program&rdquo; on an event, dining or sales submission.</p>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Submitted</th><th>Business</th><th>Contact</th><th>Listing</th></tr></thead>
+                        <tbody id="contact-tbody"><tr><td colspan="4" style="color: var(--muted); text-align: center;">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        let client = null;
+        let currentUser = null;
+        let isAdminUser = false;
+        let apps = [];
+        let offers = [];
+        let coupons = [];
+        let contacts = [];
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            if (!el) return;
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        function clearAlert() {
+            const el = document.getElementById("page-alert");
+            if (el) el.style.display = "none";
+        }
+        function escapeHtml(str) {
+            return String(str ?? "")
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function isUuid(v) { return /^[0-9a-f-]{36}$/i.test(String(v || "")); }
+        function fmtDate(ts, withTime) {
+            if (!ts) return "&mdash;";
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return "&mdash;";
+            const opts = withTime ? { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" } : { timeZone: "America/Toronto", dateStyle: "medium" };
+            return escapeHtml(d.toLocaleString("en-CA", opts));
+        }
+        function fmtDay(ymd) {
+            if (!ymd) return "&mdash;";
+            const d = new Date(ymd + "T12:00:00Z");
+            return isNaN(d.getTime()) ? escapeHtml(ymd) : escapeHtml(d.toLocaleDateString("en-CA", { timeZone: "UTC", dateStyle: "medium" }));
+        }
+        // Coupons expire at the start of the next day; show the last valid day.
+        function fmtExpiry(ts) {
+            if (!ts) return "No expiry";
+            return fmtDate(new Date(new Date(ts).getTime() - 1000).toISOString());
+        }
+        const STATUS_STYLE = {
+            unverified: ["Email not confirmed", "#fff7ed", "#9a3412"],
+            review: ["Needs proof check", "#eff6ff", "#1d4ed8"],
+            approved: ["Approved (waitlist)", "#ecfdf5", "#065f46"],
+            declined: ["Declined", "#fef2f2", "#991b1b"],
+            available: ["Available", "#ecfdf5", "#065f46"],
+            redeemed: ["Redeemed", "#f1f5f9", "#334155"],
+            void: ["Void", "#fef2f2", "#991b1b"]
+        };
+        function badge(status) {
+            const s = STATUS_STYLE[status] || [status, "#f1f5f9", "#334155"];
+            return `<span class="status-badge" style="background:${s[1]}; color:${s[2]}; border:1px solid ${s[2]}33; white-space:nowrap;">${escapeHtml(s[0])}</span>`;
+        }
+        // East Gwillimbury postal areas: Holland Landing L4P, most other communities L0E, Brown Hill L0C.
+        function postalFlag(pc) {
+            const fsa = String(pc || "").toUpperCase().slice(0, 3);
+            return ["L4P", "L0E", "L0C"].includes(fsa) ? "" : ` <span title="Postal code is outside the usual East Gwillimbury areas (L4P, L0E, L0C)" style="color:#b45309; font-weight:800;">&#9888; check postal</span>`;
+        }
+        async function functionError(error, data) {
+            let msg = (data && data.error) || (error && error.message) || "Unknown error";
+            try {
+                if (error && error.context && typeof error.context.json === "function") {
+                    const body = await error.context.json();
+                    if (body && body.error) msg = body.error;
+                }
+            } catch (_) { /* keep first */ }
+            return msg;
+        }
+        async function notify(id, kind) {
+            if (!document.getElementById("app-email-toggle").checked) return "";
+            const { data, error } = await client.functions.invoke("send-email", { body: { formType: "hamper_notice", record: { id, kind } } });
+            if (error || (data && data.error)) return " The email to the applicant failed: " + (await functionError(error, data));
+            return " Applicant emailed.";
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase backend connection is not configured.", "warning");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname));
+                return;
+            }
+            currentUser = session.user;
+            const { data: profile } = await client.from("user_profiles").select("role, active").eq("id", currentUser.id).maybeSingle();
+            if (!profile || profile.active !== true) {
+                window.location.replace("/");
+                return;
+            }
+            isAdminUser = String(profile.role || "").toLowerCase() === "admin";
+            const userEmail = (currentUser.email || "").trim().toLowerCase();
+            const sideEmail = document.getElementById("sidebar-user-email");
+            if (sideEmail) sideEmail.textContent = userEmail;
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+            for (const id of ["btn-logout", "btn-sidebar-logout"]) {
+                const b = document.getElementById(id);
+                if (!b) continue;
+                if (id === "btn-logout") b.style.display = "inline-flex";
+                b.onclick = async () => { await client.auth.signOut(); window.location.href = "/staff/login.html"; };
+            }
+            document.getElementById("hamper-console").style.display = "block";
+            await loadAll();
+        }
+
+        async function loadAll() {
+            const [a, o, c, v] = await Promise.all([
+                client.rpc("hamper_admin_list_applications"),
+                client.rpc("hamper_admin_list_offers"),
+                client.rpc("hamper_admin_list_coupons", { application_input: null }),
+                client.rpc("get_all_vendor_events_admin")
+            ]);
+            const err = a.error || o.error || c.error || v.error;
+            if (err) {
+                const hint = /hamper_/.test(err.message || "") || err.code === "PGRST202" ? " (Has the 20261115_welcome_hamper.sql update been run in Supabase?)" : "";
+                showAlert("Error loading Welcome Hamper data: " + (err.message || String(err)) + hint, "danger");
+            }
+            apps = Array.isArray(a.data) ? a.data : [];
+            offers = Array.isArray(o.data) ? o.data : [];
+            coupons = Array.isArray(c.data) ? c.data : [];
+            contacts = (Array.isArray(v.data) ? v.data : []).filter(r => r.hamper_contact === true);
+            renderApps();
+            renderOffers();
+            renderCoupons();
+            renderContacts();
+        }
+
+        function filteredApps() {
+            const f = document.getElementById("app-filter").value;
+            const q = document.getElementById("app-search").value.trim().toLowerCase();
+            return apps.filter(r => (f === "all" || r.status === f) && (!q ||
+                [r.first_name, r.last_name, r.email, r.phone, r.street_address, r.community, r.postal_code].join(" ").toLowerCase().includes(q)));
+        }
+
+        function renderApps() {
+            const counts = apps.reduce((m, r) => (m[r.status] = (m[r.status] || 0) + 1, m), {});
+            document.getElementById("count-applications").textContent = counts.review ? `(${counts.review} to check)` : "";
+            const tbody = document.getElementById("app-tbody");
+            const rows = filteredApps();
+            tbody.innerHTML = rows.map(r => {
+                const id = isUuid(r.id) ? r.id : "";
+                if (!id) return "";
+                const btn = (action, label, cls, title) => `<button type="button" class="btn ${cls} btn-sm" data-action="${action}" data-id="${id}" title="${escapeHtml(title || "")}">${label}</button>`;
+                // Actions are a drop-down: picking one runs it (with the usual confirmation).
+                const opts = [];
+                if (r.status === "review") {
+                    opts.push(["approve", "✓ Approve (add to waitlist)"]);
+                    opts.push(["decline", "✗ Decline"]);
+                } else if (r.status === "approved") {
+                    opts.push(["issue", "🎫 Issue coupons"]);
+                    opts.push(["review", "↶ Back to review"]);
+                    opts.push(["decline", "✗ Decline"]);
+                } else if (r.status === "declined") {
+                    opts.push(["review", "↶ Back to review"]);
+                }
+                if (isAdminUser && r.proof_path) opts.push(["delete-proof", "🗑️ Delete proof file only"]);
+                if (isAdminUser) opts.push(["delete", "🗑️ Delete application"]);
+                const actionSelect = opts.length
+                    ? `<select class="form-control app-action-select" data-action-select data-id="${id}" aria-label="Actions">
+                           <option value="">Choose an action&hellip;</option>
+                           ${opts.map(o => `<option value="${o[0]}">${o[1]}</option>`).join("")}
+                       </select>`
+                    : "";
+                let proofCell;
+                if (r.proof_type === "phone_call") {
+                    proofCell = `<strong style="font-size:12px;">&#128222; Phone call</strong><br><a href="tel:${escapeHtml(String(r.phone || "").replace(/[^\d+]/g, ""))}" style="font-size:12px;">${escapeHtml(r.phone)}</a>`;
+                } else if (r.proof_path) {
+                    proofCell = `${btn("proof", "&#128196; View", "btn-secondary", "Open the uploaded document (link valid 5 minutes)")}<br>
+                        <span style="font-size:11px; color:var(--muted);">${escapeHtml(String(r.proof_type || "").replace("_", " "))}</span>`;
+                } else {
+                    proofCell = `<span style="font-size:12px; color:var(--muted);">File deleted${r.proof_deleted_at ? " " + fmtDate(r.proof_deleted_at) : ""}</span><br>
+                        <span style="font-size:11px; color:var(--muted);">${escapeHtml(String(r.proof_type || "").replace("_", " "))}</span>`;
+                }
+                const couponInfo = r.coupon_count ? `<br><span style="font-size:11px; color:#166534;">${Number(r.coupon_count)} coupons, ${Number(r.redeemed_count)} used</span>` : "";
+                const reason = r.status === "declined" && r.decline_reason ? `<br><span style="font-size:11px; color:#991b1b;">${escapeHtml(r.decline_reason)}</span>` : "";
+                const household = r.household_size ? ` &bull; household of ${Number(r.household_size)}` : "";
+                return `<tr class="app-main">
+                    <td style="white-space:nowrap;">${fmtDate(r.created_at, true)}</td>
+                    <td><strong>${escapeHtml(r.first_name)} ${escapeHtml(r.last_name)}</strong><br>
+                        <span style="font-size:12px;"><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a><br>${escapeHtml(r.phone)}</span>
+                        <span style="font-size:11px; color:var(--muted);">${household}${r.newsletter_opt_in ? " &bull; newsletter" : ""}</span>
+                        ${r.interests ? `<br><span style="font-size:11px; color:var(--muted);">Interests: ${escapeHtml(r.interests)}</span>` : ""}</td>
+                    <td>${escapeHtml(r.street_address)}${r.unit ? ", Unit " + escapeHtml(r.unit) : ""}<br>
+                        <span style="font-size:12px; color:var(--muted);">${escapeHtml(r.community)} &bull; ${escapeHtml(r.postal_code)}</span>${postalFlag(r.postal_code)}</td>
+                    <td style="white-space:nowrap;">${fmtDay(r.move_in_date)}</td>
+                    <td>${proofCell}</td>
+                    <td>${badge(r.status)}${couponInfo}${reason}</td>
+                    <td>${actionSelect}</td>
+                </tr>
+                <tr class="app-note">
+                    <td colspan="7"><div class="app-note-wrap">
+                        <textarea class="form-control" rows="2" maxlength="2000" data-note-id="${id}" placeholder="Staff note (only staff see this)" aria-label="Staff note">${escapeHtml(r.staff_note || "")}</textarea>
+                        ${btn("note", "Save note", "btn-secondary", "")}
+                    </div></td>
+                </tr>`;
+            }).join("") || `<tr><td colspan="7" style="color:var(--muted); text-align:center;">No applications in this view.</td></tr>`;
+        }
+
+        function renderOffers() {
+            const active = offers.filter(o => o.active).length;
+            document.getElementById("count-offers").textContent = `(${active} active)`;
+            document.getElementById("offer-tbody").innerHTML = offers.map(o => {
+                const id = isUuid(o.id) ? o.id : "";
+                return `<tr>
+                    <td><strong>${escapeHtml(o.merchant_name)}</strong><br><span style="font-size:12px; color:var(--muted);">${escapeHtml(o.merchant_email)}${o.community ? " &bull; " + escapeHtml(o.community) : ""}</span></td>
+                    <td><strong>${escapeHtml(o.offer_title)}</strong>${o.offer_details ? `<br><span style="font-size:12px;">${escapeHtml(o.offer_details)}</span>` : ""}${o.terms ? `<br><span style="font-size:11px; color:var(--muted);">Terms: ${escapeHtml(o.terms)}</span>` : ""}</td>
+                    <td style="white-space:nowrap;">${o.valid_until ? fmtDay(o.valid_until) : "No end date"}</td>
+                    <td>${Number(o.issued_count || 0)} / ${Number(o.redeemed_count || 0)}</td>
+                    <td>${o.active ? badge("available").replace("Available", "Active") : badge("void").replace("Void", "Paused")}</td>
+                    <td><div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-offer-action="edit" data-id="${id}">Edit</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-offer-action="toggle" data-id="${id}">${o.active ? "Pause" : "Activate"}</button>
+                    </div></td>
+                </tr>`;
+            }).join("") || `<tr><td colspan="6" style="color:var(--muted); text-align:center;">No offers yet. Add the first merchant offer above.</td></tr>`;
+        }
+
+        function renderCoupons() {
+            document.getElementById("count-coupons").textContent = `(${coupons.filter(c => c.status === "redeemed").length} redeemed / ${coupons.filter(c => c.status !== "void").length})`;
+            const q = document.getElementById("coupon-search").value.trim().toLowerCase();
+            const rows = coupons.filter(c => !q || [c.code, c.holder, c.holder_email, c.merchant_name, c.offer_title].join(" ").toLowerCase().includes(q));
+            document.getElementById("coupon-tbody").innerHTML = rows.map(c => {
+                const id = isUuid(c.id) ? c.id : "";
+                const voidBtn = c.status === "available" ? `<button type="button" class="btn btn-danger btn-sm" data-coupon-action="void" data-id="${id}">Void</button>` : "";
+                const redeemed = c.status === "redeemed" ? `<br><span style="font-size:11px; color:var(--muted);">${fmtDate(c.redeemed_at, true)} by ${escapeHtml(c.redeemed_by)}</span>` : "";
+                return `<tr>
+                    <td style="font-family:monospace; font-weight:800; letter-spacing:0.1em;">${escapeHtml(c.code)}</td>
+                    <td>${escapeHtml(c.holder)}<br><span style="font-size:11px; color:var(--muted);">${escapeHtml(c.holder_email)}</span></td>
+                    <td><strong>${escapeHtml(c.merchant_name)}</strong><br><span style="font-size:12px;">${escapeHtml(c.offer_title)}</span></td>
+                    <td style="white-space:nowrap;">${fmtDate(c.issued_at)}</td>
+                    <td style="white-space:nowrap;">${fmtExpiry(c.expires_at)}</td>
+                    <td>${badge(c.status)}${redeemed}</td>
+                    <td>${voidBtn}</td>
+                </tr>`;
+            }).join("") || `<tr><td colspan="7" style="color:var(--muted); text-align:center;">No coupons issued yet.</td></tr>`;
+        }
+
+        function renderContacts() {
+            document.getElementById("count-contacts").textContent = contacts.length ? `(${contacts.length})` : "";
+            document.getElementById("contact-tbody").innerHTML = contacts.map(r => `<tr>
+                    <td style="white-space:nowrap;">${fmtDate(r.created_at, true)}</td>
+                    <td><strong>${escapeHtml(r.business_name || "")}</strong></td>
+                    <td>${escapeHtml(r.contact_name || "")}<br><span style="font-size:12px;"><a href="mailto:${escapeHtml(r.submitter_email || "")}">${escapeHtml(r.submitter_email || "")}</a>${r.contact_phone ? " &bull; " + escapeHtml(r.contact_phone) : ""}</span></td>
+                    <td>${escapeHtml(r.title || "")}<br><span style="font-size:11px; color:var(--muted);">${escapeHtml(r.status || "")}</span></td>
+                </tr>`).join("") || `<tr><td colspan="4" style="color:var(--muted); text-align:center;">No requests yet.</td></tr>`;
+        }
+
+        async function setStatus(row, status, reason) {
+            const { data, error } = await client.rpc("hamper_admin_set_status", { id_input: row.id, status_input: status, note_input: null, reason_input: reason || null });
+            if (error) { showAlert("Could not update the application: " + error.message, "danger"); return false; }
+            if (!data || !data.success) { showAlert("Nothing was changed. Your account may not have permission.", "warning"); return false; }
+            return true;
+        }
+
+        async function issueCoupons(row) {
+            const expires = document.getElementById("issue-expires").value || null;
+            const { data, error } = await client.rpc("hamper_admin_issue_coupons", { id_input: row.id, expires_input: expires });
+            if (error) throw new Error(error.message);
+            return Number((data && data.issued) || 0);
+        }
+
+        async function openProof(row) {
+            const win = window.open("about:blank", "_blank");
+            const { data, error } = await client.storage.from("hamper-proofs").createSignedUrl(row.proof_path, 300);
+            if (error || !data || !data.signedUrl) {
+                if (win) win.close();
+                showAlert("Could not open the document: " + (error ? error.message : "no link returned"), "danger");
+                return;
+            }
+            if (win) { win.opener = null; win.location.href = data.signedUrl; }
+            else window.location.href = data.signedUrl;
+        }
+
+        // Remove a proof file from storage and check it is really gone (storage can report
+        // success without deleting anything when access is refused).
+        async function removeProofFile(path) {
+            const rm = await client.storage.from("hamper-proofs").remove([path]);
+            if (rm.error) return "The proof file could not be removed: " + rm.error.message;
+            if (!Array.isArray(rm.data) || rm.data.length === 0) {
+                // Nothing was deleted: either it was already gone, or access was refused.
+                const still = await client.storage.from("hamper-proofs").createSignedUrl(path, 30);
+                if (!still.error && still.data && still.data.signedUrl) return "The proof file could not be removed (permission refused). Only an admin can delete proof files.";
+            }
+            return "";
+        }
+
+        async function runAppAction(action, row, ctrl) {
+            clearAlert();
+            const name = `${row.first_name} ${row.last_name}`;
+            if (action === "proof") { await openProof(row); return; }
+            ctrl.disabled = true;
+            try {
+                if (action === "note") {
+                    const ta = document.querySelector(`textarea[data-note-id="${row.id}"]`);
+                    const { data, error } = await client.rpc("hamper_admin_save_note", { id_input: row.id, note_input: ta ? ta.value : "" });
+                    if (error || !data || !data.success) showAlert("Could not save the note: " + (error ? error.message : "nothing changed"), "danger");
+                    else showAlert("Note saved.", "success");
+                    return;
+                }
+                if (action === "approve") {
+                    const check = row.proof_type === "phone_call"
+                        ? "Confirm you phoned them and confirmed their East Gwillimbury address and a move-in within 3 months."
+                        : "Confirm you checked the proof shows their name, a East Gwillimbury address and a move-in within 3 months.";
+                    if (!confirm(`Approve ${name}? ${check}`)) return;
+                    if (await setStatus(row, "approved")) showAlert(`${name} approved and added to the waitlist.` + await notify(row.id, "approved"), "success");
+                } else if (action === "decline") {
+                    const reason = prompt(`Decline ${name}? Reason (sent to the applicant if emails are on):`, "We could not confirm a East Gwillimbury address and a move-in date within the last 3 months.");
+                    if (reason === null) return;
+                    if (await setStatus(row, "declined", reason.trim().slice(0, 500))) showAlert(`${name} declined.` + await notify(row.id, "declined"), "info");
+                } else if (action === "review") {
+                    if (await setStatus(row, "review")) showAlert(`${name} moved back to "Needs proof check".`, "info");
+                } else if (action === "issue") {
+                    if (!offers.some(o => o.active)) { showAlert("There are no active merchant offers yet. Add offers first.", "warning"); return; }
+                    if (!confirm(`Issue coupons to ${name} now? One coupon is created for each active offer they don't already have.`)) return;
+                    const n = await issueCoupons(row);
+                    showAlert(n ? `${n} coupon(s) issued to ${name}.` + await notify(row.id, "coupons") : `${name} already has a coupon for every active offer.`, n ? "success" : "info");
+                } else if (action === "delete-proof") {
+                    if (!row.proof_path) { showAlert("This application has no proof file.", "info"); return; }
+                    if (!confirm(`Permanently delete the proof file uploaded by ${name}? The application stays. This cannot be undone.`)) return;
+                    const fileErr = await removeProofFile(row.proof_path);
+                    if (fileErr) { showAlert(fileErr, "danger"); return; }
+                    const { data, error } = await client.rpc("hamper_admin_clear_proof", { id_input: row.id });
+                    if (error || !data || !data.success) showAlert("The file was deleted, but the application could not be updated: " + (error ? error.message : "nothing changed"), "warning");
+                    else showAlert(`Proof file for ${name} deleted from the server.`, "success");
+                } else if (action === "delete") {
+                    if (!confirm(`Permanently delete the application from ${name}${row.proof_path ? " and their proof document" : ""}? This cannot be undone.`)) return;
+                    // File first, so a failed file delete never leaves an orphaned document behind.
+                    if (row.proof_path) {
+                        const fileErr = await removeProofFile(row.proof_path);
+                        if (fileErr) { showAlert(fileErr + " The application was not deleted.", "danger"); return; }
+                    }
+                    const { error } = await client.rpc("hamper_admin_delete_application", { id_input: row.id });
+                    if (error) { showAlert("Could not delete: " + error.message, "danger"); return; }
+                    showAlert(row.proof_path ? "Application and proof file deleted." : "Application deleted.", "info");
+                }
+                await loadAll();
+            } catch (err) {
+                showAlert(err.message || String(err), "danger");
+            } finally {
+                ctrl.disabled = false;
+                if (ctrl.tagName === "SELECT") ctrl.value = "";
+            }
+        }
+
+        document.getElementById("app-tbody").addEventListener("click", async (e) => {
+            const btn = e.target.closest("button[data-action]");
+            if (!btn) return;
+            const row = apps.find(r => r.id === btn.dataset.id);
+            if (!row) return;
+            await runAppAction(btn.dataset.action, row, btn);
+        });
+
+        document.getElementById("app-tbody").addEventListener("change", async (e) => {
+            const sel = e.target.closest("select[data-action-select]");
+            if (!sel || !sel.value) return;
+            const row = apps.find(r => r.id === sel.dataset.id);
+            if (!row) { sel.value = ""; return; }
+            await runAppAction(sel.value, row, sel);
+        });
+
+        document.getElementById("btn-issue-all").addEventListener("click", async function () {
+            clearAlert();
+            const targets = apps.filter(r => r.status === "approved");
+            if (!targets.length) { showAlert("There are no approved applications.", "info"); return; }
+            if (!offers.some(o => o.active)) { showAlert("There are no active merchant offers yet. Add offers first.", "warning"); return; }
+            if (!confirm(`Issue coupons to all ${targets.length} approved applications? Each gets one coupon per active offer they don't already have.`)) return;
+            this.disabled = true;
+            const progress = document.getElementById("issue-progress");
+            let issued = 0, people = 0, failed = 0, mailFailed = 0;
+            for (let i = 0; i < targets.length; i++) {
+                progress.textContent = `Working ${i + 1} of ${targets.length}...`;
+                try {
+                    const n = await issueCoupons(targets[i]);
+                    if (n) {
+                        issued += n; people += 1;
+                        const note = await notify(targets[i].id, "coupons");
+                        if (note.includes("failed")) mailFailed += 1;
+                    }
+                } catch (_) { failed += 1; }
+            }
+            progress.textContent = "";
+            this.disabled = false;
+            showAlert(`${issued} coupon(s) issued to ${people} household(s).` + (failed ? ` ${failed} failed.` : "") + (mailFailed ? ` ${mailFailed} email(s) failed.` : ""), failed || mailFailed ? "warning" : "success");
+            await loadAll();
+        });
+
+        // Offers
+        function resetOfferForm() {
+            document.getElementById("offer-form").reset();
+            document.getElementById("of-id").value = "";
+            document.getElementById("of-active").checked = true;
+            document.getElementById("of-cancel").style.display = "none";
+            document.getElementById("of-save").textContent = "Save offer";
+        }
+        async function saveOffer(p) {
+            const { data, error } = await client.rpc("hamper_admin_save_offer", { p });
+            if (error) { showAlert("Could not save the offer: " + error.message, "danger"); return false; }
+            if (!data || !data.success) { showAlert("Nothing was saved. Your account may not have permission.", "warning"); return false; }
+            return true;
+        }
+        document.getElementById("offer-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearAlert();
+            const v = id => document.getElementById(id).value.trim();
+            const p = {
+                id: v("of-id"), merchant_name: v("of-merchant"), merchant_email: v("of-email").toLowerCase(),
+                offer_title: v("of-title"), offer_details: v("of-details"), terms: v("of-terms"),
+                community: v("of-community"), merchant_website: v("of-website"), valid_until: v("of-until"), active: document.getElementById("of-active").checked
+            };
+            if (await saveOffer(p)) { showAlert("Offer saved.", "success"); resetOfferForm(); await loadAll(); }
+        });
+        document.getElementById("of-cancel").addEventListener("click", resetOfferForm);
+        (async function initHamperDirectoryPicker() {
+            const { data } = await client.from("directory_listings").select("id, name, community, link, status").or("status.eq.approved,status.is.null").order("name", { ascending: true }).limit(1500);
+            const list = data || [];
+            const dl = document.getElementById("of-directory-list");
+            if (dl) dl.innerHTML = list.map(b => `<option value="${String(b.name || "").replace(/"/g, "&quot;")}"></option>`).join("");
+            const inp = document.getElementById("of-merchant");
+            if (inp) {
+                inp.addEventListener("input", () => {
+                    const norm = inp.value.trim().toLowerCase();
+                    const m = norm ? list.find(b => (b.name || "").trim().toLowerCase() === norm) : null;
+                    if (!m) return;
+                    const comm = document.getElementById("of-community");
+                    if (comm && m.community) comm.value = m.community;
+                    const web = document.getElementById("of-website");
+                    const rawLink = String(m.link || "").trim();
+                    if (web && rawLink && !/^https?:\/\/(www\.)?welcomeeg\.ca(\/|$)/i.test(rawLink) && !web.value.trim()) {
+                        web.value = rawLink;
+                    }
+                });
+            }
+        })();
+        document.getElementById("offer-tbody").addEventListener("click", async (e) => {
+            const btn = e.target.closest("button[data-offer-action]");
+            if (!btn) return;
+            const o = offers.find(x => x.id === btn.dataset.id);
+            if (!o) return;
+            clearAlert();
+            if (btn.dataset.offerAction === "edit") {
+                document.getElementById("of-id").value = o.id;
+                document.getElementById("of-merchant").value = o.merchant_name || "";
+                document.getElementById("of-email").value = o.merchant_email || "";
+                document.getElementById("of-title").value = o.offer_title || "";
+                document.getElementById("of-details").value = o.offer_details || "";
+                document.getElementById("of-terms").value = o.terms || "";
+                document.getElementById("of-community").value = o.community || "";
+                document.getElementById("of-website").value = o.merchant_website || "";
+                document.getElementById("of-until").value = o.valid_until || "";
+                document.getElementById("of-active").checked = !!o.active;
+                document.getElementById("of-cancel").style.display = "inline-flex";
+                document.getElementById("of-save").textContent = "Update offer";
+                document.getElementById("offer-form").scrollIntoView({ behavior: "smooth", block: "center" });
+            } else if (btn.dataset.offerAction === "toggle") {
+                btn.disabled = true;
+                if (await saveOffer({ ...o, active: !o.active })) await loadAll();
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById("coupon-tbody").addEventListener("click", async (e) => {
+            const btn = e.target.closest("button[data-coupon-action]");
+            if (!btn) return;
+            const c = coupons.find(x => x.id === btn.dataset.id);
+            if (!c || !confirm(`Void coupon ${c.code}? It can no longer be redeemed.`)) return;
+            btn.disabled = true;
+            const { data, error } = await client.rpc("hamper_admin_void_coupon", { id_input: c.id });
+            if (error || !data || !data.success) showAlert("Could not void the coupon: " + (error ? error.message : "it may already be used"), "danger");
+            else showAlert(`Coupon ${c.code} voided.`, "info");
+            await loadAll();
+        });
+
+        // CSV export (cells that start with = + - @ are prefixed so spreadsheets don't run them)
+        document.getElementById("btn-export").addEventListener("click", () => {
+            const cols = ["created_at", "status", "first_name", "last_name", "email", "phone", "street_address", "unit", "community", "postal_code", "move_in_date", "household_size", "interests", "newsletter_opt_in", "proof_type", "staff_note", "decline_reason", "coupon_count", "redeemed_count"];
+            const cell = v => {
+                let s = v === null || v === undefined ? "" : String(v);
+                if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+                return '"' + s.replace(/"/g, '""') + '"';
+            };
+            const lines = [cols.join(",")].concat(filteredApps().map(r => cols.map(c => cell(r[c])).join(",")));
+            const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `welcome-hamper-applications-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        });
+
+        document.querySelectorAll(".hamper-tab").forEach(t => t.addEventListener("click", () => {
+            document.querySelectorAll(".hamper-tab").forEach(x => x.classList.toggle("active", x === t));
+            document.querySelectorAll(".hamper-panel").forEach(p => { p.style.display = p.id === "panel-" + t.dataset.tab ? "block" : "none"; });
+        }));
+        document.getElementById("app-filter").addEventListener("change", renderApps);
+        document.getElementById("app-search").addEventListener("input", renderApps);
+        document.getElementById("coupon-search").addEventListener("input", renderCoupons);
+        document.getElementById("btn-refresh").addEventListener("click", () => { clearAlert(); loadAll(); });
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

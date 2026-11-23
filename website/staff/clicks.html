@@ -1,0 +1,676 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Report — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .admin-shell { display: block; min-height: calc(100vh - 65px); background: #f8fafc; }
+        .admin-content-area { max-width: 1440px; margin: 0 auto; padding: 20px; min-width: 0; }
+        .sort-th { cursor: pointer; user-select: none; white-space: nowrap; }
+        .sort-th:hover { background: #e2e8f0; color: #0f172a; }
+        .sort-ind { font-size: 11px; margin-left: 4px; color: #0284c7; }
+        .seg-tabs { display: inline-flex; background: #e2e8f0; border-radius: 9999px; padding: 3px; gap: 3px; }
+        .seg-tabs button { border: 0; background: transparent; padding: 6px 14px; border-radius: 9999px; font-weight: 800; font-size: 13px; color: #334155; cursor: pointer; min-height: 36px; }
+        .seg-tabs button[aria-selected="true"] { background: #00008b; color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .archive-banner { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .print-only { display: none; }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+        @media print {
+            .print-only { display: block !important; margin-bottom: 16px; border-bottom: 2px solid #00008b; padding-bottom: 8px; }
+            .table-wrap { overflow: visible !important; }
+            table { font-size: 11px !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container admin-content-area">
+            <div id="page-alert" style="display: none;"></div>
+            <details class="wg-admin-guide">
+                <summary><span>&#128214; Beginner&rsquo;s Guide: How to Read Click &amp; Search Numbers</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+                <ol>
+                    <li><strong>See What People Clicked:</strong> Use the search box or column headings to see which events, businesses, and sponsored ads get the most clicks.</li>
+                    <li><strong>Monthly Reports &amp; Printing:</strong> Click <strong>Monthly Archives</strong> to view past months, or click <strong>Print Report</strong> to save a PDF/paper copy for a sponsor. (Your own clicks on admin pages are never counted.)</li>
+                </ol>
+            </details>
+
+            <div class="print-only">
+                <h1 style="margin:0; font-size:20px; color:#00008b;">Welcome East Gwillimbury — Click &amp; Search Report</h1>
+                <div id="print-subtitle" style="font-size:13px; color:#475569; margin-top:4px;"></div>
+            </div>
+
+            <section id="clicks-console" style="display: none;">
+                <div class="card no-print" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <h2 style="margin: 0 0 6px 0;">&#128200; Click Report &amp; Monthly Archives</h2>
+                            <p style="margin: 0; font-size: 14px; color: var(--muted); max-width: 780px;">
+                                Clicks from Welcome East Gwillimbury to local businesses, listings, newsletter links, and searches.
+                                <strong>Admin pages are never tracked.</strong> Completed calendar months are automatically archived at midnight (Toronto time) at month-end for printable merchant &amp; submitter reports.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <a href="/business/index.html" class="btn btn-primary btn-sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                                &#128202; Open Business / Admin Stats View
+                            </a>
+                            <button type="button" id="btn-print" class="btn btn-secondary btn-sm">&#128424; Print Report</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0;">
+                        <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                            <label style="font-size: 13px; font-weight: 700;">From<br><input type="date" id="f-from" class="form-control"></label>
+                            <label style="font-size: 13px; font-weight: 700;">To<br><input type="date" id="f-to" class="form-control"></label>
+                            <button type="button" id="btn-load" class="btn btn-primary btn-sm">Show Live</button>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                            <label style="font-size: 13px; font-weight: 700;">Monthly Archive (printable)<br>
+                                <select id="f-archive" class="form-control" style="min-width: 210px;">
+                                    <option value="">Live Date Range (Current)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 12px;">
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary btn-sm" data-range="7">Last 7 days</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-range="30">Last 30 days</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-range="90">Last 90 days</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-range="month">This month</button>
+                        </div>
+                        <input type="search" id="global-search" class="form-control" style="max-width: 300px;" placeholder="Search business, listing, URL, or keyword…">
+                    </div>
+                </div>
+
+                <div id="archive-banner" class="archive-banner" style="display: none;">
+                    <div>
+                        <strong id="archive-banner-title"></strong>
+                        <span id="archive-banner-meta" style="font-size: 13px; color: #475569; margin-left: 8px;"></span>
+                    </div>
+                    <button type="button" id="btn-back-live" class="btn btn-secondary btn-sm no-print">Back to Live Range</button>
+                </div>
+
+                <div id="totals" style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); margin-bottom: 20px;"></div>
+
+                <!-- 1. By Business -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">By Business</h3>
+                        <div class="no-print" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" id="btn-csv-biz" class="btn btn-secondary btn-sm">&#11015; CSV</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table" data-table="biz">
+                            <thead>
+                                <tr>
+                                    <th class="sort-th" data-sort="business">Business<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="clicks">Total Clicks<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="unique_visitors">Unique Visitors<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="search_clicks">Searches &amp; Results<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="website_clicks">Website<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="newsletter_clicks">Newsletter<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="listings">Listings<span class="sort-ind"></span></th>
+                                    <th class="no-print">Merchant Stats</th>
+                                </tr>
+                            </thead>
+                            <tbody id="biz-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Searches & Search Results (Dedicated Separated Category) -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <h3 style="margin: 0;">&#128269; Searches &amp; Search Results</h3>
+                            <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--muted);">Separated list for Quick Search keywords, site searches, and clicks from the Search Results page.</p>
+                        </div>
+                        <button type="button" id="btn-csv-search" class="btn btn-secondary btn-sm no-print">&#11015; CSV</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table" data-table="search">
+                            <thead>
+                                <tr>
+                                    <th class="sort-th" data-sort="title">Search / Keyword<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="business">Business / Target<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="kind">Type<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="clicks">Clicks<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="unique_visitors">Unique Visitors<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="last_click">Last Activity<span class="sort-ind"></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="search-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. By Listing (Events, Dining, Sales, Directory, Newsletter) -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">By Listing (Directory, Events, Dining, Sales &amp; Newsletter)</h3>
+                        <button type="button" id="btn-csv-item" class="btn btn-secondary btn-sm no-print">&#11015; CSV</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table" data-table="item">
+                            <thead>
+                                <tr>
+                                    <th class="sort-th" data-sort="title">Listing<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="business">Business<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="kind">Source<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="clicks">Clicks<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="unique_visitors">Unique Visitors<span class="sort-ind"></span></th>
+                                    <th class="sort-th" data-sort="last_click">Last Click<span class="sort-ind"></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="item-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4. By Day / By Month & By Page -->
+                <div style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+                            <h3 style="margin: 0;">Clicks Over Time</h3>
+                            <div class="seg-tabs no-print" role="tablist" aria-label="Time grouping">
+                                <button type="button" id="tab-day" role="tab" aria-selected="true">By Day</button>
+                                <button type="button" id="tab-month" role="tab" aria-selected="false">By Month</button>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="data-table" data-table="time">
+                                <thead>
+                                    <tr>
+                                        <th class="sort-th" data-sort="label" id="time-col-head">Day<span class="sort-ind"></span></th>
+                                        <th class="sort-th" data-sort="clicks">Total Clicks<span class="sort-ind"></span></th>
+                                        <th class="sort-th" data-sort="search_clicks">Searches<span class="sort-ind"></span></th>
+                                        <th class="sort-th" data-sort="unique_visitors">Unique Visitors<span class="sort-ind"></span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="day-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin: 0 0 10px 0;">By Page the Click Came From</h3>
+                        <div class="table-wrap">
+                            <table class="data-table" data-table="page">
+                                <thead>
+                                    <tr>
+                                        <th class="sort-th" data-sort="page">Page<span class="sort-ind"></span></th>
+                                        <th class="sort-th" data-sort="clicks">Clicks<span class="sort-ind"></span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="page-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Monday &amp; Thursday Newsletter</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let client = null;
+        let report = null;
+        let activeArchiveMonth = "";
+        let timeGrouping = "day";
+        const sortState = {
+            biz: { key: "clicks", dir: -1 },
+            search: { key: "clicks", dir: -1 },
+            item: { key: "clicks", dir: -1 },
+            time: { key: "label", dir: -1 },
+            page: { key: "clicks", dir: -1 }
+        };
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+        function escapeHtml(str) {
+            return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function torontoDay(offsetDays) {
+            const d = new Date(Date.now() + (offsetDays || 0) * 86400000);
+            return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+        }
+        function fmtWhen(ts) {
+            const d = new Date(ts);
+            return isNaN(d) ? "" : d.toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" });
+        }
+        function fmtMonth(ym) {
+            if (!ym || !/^\d{4}-\d{2}$/.test(ym)) return ym || "";
+            const d = new Date(ym + "-15T12:00:00Z");
+            return d.toLocaleDateString("en-CA", { timeZone: "UTC", month: "long", year: "numeric" });
+        }
+
+        const PAGE_NAMES = {
+            "event-details": "Event / listing page", "event-details-business": "Listing page: business website",
+            "dining-details": "Dining page", "directory": "Businesses directory", "featured": "Featured spotlight",
+            "hamper-wallet": "Welcome Hamper wallet", "home-search": "Home: Quick Search (sponsored)",
+            "discovery": "Search page (Discovery)", "search-results": "Search Results page",
+            "newsletter": "Newsletter", "other": "Other"
+        };
+        const SOURCE_NAMES = {
+            listing: "Website listing", directory: "Businesses directory", hamper_offer: "Welcome Hamper",
+            search_sponsor: "Sponsored Quick Search", search_result: "Search Results Page",
+            search: "Site Search", newsletter: "Newsletter"
+        };
+
+        function sortRows(rows, tableName) {
+            const { key, dir } = sortState[tableName];
+            return rows.slice().sort((a, b) => {
+                const av = a[key] ?? "";
+                const bv = b[key] ?? "";
+                if (typeof av === "number" || typeof bv === "number") {
+                    return (Number(av || 0) - Number(bv || 0)) * dir;
+                }
+                return String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: "base" }) * dir;
+            });
+        }
+        function updateSortIndicators() {
+            document.querySelectorAll("table[data-table]").forEach(tbl => {
+                const name = tbl.dataset.table;
+                const st = sortState[name];
+                tbl.querySelectorAll("th.sort-th").forEach(th => {
+                    const ind = th.querySelector(".sort-ind");
+                    if (!ind) return;
+                    ind.textContent = st && th.dataset.sort === st.key ? (st.dir > 0 ? "▲" : "▼") : "";
+                });
+            });
+        }
+        function matchesFilter(fields) {
+            const q = document.getElementById("global-search").value.trim().toLowerCase();
+            if (!q) return true;
+            const hay = fields.map(x => String(x || "").toLowerCase()).join(" ");
+            return q.split(/\s+/).every(tok => hay.includes(tok));
+        }
+
+        function setRange(r) {
+            activeArchiveMonth = "";
+            document.getElementById("f-archive").value = "";
+            if (r === "month") {
+                const t = torontoDay(0);
+                document.getElementById("f-from").value = t.slice(0, 8) + "01";
+                document.getElementById("f-to").value = t;
+            } else {
+                document.getElementById("f-from").value = torontoDay(-(Number(r) - 1));
+                document.getElementById("f-to").value = torontoDay(0);
+            }
+        }
+
+        async function loadArchivesList() {
+            try {
+                await client.rpc("wg_ensure_monthly_archives");
+                const { data } = await client.rpc("wg_list_click_archives", { business_id_input: null });
+                const sel = document.getElementById("f-archive");
+                const opts = (data || []).map(a =>
+                    `<option value="${escapeHtml(a.archive_month)}">${escapeHtml(fmtMonth(a.archive_month))} (${Number(a.summary?.clicks || 0).toLocaleString("en-CA")} clicks)</option>`
+                ).join("");
+                sel.innerHTML = `<option value="">Live Date Range (Current)</option>` + opts;
+            } catch (_) {}
+        }
+
+        async function loadArchiveMonth(ym) {
+            clearAlert();
+            const { data, error } = await client.rpc("wg_get_click_archive", { month_input: ym, business_id_input: null });
+            if (error || !data) { showAlert("Could not load archived month " + ym + ".", "warning"); return; }
+            activeArchiveMonth = ym;
+            report = {
+                totals: data.summary || {},
+                by_business: data.by_business || [],
+                by_item: data.by_item || [],
+                by_search: data.by_search || [],
+                by_day: data.by_day || [],
+                by_month: [{ month: ym, clicks: data.summary?.clicks || 0, unique_visitors: data.summary?.unique_visitors || 0, search_clicks: data.summary?.search_clicks || 0 }],
+                by_page: []
+            };
+            document.getElementById("archive-banner").style.display = "flex";
+            document.getElementById("archive-banner-title").textContent = `Archived Monthly Report: ${fmtMonth(ym)}`;
+            document.getElementById("archive-banner-meta").textContent = `Archived ${fmtWhen(data.archived_at)}`;
+            render();
+        }
+
+        async function loadLive() {
+            clearAlert();
+            activeArchiveMonth = "";
+            document.getElementById("f-archive").value = "";
+            document.getElementById("archive-banner").style.display = "none";
+            const from = document.getElementById("f-from").value || null;
+            const to = document.getElementById("f-to").value || null;
+            if (from && to && from > to) { showAlert("The From date is after the To date.", "warning"); return; }
+            const { data, error } = await client.rpc("wg_click_report", { from_input: from, to_input: to });
+            if (error) { showAlert("Could not load the report: " + error.message, "danger"); return; }
+            report = data || {};
+            render();
+        }
+
+        function filteredBiz() {
+            return sortRows(
+                ((report && report.by_business) || []).filter(b => matchesFilter([b.business])),
+                "biz"
+            );
+        }
+        function filteredSearch() {
+            return sortRows(
+                ((report && report.by_search) || []).filter(i => matchesFilter([i.title, i.business, i.target_url, SOURCE_NAMES[i.kind] || i.kind])),
+                "search"
+            );
+        }
+        function filteredItems() {
+            return sortRows(
+                ((report && report.by_item) || []).filter(i => matchesFilter([i.title, i.business, i.target_url, SOURCE_NAMES[i.kind] || i.kind])),
+                "item"
+            );
+        }
+        function timeRows() {
+            const src = timeGrouping === "month"
+                ? ((report && report.by_month) || []).map(m => ({ label: m.month, clicks: Number(m.clicks || 0), search_clicks: Number(m.search_clicks || 0), unique_visitors: Number(m.unique_visitors || 0) }))
+                : ((report && report.by_day) || []).map(d => ({ label: d.day, clicks: Number(d.clicks || 0), search_clicks: Number(d.search_clicks || 0), unique_visitors: Number(d.unique_visitors || 0) }));
+            return sortRows(src, "time");
+        }
+        function pageRows() {
+            return sortRows(
+                ((report && report.by_page) || []).map(p => ({ page: PAGE_NAMES[p.page] || p.page, clicks: Number(p.clicks || 0) })),
+                "page"
+            );
+        }
+
+        function render() {
+            if (!report) return;
+            const q = document.getElementById("global-search").value.trim();
+            document.getElementById("print-subtitle").textContent =
+                (activeArchiveMonth ? `Archived Month: ${fmtMonth(activeArchiveMonth)}` : `Period: ${document.getElementById("f-from").value} to ${document.getElementById("f-to").value}`)
+                + (q ? ` • Filter: "${q}"` : "")
+                + ` • Generated ${fmtWhen(new Date().toISOString())}`;
+
+            const t = report.totals || {};
+            const tile = (label, value) => `<div class="card" style="margin:0; padding:16px;"><div style="font-size:12px; font-weight:800; text-transform:uppercase; color:var(--muted);">${label}</div><div style="font-size:28px; font-weight:900; color:#00008b;">${Number(value || 0).toLocaleString("en-CA")}</div></div>`;
+            document.getElementById("totals").innerHTML =
+                tile("Total Clicks", t.clicks) +
+                tile("Unique Visitors", t.unique_visitors) +
+                tile("Searches &amp; Results", t.search_clicks) +
+                tile("Website Clicks", t.website_clicks) +
+                tile("Newsletter Clicks", t.newsletter_clicks) +
+                tile("Businesses Clicked", (report.by_business || []).length);
+
+            const none = (n) => `<tr><td colspan="${n}" style="color:var(--muted); text-align:center;">No matching records in this period.</td></tr>`;
+
+            document.getElementById("biz-tbody").innerHTML = filteredBiz().map(b => `<tr>
+                <td><strong>${escapeHtml(b.business)}</strong></td>
+                <td><strong>${Number(b.clicks || 0).toLocaleString("en-CA")}</strong></td>
+                <td>${Number(b.unique_visitors || 0).toLocaleString("en-CA")}</td>
+                <td>${Number(b.search_clicks || 0).toLocaleString("en-CA")}</td>
+                <td>${Number(b.website_clicks || 0).toLocaleString("en-CA")}</td>
+                <td>${Number(b.newsletter_clicks || 0).toLocaleString("en-CA")}</td>
+                <td>${Number(b.listings || 0).toLocaleString("en-CA")}</td>
+                <td class="no-print">${b.business_id ? `<a href="/business/index.html?business=${encodeURIComponent(b.business_id)}" class="btn btn-secondary btn-sm" style="text-decoration:none; padding:4px 10px; min-height:32px;">View Stats &rarr;</a>` : `<span style="color:var(--muted); font-size:12px;">—</span>`}</td>
+            </tr>`).join("") || none(8);
+
+            document.getElementById("search-tbody").innerHTML = filteredSearch().map(i => `<tr>
+                <td><strong>${escapeHtml(i.title)}</strong>${i.target_url ? `<br><span style="font-size:12px; color:var(--muted); word-break:break-all;">${escapeHtml(i.target_url)}</span>` : ""}</td>
+                <td>${escapeHtml(i.business)}</td>
+                <td>${escapeHtml(SOURCE_NAMES[i.kind] || i.kind)}</td>
+                <td><strong>${Number(i.clicks || 0).toLocaleString("en-CA")}</strong></td>
+                <td>${Number(i.unique_visitors || 0).toLocaleString("en-CA")}</td>
+                <td style="white-space:nowrap;">${escapeHtml(fmtWhen(i.last_click))}</td>
+            </tr>`).join("") || none(6);
+
+            document.getElementById("item-tbody").innerHTML = filteredItems().map(i => `<tr>
+                <td><strong>${escapeHtml(i.title)}</strong>${i.target_url ? `<br><span style="font-size:12px; color:var(--muted); word-break:break-all;">${escapeHtml(i.target_url)}</span>` : ""}</td>
+                <td>${escapeHtml(i.business)}</td>
+                <td>${escapeHtml(SOURCE_NAMES[i.kind] || i.kind)}</td>
+                <td><strong>${Number(i.clicks || 0).toLocaleString("en-CA")}</strong></td>
+                <td>${Number(i.unique_visitors || 0).toLocaleString("en-CA")}</td>
+                <td style="white-space:nowrap;">${escapeHtml(fmtWhen(i.last_click))}</td>
+            </tr>`).join("") || none(6);
+
+            document.getElementById("time-col-head").firstChild.textContent = timeGrouping === "month" ? "Month" : "Day";
+            document.getElementById("day-tbody").innerHTML = timeRows().map(d => `<tr>
+                <td>${escapeHtml(timeGrouping === "month" ? fmtMonth(d.label) : d.label)}</td>
+                <td><strong>${Number(d.clicks).toLocaleString("en-CA")}</strong></td>
+                <td>${Number(d.search_clicks).toLocaleString("en-CA")}</td>
+                <td>${Number(d.unique_visitors).toLocaleString("en-CA")}</td>
+            </tr>`).join("") || none(4);
+
+            document.getElementById("page-tbody").innerHTML = pageRows().map(p => `<tr>
+                <td>${escapeHtml(p.page)}</td>
+                <td><strong>${Number(p.clicks).toLocaleString("en-CA")}</strong></td>
+            </tr>`).join("") || none(2);
+
+            updateSortIndicators();
+        }
+
+        function csvCell(v) {
+            let s = String(v ?? "");
+            if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+            return '"' + s.replace(/"/g, '""') + '"';
+        }
+        function downloadCsv(name, header, rows) {
+            const text = "\ufeff" + [header, ...rows].map(r => r.map(csvCell).join(",")).join("\r\n");
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        }
+        function rangeLabel() {
+            return activeArchiveMonth || ((document.getElementById("f-from").value || "start") + "_to_" + (document.getElementById("f-to").value || "today"));
+        }
+
+        document.getElementById("btn-csv-biz").addEventListener("click", () => {
+            if (!report) return;
+            downloadCsv(`welcome-georgina-clicks-by-business_${rangeLabel()}.csv`,
+                ["Business", "Total Clicks", "Unique Visitors", "Searches & Results", "Website Clicks", "Newsletter Clicks", "Listings"],
+                filteredBiz().map(b => [b.business, b.clicks, b.unique_visitors, b.search_clicks || 0, b.website_clicks, b.newsletter_clicks, b.listings]));
+        });
+        document.getElementById("btn-csv-search").addEventListener("click", () => {
+            if (!report) return;
+            downloadCsv(`welcome-georgina-searches-and-results_${rangeLabel()}.csv`,
+                ["Search / Keyword", "Business", "Type", "Clicks", "Unique Visitors", "Last Activity", "Destination"],
+                filteredSearch().map(i => [i.title, i.business, SOURCE_NAMES[i.kind] || i.kind, i.clicks, i.unique_visitors, fmtWhen(i.last_click), i.target_url]));
+        });
+        document.getElementById("btn-csv-item").addEventListener("click", () => {
+            if (!report) return;
+            downloadCsv(`welcome-georgina-clicks-by-listing_${rangeLabel()}.csv`,
+                ["Listing", "Business", "Source", "Clicks", "Unique Visitors", "Last Click", "Destination"],
+                filteredItems().map(i => [i.title, i.business, SOURCE_NAMES[i.kind] || i.kind, i.clicks, i.unique_visitors, fmtWhen(i.last_click), i.target_url]));
+        });
+
+        document.querySelectorAll("table[data-table] th.sort-th").forEach(th => {
+            th.addEventListener("click", () => {
+                const name = th.closest("table").dataset.table;
+                const key = th.dataset.sort;
+                if (sortState[name].key === key) sortState[name].dir *= -1;
+                else { sortState[name].key = key; sortState[name].dir = (key === "business" || key === "title" || key === "kind" || key === "page") ? 1 : -1; }
+                render();
+            });
+        });
+
+        document.getElementById("tab-day").addEventListener("click", () => {
+            timeGrouping = "day";
+            document.getElementById("tab-day").setAttribute("aria-selected", "true");
+            document.getElementById("tab-month").setAttribute("aria-selected", "false");
+            render();
+        });
+        document.getElementById("tab-month").addEventListener("click", () => {
+            timeGrouping = "month";
+            document.getElementById("tab-day").setAttribute("aria-selected", "false");
+            document.getElementById("tab-month").setAttribute("aria-selected", "true");
+            render();
+        });
+        document.getElementById("f-archive").addEventListener("change", (e) => {
+            if (e.target.value) loadArchiveMonth(e.target.value);
+            else loadLive();
+        });
+        document.getElementById("btn-back-live").addEventListener("click", loadLive);
+        document.getElementById("btn-load").addEventListener("click", loadLive);
+        document.getElementById("btn-print").addEventListener("click", () => window.print());
+        document.getElementById("global-search").addEventListener("input", render);
+        document.querySelectorAll("button[data-range]").forEach(b => b.addEventListener("click", () => { setRange(b.dataset.range); loadLive(); }));
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("The database connection is not configured.", "warning");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").trim().toLowerCase();
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => { await client.auth.signOut(); window.location.href = "/staff/login.html"; };
+            }
+            document.getElementById("clicks-console").style.display = "block";
+            setRange("30");
+            await loadArchivesList();
+            await loadLive();
+        }
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

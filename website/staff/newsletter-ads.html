@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter Ad Manager — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=69.4">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=69.4"></script>
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+        .na-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .na-slot-badge { display: inline-block; padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 900; background: #00008b; color: #ffffff; }
+        .na-preview-card { border: 2px solid #f59e0b; border-left: 6px solid #d97706; background: #fffbeb; border-radius: 10px; padding: 14px 16px; }
+    </style>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <h1 style="margin: 0 0 6px 0; color: var(--brand);">Newsletter Ad Manager</h1>
+            <p style="margin: 0 0 18px 0; color: var(--muted); font-size: 14px;">
+                Insert <strong>SPONSORED</strong> ad cards into exact positions between newsletter listings (including consecutive slots like <code>2a</code>, <code>2b</code>). Ads whose position exceeds the listing count are appended at the end.
+            </p>
+            <div id="page-alert" class="alert" style="display: none;"></div>
+            <details class="wg-admin-guide">
+                <summary><span>&#128214; Beginner&rsquo;s Guide: How to Place Ads in the Newsletter</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+                <ol>
+                    <li><strong>Pick Which Newsletter &amp; Spot:</strong> Choose <strong>Monday</strong>, <strong>Thursday</strong>, or <strong>Both</strong>. Pick which listing number the ad should appear after (for example, position <code>2</code> puts it after the 2nd event). If two ads share the same spot, use <code>a</code> for the first and <code>b</code> for the second.</li>
+                    <li><strong>Free / Complimentary Ads:</strong> Check the <strong>Complimentary</strong> box if you are giving a business a free ad spot. (Paid ads purchased on the website are added here automatically.)</li>
+                    <li><strong>Test Before Sending:</strong> Open <a href="/staff/test.html">Test Newsletter Dispatch</a> to preview how your ads look inside the email before it goes out to readers.</li>
+                </ol>
+            </details>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h2 id="form-title" style="margin: 0 0 14px 0; font-size: 18px;">Add Newsletter Sponsored Ad</h2>
+                <form id="na-form">
+                    <input type="hidden" id="na-id">
+                    <div class="na-grid">
+                        <label style="font-size: 12px; font-weight: 700;">Sponsor / Business Name *
+                            <input type="text" id="na-sponsor" class="form-control" required maxlength="120" placeholder="e.g. Briars Resort &amp; Spa">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Ad Headline *
+                            <input type="text" id="na-headline" class="form-control" required maxlength="140" placeholder="e.g. Weekend Spa &amp; Dining Package">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Edition *
+                            <select id="na-edition" class="form-control">
+                                <option value="both">Both (Monday &amp; Thursday)</option>
+                                <option value="monday">Monday Edition only (Mon–Fri)</option>
+                                <option value="thursday">Thursday Edition only (Fri–Sun)</option>
+                            </select>
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <label style="font-size: 12px; font-weight: 700;">Insert After Listing #
+                                <input type="number" id="na-pos" class="form-control" min="0" max="200" value="2" required>
+                            </label>
+                            <label style="font-size: 12px; font-weight: 700;">Slot Order (2a, 2b…)
+                                <select id="na-sub" class="form-control">
+                                    <option value="a">a (1st)</option>
+                                    <option value="b">b (2nd)</option>
+                                    <option value="c">c (3rd)</option>
+                                    <option value="d">d (4th)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <label style="display: block; font-size: 12px; font-weight: 700; margin-top: 12px;">Ad Copy / Description
+                        <textarea id="na-body" class="form-control" rows="2" maxlength="500" placeholder="Short promotional message shown inside the Sponsored card..."></textarea>
+                    </label>
+
+                    <div class="na-grid" style="margin-top: 12px;">
+                        <label style="font-size: 12px; font-weight: 700;">Destination Type *
+                            <select id="na-target-type" class="form-control" onchange="syncTargetHelp()">
+                                <option value="external">External Website (https://...)</option>
+                                <option value="listing">Welcome East Gwillimbury Listing (/events/..., /dining/..., /sales/...)</option>
+                                <option value="business_page">Welcome East Gwillimbury Business Page (/businesses/...)</option>
+                            </select>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Destination URL or Pick Listing/Business *
+                            <input type="text" id="na-target-url" class="form-control" list="na-targets" required maxlength="500" placeholder="https://... or start typing a listing/business">
+                            <datalist id="na-targets"></datalist>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Button Label
+                            <input type="text" id="na-cta" class="form-control" maxlength="50" value="Learn More →">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Image URL (optional)
+                            <input type="text" id="na-image" class="form-control" maxlength="500" placeholder="https://... or upload below">
+                        </label>
+                    </div>
+
+                    <div class="na-grid" style="margin-top: 12px;">
+                        <label style="font-size: 12px; font-weight: 700;">Start Date (optional)
+                            <input type="date" id="na-start" class="form-control">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">End Date (optional)
+                            <input type="date" id="na-end" class="form-control">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700; display: flex; gap: 8px; align-items: center; padding-top: 18px;">
+                            <input type="checkbox" id="na-active" checked> Active (live in compiled editions)
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700; display: flex; gap: 8px; align-items: center; padding-top: 18px;">
+                            <input type="checkbox" id="na-complimentary"> &#127873; Complimentary (Admin-granted, $0)
+                        </label>
+                    </div>
+
+                    <label style="display: block; font-size: 12px; font-weight: 700; margin-top: 12px;">Staff Notes (optional)
+                        <input type="text" id="na-notes" class="form-control" maxlength="500" placeholder="Invoice #, promo reason, etc.">
+                    </label>
+
+                    <div style="margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="submit" id="btn-save" class="btn btn-primary">Save Newsletter Ad</button>
+                        <button type="button" id="btn-cancel" class="btn btn-secondary" style="display: none;" onclick="resetForm()">Cancel Editing</button>
+                    </div>
+                </form>
+
+                <div style="margin-top: 18px;">
+                    <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-bottom: 6px;">Live Email Card Preview</div>
+                    <div id="na-preview" class="na-preview-card"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 18px;">Scheduled Ad Placements Board</h2>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <select id="na-filter-billing" class="form-control" style="width: auto; font-size: 12px; padding: 5px 10px;" onchange="render()">
+                            <option value="all">All (Paid &amp; Complimentary)</option>
+                            <option value="paid">Paid only</option>
+                            <option value="complimentary">Complimentary only</option>
+                        </select>
+                        <select id="na-filter-edition" class="form-control" style="width: auto; font-size: 12px; padding: 5px 10px;" onchange="render()">
+                            <option value="all">All Editions</option>
+                            <option value="monday">Monday</option>
+                            <option value="thursday">Thursday</option>
+                        </select>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="loadAds()">&#8635; Refresh</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Position</th>
+                                <th>Edition</th>
+                                <th>Sponsor &amp; Headline</th>
+                                <th>Destination</th>
+                                <th>Window</th>
+                                <th>Billing / Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="na-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127754; Welcome East Gwillimbury</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <p style="font-size: 13px; color: #cbd5e1; line-height: 1.6; margin: 0 0 12px 0;">Community events, local dining, business directory, and twice-weekly newsletters for East Gwillimbury, Ontario.</p>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128240; Explore</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">Events Calendar</a></li>
+                            <li><a href="/dining">Dining &amp; Specials</a></li>
+                            <li><a href="/sales">Local Sales</a></li>
+                            <li><a href="/directory">Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128274; Accounts &amp; Legal</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/login">All Accounts Sign In</a></li>
+                            <li><a href="/advertise">Advertise here</a></li>
+                            <li><a href="/terms">Terms of Service</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. All rights reserved. We are not responsible for errors or omissions.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const client = window.GeorginaStore.getClient();
+        let rows = [];
+        let targetMap = new Map();
+
+        function escapeHtml(s) {
+            return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+
+        function updatePreview() {
+            const sponsor = document.getElementById("na-sponsor").value.trim() || "Sponsor Name";
+            const headline = document.getElementById("na-headline").value.trim() || "Your Sponsored Headline";
+            const body = document.getElementById("na-body").value.trim();
+            const cta = document.getElementById("na-cta").value.trim() || "Learn More →";
+            const img = document.getElementById("na-image").value.trim();
+            document.getElementById("na-preview").innerHTML = `
+                <div style="margin-bottom:6px;">
+                    <span style="display:inline-block;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;font-size:11px;font-weight:900;padding:2px 9px;border-radius:9999px;text-transform:uppercase;">Sponsored</span>
+                    <span style="font-size:12px;font-weight:700;color:#78350f;margin-left:8px;">${escapeHtml(sponsor)}</span>
+                </div>
+                ${img ? `<img src="${escapeHtml(img)}" alt="" style="max-width:260px;height:auto;border-radius:8px;margin-bottom:8px;display:block;">` : ""}
+                <div style="font-size:16px;font-weight:900;color:#00008b;margin-bottom:4px;">${escapeHtml(headline)}</div>
+                ${body ? `<div style="font-size:13px;color:#334155;margin-bottom:8px;">${escapeHtml(body)}</div>` : ""}
+                <span style="display:inline-block;background:#d97706;color:#fff;font-size:12px;font-weight:800;padding:6px 14px;border-radius:9999px;">${escapeHtml(cta)}</span>
+            `;
+        }
+
+        function syncTargetHelp() { updatePreview(); }
+
+        async function loadTargets() {
+            const dl = document.getElementById("na-targets");
+            targetMap.clear();
+            const opts = [];
+            const [{ data: evs }, { data: biz }] = await Promise.all([
+                client.from("vendor_events").select("title,slug,category").eq("status", "approved").order("created_at", { ascending: false }).limit(200),
+                client.from("directory_listings").select("name,slug").eq("status", "approved").order("name", { ascending: true }).limit(300)
+            ]);
+            (evs || []).forEach(e => {
+                if (!e.slug) return;
+                const cat = String(e.category || "").toLowerCase();
+                const path = cat === "dining" ? `/dining/${e.slug}` : (cat.includes("sale") ? `/sales/${e.slug}` : `/events/${e.slug}`);
+                const label = `${e.title} (${path})`;
+                targetMap.set(label, path);
+                opts.push(`<option value="${escapeHtml(path)}">${escapeHtml(label)}</option>`);
+            });
+            (biz || []).forEach(b => {
+                if (!b.slug) return;
+                const path = `/businesses/${b.slug}`;
+                const label = `${b.name} (${path})`;
+                targetMap.set(label, path);
+                opts.push(`<option value="${escapeHtml(path)}">${escapeHtml(label)}</option>`);
+            });
+            dl.innerHTML = opts.join("");
+        }
+
+        async function loadAds() {
+            const { data, error } = await client
+                .from("newsletter_ad_placements")
+                .select("*")
+                .order("insert_after_index", { ascending: true })
+                .order("sub_order", { ascending: true })
+                .order("created_at", { ascending: true });
+            if (error) { showAlert("Could not load newsletter_ad_placements: " + error.message, "warning"); return; }
+            rows = data || [];
+            render();
+        }
+
+        function render() {
+            const bFilter = document.getElementById("na-filter-billing").value;
+            const eFilter = document.getElementById("na-filter-edition").value;
+            const visible = rows.filter(r => {
+                if (bFilter === "complimentary" && !r.is_complimentary) return false;
+                if (bFilter === "paid" && r.is_complimentary) return false;
+                if (eFilter !== "all" && r.edition !== "both" && r.edition !== eFilter) return false;
+                return true;
+            });
+            document.getElementById("na-tbody").innerHTML = visible.map(r => {
+                const posLabel = Number(r.insert_after_index) === 0 ? `Top (0${escapeHtml(r.sub_order || "a")})` : `After #${Number(r.insert_after_index)}${escapeHtml(r.sub_order || "a")}`;
+                const billingBadge = r.is_complimentary
+                    ? `<span style="padding:2px 7px;border-radius:9999px;font-size:10px;font-weight:800;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;">&#127873; COMPLIMENTARY</span>`
+                    : `<span style="padding:2px 7px;border-radius:9999px;font-size:10px;font-weight:800;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;">&#128179; PAID</span>`;
+                const statusBadge = r.active
+                    ? `<span class="status-badge status-approved">Active</span>`
+                    : `<span class="status-badge status-pending">Paused</span>`;
+                return `<tr>
+                    <td><span class="na-slot-badge">${posLabel}</span></td>
+                    <td style="font-size:12px;font-weight:700;text-transform:capitalize;">${escapeHtml(r.edition)}</td>
+                    <td><strong>${escapeHtml(r.sponsor_name)}</strong><br><span style="font-size:12px;color:var(--muted);">${escapeHtml(r.headline)}</span></td>
+                    <td style="font-size:12px;word-break:break-all;">${escapeHtml(r.target_url)}</td>
+                    <td style="font-size:12px;white-space:nowrap;">${escapeHtml(r.start_date || "Now")} &rarr; ${escapeHtml(r.end_date || "Ongoing")}</td>
+                    <td>${statusBadge}<br>${billingBadge}</td>
+                    <td style="white-space:nowrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="editAd('${escapeHtml(r.id)}')">Edit</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleAd('${escapeHtml(r.id)}')">${r.active ? "Pause" : "Activate"}</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteAd('${escapeHtml(r.id)}')">Delete</button>
+                    </td>
+                </tr>`;
+            }).join("") || `<tr><td colspan="7" style="text-align:center;color:var(--muted);">No newsletter ad placements yet. Add one above.</td></tr>`;
+        }
+
+        function resetForm() {
+            document.getElementById("na-form").reset();
+            document.getElementById("na-id").value = "";
+            document.getElementById("na-pos").value = "2";
+            document.getElementById("na-cta").value = "Learn More →";
+            document.getElementById("na-active").checked = true;
+            document.getElementById("form-title").textContent = "Add Newsletter Sponsored Ad";
+            document.getElementById("btn-cancel").style.display = "none";
+            updatePreview();
+        }
+
+        window.editAd = function (id) {
+            const r = rows.find(x => x.id === id);
+            if (!r) return;
+            document.getElementById("na-id").value = r.id;
+            document.getElementById("na-sponsor").value = r.sponsor_name || "";
+            document.getElementById("na-headline").value = r.headline || "";
+            document.getElementById("na-edition").value = r.edition || "both";
+            document.getElementById("na-pos").value = String(r.insert_after_index ?? 1);
+            document.getElementById("na-sub").value = r.sub_order || "a";
+            document.getElementById("na-body").value = r.body_text || "";
+            document.getElementById("na-target-type").value = r.target_type || "external";
+            document.getElementById("na-target-url").value = r.target_url || "";
+            document.getElementById("na-cta").value = r.cta_label || "Learn More →";
+            document.getElementById("na-image").value = r.image_url || "";
+            document.getElementById("na-start").value = r.start_date || "";
+            document.getElementById("na-end").value = r.end_date || "";
+            document.getElementById("na-active").checked = !!r.active;
+            document.getElementById("na-complimentary").checked = !!r.is_complimentary;
+            document.getElementById("na-notes").value = r.notes || "";
+            document.getElementById("form-title").textContent = `Edit "${r.headline}"`;
+            document.getElementById("btn-cancel").style.display = "inline-flex";
+            updatePreview();
+            document.getElementById("na-form").scrollIntoView({ behavior: "smooth" });
+        };
+
+        window.toggleAd = async function (id) {
+            const r = rows.find(x => x.id === id);
+            if (!r) return;
+            const { error } = await client.from("newsletter_ad_placements").update({ active: !r.active }).eq("id", id);
+            if (error) { showAlert(error.message, "danger"); return; }
+            await loadAds();
+        };
+
+        window.deleteAd = async function (id) {
+            if (!confirm("Delete this newsletter ad placement?")) return;
+            const { error } = await client.from("newsletter_ad_placements").delete().eq("id", id);
+            if (error) { showAlert(error.message, "danger"); return; }
+            await loadAds();
+        };
+
+        document.getElementById("na-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearAlert();
+            const id = document.getElementById("na-id").value;
+            let tUrl = document.getElementById("na-target-url").value.trim();
+            if (targetMap.has(tUrl)) tUrl = targetMap.get(tUrl);
+            const payload = {
+                sponsor_name: document.getElementById("na-sponsor").value.trim(),
+                headline: document.getElementById("na-headline").value.trim(),
+                edition: document.getElementById("na-edition").value,
+                insert_after_index: Math.max(0, parseInt(document.getElementById("na-pos").value, 10) || 0),
+                sub_order: document.getElementById("na-sub").value || "a",
+                body_text: document.getElementById("na-body").value.trim() || null,
+                target_type: document.getElementById("na-target-type").value,
+                target_url: tUrl,
+                cta_label: document.getElementById("na-cta").value.trim() || "Learn More →",
+                image_url: document.getElementById("na-image").value.trim() || null,
+                start_date: document.getElementById("na-start").value || null,
+                end_date: document.getElementById("na-end").value || null,
+                active: document.getElementById("na-active").checked,
+                is_complimentary: document.getElementById("na-complimentary").checked,
+                notes: document.getElementById("na-notes").value.trim() || null
+            };
+            const { error } = id
+                ? await client.from("newsletter_ad_placements").update(payload).eq("id", id)
+                : await client.from("newsletter_ad_placements").insert(payload);
+            if (error) { showAlert(error.message, "danger"); return; }
+            resetForm();
+            await loadAds();
+            showAlert("Newsletter ad placement saved.", "success");
+        });
+
+        ["na-sponsor", "na-headline", "na-body", "na-cta", "na-image"].forEach(id => {
+            document.getElementById(id).addEventListener("input", updatePreview);
+        });
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            updatePreview();
+            await Promise.all([loadTargets(), loadAds()]);
+        });
+    </script>
+</body>
+</html>

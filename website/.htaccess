@@ -1,0 +1,68 @@
+# Disable directory browsing
+Options -Indexes
+
+# Protect hidden files (like .htaccess or .env if ever uploaded)
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# Never serve deploy zips, backups, SQL or notes, even if one is left in the folder
+<FilesMatch "\.(zip|tar|gz|tgz|7z|rar|sql|bak|old|orig|swp|log|md|py|sh|env|ini|csv)$">
+  Require all denied
+</FilesMatch>
+<Files "lead_hunter_config.php">
+  Require all denied
+</Files>
+
+# Hidden folders (.git, .svn, .env directories) return 404
+<IfModule mod_alias.c>
+  RedirectMatch 404 (^|/)\.(git|svn|hg|env)(/|$)
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set Strict-Transport-Security "max-age=31536000"
+  # Content-Security-Policy (enforced 2026-11-15; checked live on the public pages first).
+  # A blocked script/style/connection shows in the browser console as "Refused to ...".
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.clarity.ms https://*.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://api.fontshare.com https://cdn.fontshare.com; img-src 'self' data: blob: https:; connect-src 'self' https://cyxomkhydsmttefanalx.supabase.co wss://cyxomkhydsmttefanalx.supabase.co https://api.openweathermap.org https://api.allorigins.win https://api.github.com https://*.clarity.ms https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; frame-src 'self' https://www.google.com https://maps.google.com https://www.openstreetmap.org https://calendar.google.com https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+</IfModule>
+
+# React Router Single Page Application Routing
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # Always use https. The CDN in front tells us how the visitor connected; only a plain-http
+  # visit is redirected, so this cannot loop.
+  RewriteCond %{HTTP:X-Forwarded-Proto} =http
+  RewriteCond %{HTTP_HOST} ^(www\.)?welcomeeg\.ca$ [NC]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Server-side 301 Permanent Redirects for Hamper routes
+  RewriteRule ^wallet/?$ /hamper/wallet.html [R=301,L,NC]
+  RewriteRule ^claim/?$ /hamper/index.html [R=301,L,NC]
+  RewriteRule ^(redeem|redemption|verify)/?$ /hamper/redeem.html [R=301,L,NC]
+  RewriteRule ^(hamper-perks|partner)(/.*)?$ /events [R=301,L,NC,QSD]
+
+  # Redirect legacy /admin to staff operations portal
+  RewriteRule ^admin/?$ /staff/admin-approvals.html [R=301,L,NC]
+
+  RewriteRule ^events/?$ /index.html [L]
+
+  # Listing pages: same app page, with that listing's title, description, image and address
+  # in the share (Open Graph / Twitter) tags, filled in by api/page_meta.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !^/events/login
+  RewriteRule ^(events|sales|dining|businesses|press)/([A-Za-z0-9-]{1,200})/?$ /api/page_meta.php?kind=$1&slug=$2 [L,QSA]
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /index.html [L]
+</IfModule>

@@ -1,0 +1,82 @@
+name: Welcome East Gwillimbury Newsletter Pipeline (Monday + Thursday)
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: 'Edition: monday (listings Mon-Fri) or thursday (listings Fri-Sun). auto = by the day it runs.'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - monday
+          - thursday
+      test_mode:
+        description: 'Test Run ONLY (Do NOT send to subscribers, do NOT overwrite public issue, send ONLY to test_recipient)'
+        required: false
+        default: false
+        type: boolean
+      test_recipient:
+        description: 'Test recipient email address (required if test_mode is checked)'
+        required: false
+        default: 'cheerfulweb@gmail.com'
+        type: string
+      dry_run:
+        description: 'Dry-run mode (compile HTML only, skip all email dispatch)'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Monday edition (Mon-Fri listings): Mondays 08:42 UTC (3:42 AM EST / 4:42 AM EDT Toronto)
+    - cron: '42 8 * * 1'
+    # Thursday edition (Fri-Sun listings): Thursdays 08:42 UTC (3:42 AM EST / 4:42 AM EDT Toronto)
+    - cron: '42 8 * * 4'
+
+# One run at a time: a second click waits instead of sending alongside the first.
+concurrency:
+  group: newsletter
+  cancel-in-progress: false
+
+jobs:
+  execute-pipeline:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Initialize Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Pipeline Script
+        env:
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          TEST_ONLY: ${{ inputs.test_mode || 'false' }}
+          TEST_RECIPIENT: ${{ inputs.test_recipient || secrets.TEST_RECIPIENT || '' }}
+          NEWSLETTER_EDITION: ${{ inputs.edition || 'auto' }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          PUBLIC_PORTAL_URL: ${{ secrets.PUBLIC_PORTAL_URL || 'https://welcomeeg.ca/news' }}
+          TRACKING_BASE_URL: ${{ secrets.TRACKING_BASE_URL || 'https://welcomeeg.ca/news/go.html' }}
+        run: python main.py
+
+      - name: Upload Rendered HTML Preview Artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: welcome-georgina-previews
+          path: |
+            preview*.html
+            preview*.txt
+          retention-days: 14

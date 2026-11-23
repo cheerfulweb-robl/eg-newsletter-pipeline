@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsubscribe • Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="assets/styles.css?v=67.2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/config.js?v=65.6"></script>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <marquee scrollamount="6">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </marquee>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="unsub-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/news/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="container" style="max-width: 560px;">
+        <div class="card">
+            <h2>Unsubscribe from Welcome East Gwillimbury</h2>
+            <p id="unsub-intro" style="font-size: 14px; color: var(--muted);">Unsubscribing&hellip;</p>
+            <div id="unsub-alert" role="status" style="display: none;"></div>
+        </div>
+    </main>
+
+    <script>
+        // One click from the link in our emails. Only a token from an email can unsubscribe
+        // (no typed email address), so nobody can remove someone else (migration 20261206).
+        const params = new URLSearchParams(window.location.search);
+        const tokenParam = (params.get("token") || "").trim();
+        const CONTACT = 'If you keep getting our emails, write to <a href="mailto:contact@welcomeeg.ca">contact@welcomeeg.ca</a> and we will remove you.';
+
+        function showResult(kind, html) {
+            document.getElementById("unsub-intro").style.display = "none";
+            const box = document.getElementById("unsub-alert");
+            box.className = "alert alert-" + kind;
+            box.style.display = "block";
+            box.innerHTML = html;
+        }
+
+        async function runUnsubscribe() {
+            if (!tokenParam || tokenParam === "manage" || tokenParam === "test-preview" || tokenParam.includes("UNSUBSCRIBE_TOKEN")) {
+                showResult("warning", "To unsubscribe, click the Unsubscribe link at the bottom of any Welcome East Gwillimbury email. " + CONTACT);
+                return;
+            }
+            try {
+                const client = window.GeorginaStore && window.GeorginaStore.getClient();
+                if (!client) throw new Error("No connection");
+                const { data, error } = await client.rpc("unsubscribe_reader", { token_input: tokenParam });
+                if (error) throw error;
+                if (data === true) {
+                    showResult("success", "You have been unsubscribed from Welcome East Gwillimbury. You will not receive further newsletter emails.");
+                } else {
+                    showResult("warning", "This unsubscribe link was not recognised. " + CONTACT);
+                }
+            } catch (err) {
+                showResult("warning", "We could not finish unsubscribing you right now. Please click the link again in a few minutes. " + CONTACT);
+            }
+        }
+
+        runUnsubscribe();
+    </script>
+</body>
+</html>

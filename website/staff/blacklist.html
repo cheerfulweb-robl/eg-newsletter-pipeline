@@ -1,0 +1,1059 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website &amp; Page URL Blacklist Manager — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        
+        .admin-nav-bar a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .admin-nav-bar a:hover {
+            background: var(--bg-hover, #f1f5f9);
+            border-color: var(--border);
+        }
+        .admin-nav-bar a.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .match-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .match-badge-domain {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .match-badge-exact_url {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .match-badge-prefix {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+    
+/* Unified Admin Navigation Sub-Bar with Robust Pill Buttons */
+.admin-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-nav-group-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-primary a {
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.admin-nav-group-primary a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.admin-nav-group-primary a.active {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0369a1;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+}
+
+.admin-nav-group-external {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-external .external-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.admin-nav-group-external a {
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.admin-nav-group-external a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.admin-nav-group-external a.btn-crm-link {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.admin-nav-group-external a.btn-crm-link:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+    /* Staff Portal Left Sidebar & Modern Shell Layout */
+.admin-shell {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: #00008b;
+    color: #ffffff;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-right: 1px solid #1e3a8a;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e3a8a;
+    }
+}
+
+.admin-content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+}
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="blacklist-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- ADMIN LEFT SIDEBAR MENU (STAFF PORTAL) -->
+        
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <!-- Breadcrumb / Admin Nav -->
+        <!-- Unified Admin Navigation Bar -->
+        
+
+        <div id="page-alert" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Block Unwanted Websites</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Block a Website or Link:</strong> Paste any website address or specific link you never want shown on Welcome East Gwillimbury.</li>
+        <li><strong>Stays Blocked Automatically:</strong> Once added here, our automated crawler will skip that link every time it runs.</li>
+    </ol>
+</details>
+
+        <!-- AUTH GATE -->
+        <section id="auth-gate" class="card" style="display: none; max-width: 520px; margin: 40px auto; text-align: center;">
+            <h2 style="color: var(--danger); margin-bottom: 8px;">&#128274; Admin Access Required</h2>
+            <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">
+                You must be logged in as an administrator (<code>cheerfulweb@gmail.com</code>) to manage scraper exclusion rules.
+            </p>
+            <a href="/staff/login.html" class="btn btn-primary">Go to Login Page &rarr;</a>
+        </section>
+
+        <!-- MAIN BLACKLIST WORKSPACE -->
+        <section id="blacklist-console" style="display: none;">
+            <!-- CARD 1: ADD MANUAL BLACKLIST RULE -->
+            <div class="card" style="margin-bottom: 24px; border: 2px solid #fecaca; background: linear-gradient(180deg, #fef2f2 0%, #ffffff 100%);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <h2 style="margin: 0 0 4px 0; color: #991b1b;">&#128683; Add Website Domain or Page URL to Blacklist</h2>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted);">
+                            Prevent any specific event page, news release, or whole website domain from being scraped or included in future newsletter editions.
+                        </p>
+                    </div>
+                    <span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 600; padding: 6px 12px; font-size: 12px;">
+                        Protected Admin RPC
+                    </span>
+                </div>
+
+                <form id="blacklist-add-form" style="background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px;">
+                    <div class="grid-2">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Website Domain or Specific Page URL to Blacklist *</label>
+                            <input type="text" id="bl-url-input" class="form-control" required placeholder="e.g. https://example.com/events/item-1 or example.com">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Blacklist Match Scope *</label>
+                            <select id="bl-match-type" class="form-control">
+                                <option value="exact_url">Specific Page / Article / Feed URL (Exact URL Match)</option>
+                                <option value="domain">Entire Website Domain &amp; Subdomains (Block Whole Site)</option>
+                                <option value="prefix">URL Path Prefix (Block All Pages Under Path)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Partner / Website Name (Optional)</label>
+                            <input type="text" id="bl-source-name" class="form-control" placeholder="e.g. Local Business Name">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Reason / Opt-Out Note (Optional)</label>
+                            <input type="text" id="bl-reason" class="form-control" placeholder="e.g. Requested opt-out or irrelevant event">
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+                        <button type="submit" id="btn-add-blacklist" class="btn btn-danger">&#128683; Add to Scraper Blacklist</button>
+                        <span style="font-size: 12px; color: var(--muted);">Blacklisted URLs &amp; domains are immediately excluded on the next newsletter build.</span>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CARD 2: ACTIVE BLACKLIST RULES TABLE -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="margin: 0 0 2px 0;">Currently Blocked Websites &amp; Page URLs</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted);">
+                            Active rules stored in <code>public.scraped_url_blacklist</code>. Click "Unblock / Remove" to allow scraping again.
+                        </p>
+                    </div>
+                    <span class="badge" id="badge-active-rules-count" style="background: #fee2e2; color: #991b1b; font-weight: 700; font-size: 12px;">
+                        0 Rules Active
+                    </span>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+                    <input type="search" id="filter-bl-rules" class="form-control" style="width: 260px;" placeholder="Search blocked URL, source or reason...">
+                    <select id="filter-bl-scope" class="form-control" style="width: 190px;">
+                        <option value="">All scopes</option>
+                        <option value="domain">Whole domain</option>
+                        <option value="exact_url">Exact page</option>
+                        <option value="prefix">URL prefix</option>
+                    </select>
+                    <select id="filter-bl-age" class="form-control" style="width: 170px;">
+                        <option value="">Any date added</option>
+                        <option value="7">Added last 7 days</option>
+                        <option value="30">Added last 30 days</option>
+                        <option value="older">Older than 30 days</option>
+                    </select>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Scope</th>
+                                <th>Blocked URL or Domain Pattern</th>
+                                <th>Partner / Source Name</th>
+                                <th>Reason / Notes</th>
+                                <th>Added</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-blacklist-tbody">
+                            <tr><td colspan="6" style="color:var(--muted); text-align:center;">Loading blacklist rules...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CARD 3: COMPLETE DIRECTORY OF SCRAPED SOURCES (FOR 1-CLICK BLACKLISTING) -->
+            <div class="card" style="border: 2px solid #bfdbfe; background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0; color: #1e3a8a;">&#127760; Scraped &amp; Registered Website Partner Directory</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted); max-width: 720px;">
+                            Complete list of all searched feeds, municipal sources, venues, local directories, registered auto-scrape websites, and submitted vendor URLs. Click "Block Page" or "Block Domain" to blacklist any source instantly.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="filter-partner-urls" class="form-control" style="width: 220px;" placeholder="Search partner or URL...">
+                        <select id="filter-partner-type" class="form-control" style="width: 195px;">
+                            <option value="all">All Sources &amp; Statuses</option>
+                            <option value="active">Active (Allowed) Only</option>
+                            <option value="blacklisted">Blacklisted Only</option>
+                            <option value="Built-in News &amp; Municipal">Built-in News &amp; Municipal</option>
+                            <option value="Built-in Venue &amp; Calendar">Built-in Venue &amp; Calendar</option>
+                            <option value="Built-in Directory Crawler">Built-in Directory Crawler</option>
+                            <option value="Curated Local Vendor">Curated Local Vendor</option>
+                            <option value="Registered Auto-Scrape URL">Registered Auto-Scrape URL</option>
+                            <option value="Registered Vendor Website">Registered Vendor Website</option>
+                            <option value="Submitted Event URL">Submitted Event URL</option>
+                        </select>
+                        <button type="button" id="btn-export-partner-urls" class="btn btn-primary btn-sm">&#11015; Export (CSV)</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: var(--muted);">
+                    <span>Total Tracked URLs: <strong id="stat-partner-urls-total" style="color: var(--text);">0</strong></span>
+                    <span>Active / Allowed: <strong id="stat-partner-urls-active" style="color: var(--success);">0</strong></span>
+                    <span>Blacklisted / Blocked: <strong id="stat-partner-urls-blocked" style="color: var(--danger);">0</strong></span>
+                </div>
+
+                <div class="table-wrap" style="max-height: 480px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Scrape Status</th>
+                                <th>Partner / Source Name</th>
+                                <th>Source Type</th>
+                                <th>Searched / Registered URL</th>
+                                <th>Quick Blacklist Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-partner-urls-tbody">
+                            <tr><td colspan="5" style="color:var(--muted); text-align:center;">Loading directory...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        let client = null;
+        let currentUser = null;
+        let cachedBlacklist = [];
+        let cachedVendorEvents = [];
+        let cachedScrapeSources = [];
+        let cachedVendorProfiles = [];
+
+        const BUILTIN_SCRAPED_SOURCES = [
+            { source_name: "Town of East Gwillimbury — Media Releases", source_type: "Built-in News & Municipal", url: "https://www.georgina.ca/municipal-government/newsroom/media-releases" },
+            { source_name: "Town of East Gwillimbury — Council Highlights", source_type: "Built-in News & Municipal", url: "https://www.georgina.ca/municipal-government/council-meetings/council-highlights" },
+            { source_name: "Town of East Gwillimbury — Public Notices", source_type: "Built-in News & Municipal", url: "https://www.georgina.ca/municipal-government/publications-plans-reports-and-public-notices/town-public-notices" },
+            { source_name: "Town of East Gwillimbury — Living Here Events Calendar", source_type: "Built-in News & Municipal", url: "https://www.georgina.ca/living-here/events-calendar" },
+            { source_name: "The NewmarketToday (RSS)", source_type: "Built-in News & Municipal", url: "https://georginapost.com/feed/" },
+            { source_name: "Explore East Gwillimbury Tourism Blog", source_type: "Built-in News & Municipal", url: "https://www.exploregeorgina.ca/blog" },
+            { source_name: "Choose East Gwillimbury Economic Development Blog", source_type: "Built-in News & Municipal", url: "https://www.choosegeorgina.ca/blog" },
+            { source_name: "Stephen Leacock Theatre Box Office (TixHub)", source_type: "Built-in Venue & Calendar", url: "https://secure1.tixhub.com/georgina/online/index.asp" },
+            { source_name: "East Gwillimbury Public Library Events Calendar", source_type: "Built-in Venue & Calendar", url: "https://calendar.georginalibrary.ca/default/Month" },
+            { source_name: "Central York Chamber of Commerce Calendar", source_type: "Built-in Venue & Calendar", url: "https://www.georginachamber.com/events/" },
+            { source_name: "The Briars Resort & Spa Event Calendar", source_type: "Built-in Venue & Calendar", url: "https://www.briars.ca/briars-resort-event-calendar" },
+            { source_name: "Hospice East Gwillimbury Events Calendar", source_type: "Built-in Venue & Calendar", url: "https://www.hospicegeorgina.com/events-calendar" },
+            { source_name: "Eventbrite Holland Landing & East Gwillimbury Feed", source_type: "Built-in Directory Crawler", url: "https://www.eventbrite.ca/d/canada--holland landing/events/" },
+            { source_name: "Meetup Holland Landing Corridor Discovery", source_type: "Built-in Directory Crawler", url: "https://www.meetup.com/find/?location=ca--on--holland landing&source=EVENTS" },
+            { source_name: "Explore East Gwillimbury Festivals & Events Directory", source_type: "Built-in Directory Crawler", url: "https://www.exploregeorgina.ca/things-to-do/festivals-and-events" },
+            { source_name: "Explore East Gwillimbury Agri-Tourism & Farms Directory", source_type: "Built-in Directory Crawler", url: "https://www.exploregeorgina.ca/things-to-do/agri-tourism-and-farms" },
+            { source_name: "East Gwillimbury Farmers' Market", source_type: "Curated Local Vendor", url: "https://www.georginafarmersmarket.ca/" },
+            { source_name: "Mount Albert Agricultural Society & Fair", source_type: "Curated Local Vendor", url: "https://mount albertfair.com/" },
+            { source_name: "Routes Connecting Communities (East Gwillimbury)", source_type: "Curated Local Vendor", url: "https://routescc.org/" }
+        ];
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            if (!el) return;
+            el.className = `alert alert-${type}`;
+            el.textContent = msg; // plain text: messages can contain submitted links
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function clearAlert() {
+            const el = document.getElementById("page-alert");
+            if (el) el.style.display = "none";
+        }
+
+        // Only allow http(s) links: blocks javascript: and other unsafe schemes in submitted data.
+        function safeHref(u) {
+            const raw = String(u == null ? "" : u).trim();
+            if (!raw) return "#";
+            try {
+                const p = new URL(raw, window.location.href);
+                return (p.protocol === "https:" || p.protocol === "http:") ? p.href : "#";
+            } catch (e) {
+                return "#";
+            }
+        }
+        // Data inside onclick="...": JSON string, then HTML-escaped, so quotes cannot break out
+        function jsArg(value) {
+            return escapeHtml(JSON.stringify(String(value == null ? "" : value)));
+        }
+
+        function escapeHtml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function cleanCsvField(val) {
+            let s = String(val === null || val === undefined ? "" : val);
+            s = s.replace(/\u2022|•|â€¢/g, "-").replace(/[\u2013\u2014–—]/g, "-").replace(/\r?\n|\r/g, " ").trim();
+            if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;   // never a spreadsheet formula
+            if (/[",\n']/.test(s)) {
+                return `"${s.replace(/"/g, '""')}"`;
+            }
+            return s;
+        }
+
+        function extractDomainHost(rawUrl) {
+            const clean = String(rawUrl || "").trim().toLowerCase();
+            if (!clean) return "";
+            try {
+                let u = clean;
+                if (!u.startsWith("http://") && !u.startsWith("https://")) {
+                    u = "https://" + u;
+                }
+                const parsed = new URL(u);
+                let host = parsed.hostname || "";
+                if (host.startsWith("www.")) host = host.slice(4);
+                return host;
+            } catch (e) {
+                return clean.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0].split("?")[0];
+            }
+        }
+
+        function normalizeComparableUrl(rawUrl) {
+            const clean = String(rawUrl || "").trim().toLowerCase();
+            if (!clean) return "";
+            try {
+                let u = clean;
+                if (!u.startsWith("http://") && !u.startsWith("https://")) {
+                    u = "https://" + u;
+                }
+                const parsed = new URL(u);
+                let host = parsed.hostname || "";
+                if (host.startsWith("www.")) host = host.slice(4);
+                const path = (parsed.pathname || "").replace(/\/+$/, "");
+                const query = parsed.search || "";
+                return (host + path + query).toLowerCase();
+            } catch (e) {
+                return clean.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "");
+            }
+        }
+
+        function getMatchingBlacklistRule(targetUrl) {
+            if (!targetUrl || !cachedBlacklist || !cachedBlacklist.length) return null;
+            const normTarget = normalizeComparableUrl(targetUrl);
+            const targetHost = extractDomainHost(targetUrl);
+
+            for (const rule of cachedBlacklist) {
+                if (rule.active === false) continue;
+                const mType = (rule.match_type || "exact_url").toLowerCase();
+                const ruleRaw = rule.target_url || rule.url_pattern || "";
+                const normRule = normalizeComparableUrl(ruleRaw);
+                const ruleHost = extractDomainHost(ruleRaw);
+
+                if (mType === "domain") {
+                    if (targetHost && ruleHost && (targetHost === ruleHost || targetHost.endsWith("." + ruleHost))) {
+                        return rule;
+                    }
+                } else if (mType === "prefix") {
+                    if (normTarget && normRule && normTarget.startsWith(normRule)) {
+                        return rule;
+                    }
+                } else {
+                    if (normTarget && normRule && normTarget === normRule) {
+                        return rule;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function buildUnifiedPartnerUrlDirectory() {
+            const items = [];
+            const seenUrls = new Set();
+
+            function addEntry(entry) {
+                const rawUrl = String(entry.url || "").trim();
+                if (!rawUrl || rawUrl.toLowerCase().startsWith("javascript:")) return;
+                const norm = normalizeComparableUrl(rawUrl);
+                if (!norm || seenUrls.has(norm)) return;
+                seenUrls.add(norm);
+
+                const matchedRule = getMatchingBlacklistRule(rawUrl);
+                items.push({
+                    source_name: entry.source_name || "Local East Gwillimbury Partner",
+                    source_type: entry.source_type || "Vendor Partner",
+                    url: rawUrl,
+                    is_blacklisted: !!matchedRule,
+                    matched_rule: matchedRule
+                });
+            }
+
+            BUILTIN_SCRAPED_SOURCES.forEach(addEntry);
+
+            (cachedScrapeSources || []).forEach(row => {
+                addEntry({
+                    source_name: row.business_name || "Auto-Scrape Partner",
+                    source_type: "Registered Auto-Scrape URL",
+                    url: row.scrape_url
+                });
+            });
+
+            (cachedVendorEvents || []).forEach(row => {
+                if (row.link) {
+                    addEntry({
+                        source_name: row.business_name || row.title || "Vendor Event",
+                        source_type: "Submitted Event URL",
+                        url: row.link
+                    });
+                }
+            });
+
+            (cachedVendorProfiles || []).forEach(row => {
+                if (row.website_url) {
+                    addEntry({
+                        source_name: row.business_name || "Registered Vendor",
+                        source_type: "Registered Vendor Website",
+                        url: row.website_url
+                    });
+                }
+            });
+
+            (cachedBlacklist || []).forEach(row => {
+                const tUrl = row.target_url || row.url_pattern || "";
+                if (!tUrl) return;
+                const norm = normalizeComparableUrl(tUrl);
+                if (!seenUrls.has(norm)) {
+                    seenUrls.add(norm);
+                    items.push({
+                        source_name: row.source_label || "Manual Blacklist Rule",
+                        source_type: "Custom Blacklisted Target",
+                        url: tUrl,
+                        is_blacklisted: true,
+                        matched_rule: row
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase backend connection is not configured in assets/config.js.", "warning");
+                return;
+            }
+
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+
+            if (!session || !session.user) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            currentUser = session.user;
+            const userEmail = (currentUser.email || "").trim().toLowerCase();
+
+            const { data: profile } = await client
+                .from("user_profiles")
+                .select("role")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "staff" || userEmail === "cheerfulweb@gmail.com";
+
+            if (!isAdmin) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            if (window.syncHeaderAuthBadge) {
+                window.syncHeaderAuthBadge(userEmail, true);
+            }
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => {
+                    await client.auth.signOut();
+                    window.location.href = "/staff/login.html";
+                };
+            }
+
+            document.getElementById("blacklist-console").style.display = "block";
+            await loadData();
+        }
+
+        async function loadData() {
+            clearAlert();
+            try {
+                const [blRes, vsRes, veRes, vpRes] = await Promise.all([
+                    client.from("scraped_url_blacklist").select("*").order("created_at", { ascending: false }),
+                    client.rpc("get_all_scrapes_admin"),
+                    client.rpc("get_all_vendor_events_admin"),
+                    client.from("vendor_profiles").select("id,business_name,email,town_area,website_url,created_at").order("created_at", { ascending: false })
+                ]);
+
+                cachedBlacklist = blRes.data || [];
+                cachedScrapeSources = vsRes.data || [];
+                cachedVendorEvents = veRes.data || [];
+                cachedVendorProfiles = vpRes.data || [];
+
+                renderTables();
+            } catch (err) {
+                showAlert("Error loading blacklist and directory data: " + err.message, "danger");
+            }
+        }
+
+        // Every typed word must appear (any order)
+        function blWordsMatch(text, q) {
+            const hay = String(text || "").toLowerCase();
+            return !q || q.split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+        }
+        // 50 rows per page with controls under the table
+        const BL_PAGE = 50, blPages = {};
+        function blPaginate(kind, list, tbody, filterKey) {
+            const st = blPages[kind] || (blPages[kind] = { page: 1, key: "" });
+            const key = JSON.stringify(filterKey);
+            if (st.key !== key) { st.key = key; st.page = 1; }
+            const pages = Math.max(1, Math.ceil(list.length / BL_PAGE));
+            if (st.page > pages) st.page = pages;
+            const table = tbody.closest("table");
+            let nav = document.getElementById(`bl-pager-${kind}`);
+            if (!nav && table) {
+                nav = document.createElement("nav");
+                nav.id = `bl-pager-${kind}`;
+                nav.setAttribute("aria-label", "Pages");
+                nav.style.cssText = "display:flex; gap:6px; align-items:center; justify-content:center; flex-wrap:wrap; margin:12px 0;";
+                (table.parentElement || table).insertAdjacentElement("afterend", nav);
+            }
+            if (nav) {
+                const b = (p, label, dis, cur) => `<button type="button" class="btn btn-sm ${cur ? "btn-primary" : "btn-secondary"}" ${dis ? "disabled" : ""} onclick="blGoPage('${kind}', ${p})">${label}</button>`;
+                const nums = [];
+                for (let p = 1; p <= pages; p++) {
+                    if (p === 1 || p === pages || Math.abs(p - st.page) <= 2) nums.push(b(p, p, false, p === st.page));
+                    else if (nums[nums.length - 1] !== "\u2026") nums.push("\u2026");
+                }
+                const from = list.length ? (st.page - 1) * BL_PAGE + 1 : 0, to = Math.min(list.length, st.page * BL_PAGE);
+                nav.innerHTML = pages > 1
+                    ? `${b(st.page - 1, "&lsaquo; Prev", st.page === 1)} ${nums.join(" ")} ${b(st.page + 1, "Next &rsaquo;", st.page === pages)} <span style="font-size:12px; color:var(--muted);">${from}\u2013${to} of ${list.length}</span>`
+                    : "";
+            }
+            return list.slice((st.page - 1) * BL_PAGE, st.page * BL_PAGE);
+        }
+        window.blGoPage = function (kind, p) { (blPages[kind] || (blPages[kind] = { page: 1, key: "" })).page = Math.max(1, p); renderTables(); };
+
+        function renderTables() {
+            // 1. Render Active Blacklist Table
+            const blBody = document.getElementById("admin-blacklist-tbody");
+            const badgeCount = document.getElementById("badge-active-rules-count");
+            const allActiveRules = (cachedBlacklist || []).filter(r => r.active !== false);
+            const ruleQ = (document.getElementById("filter-bl-rules")?.value || "").trim().toLowerCase();
+            const ruleScope = document.getElementById("filter-bl-scope")?.value || "";
+            const ruleAge = document.getElementById("filter-bl-age")?.value || "";
+            const now = Date.now();
+            const activeRules = allActiveRules.filter(r => {
+                if (ruleScope && String(r.match_type || "exact_url").toLowerCase() !== ruleScope) return false;
+                if (ruleAge) {
+                    const t = Date.parse(r.created_at || "") || 0;
+                    const days = t ? (now - t) / 86400000 : 9999;
+                    if (ruleAge === "older" ? days <= 30 : days > Number(ruleAge)) return false;
+                }
+                return blWordsMatch(`${r.target_url || ""} ${r.url_pattern || ""} ${r.source_name || ""} ${r.reason || ""} ${r.match_type || ""}`, ruleQ);
+            });
+
+            if (badgeCount) {
+                badgeCount.textContent = `${allActiveRules.length} Rule${allActiveRules.length === 1 ? '' : 's'} Active${activeRules.length !== allActiveRules.length ? ` (${activeRules.length} shown)` : ""}`;
+            }
+
+            if (blBody) {
+                blBody.innerHTML = blPaginate("rules", activeRules, blBody, [ruleQ, ruleScope, ruleAge]).map(rule => {
+                    const ruleTarget = rule.target_url || rule.url_pattern || "";
+                    const mType = (rule.match_type || "exact_url").toLowerCase();
+                    return `<tr>
+                        <td><span class="match-badge match-badge-${escapeHtml(mType)}">${escapeHtml(mType.replace('_', ' '))}</span></td>
+                        <td><strong style="color: #991b1b; word-break: break-all;">${escapeHtml(ruleTarget)}</strong></td>
+                        <td>${escapeHtml(rule.source_label || "All / Any Source")}</td>
+                        <td>${escapeHtml(rule.reason || "Opt-out / Admin Blacklisted")}</td>
+                        <td>${escapeHtml((rule.created_at || "").slice(0, 10) || "Today")}</td>
+                        <td style="white-space:nowrap;">
+                            <button type="button" class="btn btn-success btn-sm" onclick="removeBlacklistRule(${jsArg(rule.id || "")}, ${jsArg(ruleTarget)})">&#10003; Unblock / Remove</button>
+                        </td>
+                    </tr>`;
+                }).join("") || `<tr><td colspan="6" style="color:var(--muted); text-align:center;">No websites or page URLs are currently blacklisted. All active sources will be scraped as scheduled.</td></tr>`;
+            }
+
+            // 2. Render Scraped & Registered Directory
+            const allEntries = buildUnifiedPartnerUrlDirectory();
+            const totalCount = allEntries.length;
+            const blockedCount = allEntries.filter(i => i.is_blacklisted).length;
+            const activeCount = totalCount - blockedCount;
+
+            const statTotalEl = document.getElementById("stat-partner-urls-total");
+            const statActiveEl = document.getElementById("stat-partner-urls-active");
+            const statBlockedEl = document.getElementById("stat-partner-urls-blocked");
+
+            if (statTotalEl) statTotalEl.textContent = totalCount;
+            if (statActiveEl) statActiveEl.textContent = activeCount;
+            if (statBlockedEl) statBlockedEl.textContent = blockedCount;
+
+            const searchVal = (document.getElementById("filter-partner-urls")?.value || "").trim().toLowerCase();
+            const typeFilter = document.getElementById("filter-partner-type")?.value || "all";
+
+            const filteredEntries = allEntries.filter(item => {
+                if (typeFilter === "active" && item.is_blacklisted) return false;
+                if (typeFilter === "blacklisted" && !item.is_blacklisted) return false;
+                if (typeFilter !== "all" && typeFilter !== "active" && typeFilter !== "blacklisted") {
+                    if (item.source_type !== typeFilter) return false;
+                }
+                if (searchVal && !blWordsMatch(`${item.source_name} ${item.source_type} ${item.url} ${item.matched_rule?.reason || ""}`, searchVal)) return false;
+                return true;
+            });
+
+            const tbody = document.getElementById("admin-partner-urls-tbody");
+            if (tbody) {
+                tbody.innerHTML = blPaginate("urls", filteredEntries, tbody, [searchVal, typeFilter]).map(item => {
+                    const host = extractDomainHost(item.url);
+
+                    let statusBadge = item.is_blacklisted
+                        ? `<span class="badge" style="background: #fee2e2; color: #991b1b; font-weight: 700;">&#128683; Blacklisted (${escapeHtml(item.matched_rule?.match_type || "rule")})</span>`
+                        : `<span class="badge" style="background: #dcfce7; color: #166534; font-weight: 600;">&#10003; Active Scrape</span>`;
+
+                    let actionsHtml = "";
+                    if (item.is_blacklisted) {
+                        const ruleId = item.matched_rule?.id || "";
+                        const rulePattern = item.matched_rule?.target_url || item.matched_rule?.url_pattern || item.url;
+                        actionsHtml = `<button type="button" class="btn btn-success btn-sm" onclick="removeBlacklistRule(${jsArg(ruleId)}, ${jsArg(rulePattern)})">&#10003; Unblock</button>`;
+                    } else {
+                        actionsHtml = `
+                            <button type="button" class="btn btn-secondary btn-sm" style="margin-right: 4px;" onclick="quickBlacklistUrl(${jsArg(item.url)}, 'exact_url', ${jsArg(item.source_name)})">&#128683; Block Page</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="quickBlacklistUrl(${jsArg(host)}, 'domain', ${jsArg(item.source_name)})">&#128683; Block Domain</button>
+                        `;
+                    }
+
+                    return `<tr>
+                        <td>${statusBadge}</td>
+                        <td><strong>${escapeHtml(item.source_name)}</strong></td>
+                        <td><span style="font-size: 12px; color: var(--muted);">${escapeHtml(item.source_type)}</span></td>
+                        <td>
+                            <a href="${escapeHtml(safeHref(item.url))}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; word-break: break-all; color: var(--primary);">
+                                ${escapeHtml(item.url)}
+                            </a>
+                        </td>
+                        <td style="white-space:nowrap;">${actionsHtml}</td>
+                    </tr>`;
+                }).join("") || `<tr><td colspan="5" style="color:var(--muted); text-align:center;">No matching website sources found.</td></tr>`;
+            }
+        }
+
+        window.quickBlacklistUrl = async function (urlOrDomain, matchType, sourceName) {
+            const cleanTarget = String(urlOrDomain || "").trim();
+            if (!cleanTarget) return;
+
+            const scopeLabel = matchType === "domain" ? `entire domain '${cleanTarget}'` : `page URL '${cleanTarget}'`;
+            const confirmed = confirm(`Are you sure you want to blacklist ${scopeLabel} from the Welcome East Gwillimbury newsletter crawler?`);
+            if (!confirmed) return;
+
+            const reason = matchType === "domain"
+                ? "Admin blacklisted entire website domain from portal directory"
+                : "Admin blacklisted specific page/feed URL from portal directory";
+
+            await saveBlacklistRule(cleanTarget, matchType, sourceName || "", reason);
+            showAlert(`Blacklisted ${scopeLabel}. It will be skipped on future newsletter scrapes.`, "success");
+        };
+
+        async function saveBlacklistRule(urlPattern, matchType, sourceName, reason) {
+            const cleanPattern = String(urlPattern || "").trim().toLowerCase().replace(/\/+$/, "");
+            if (!cleanPattern) return;
+
+            const { error } = await client.rpc("upsert_url_blacklist", {
+                target_url_input: cleanPattern,
+                match_type_input: matchType || "exact_url",
+                source_label_input: sourceName || "",
+                reason_input: reason || ""
+            });
+
+            if (error) {
+                showAlert("Failed to save blacklist rule: " + error.message, "danger");
+                return;
+            }
+
+            await loadData();
+        }
+
+        window.removeBlacklistRule = async function (ruleId, urlPattern) {
+            const cleanPattern = String(urlPattern || "").trim();
+            const confirmed = confirm(`Unblock and remove blacklist rule for '${cleanPattern || "this URL"}'?`);
+            if (!confirmed) return;
+
+            let removed = false;
+            if (ruleId) {
+                const { error } = await client.rpc("delete_url_blacklist", { id_input: ruleId });
+                if (!error) removed = true;
+            }
+
+            if (!removed && cleanPattern) {
+                const { error } = await client.from("scraped_url_blacklist").delete().eq("target_url", cleanPattern.toLowerCase().replace(/\/+$/, ""));
+                if (error) {
+                    showAlert("Failed to remove blacklist rule: " + error.message, "danger");
+                    return;
+                }
+            }
+
+            await loadData();
+            showAlert("Removed from blacklist — URL/domain is now unblocked.", "info");
+        };
+
+        // Form Submit
+        document.getElementById("blacklist-add-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const rawInput = document.getElementById("bl-url-input").value.trim();
+            const matchType = document.getElementById("bl-match-type").value;
+            const sourceName = document.getElementById("bl-source-name").value.trim();
+            const reason = document.getElementById("bl-reason").value.trim() || "Manual admin blacklist entry";
+
+            if (!rawInput) return;
+
+            let normalizedPattern = rawInput;
+            if (matchType === "domain") {
+                normalizedPattern = extractDomainHost(rawInput);
+            } else {
+                normalizedPattern = rawInput.replace(/\/+$/, "");
+            }
+
+            await saveBlacklistRule(normalizedPattern, matchType, sourceName, reason);
+
+            document.getElementById("bl-url-input").value = "";
+            document.getElementById("bl-source-name").value = "";
+            document.getElementById("bl-reason").value = "";
+            showAlert(`Added '${normalizedPattern}' (${matchType}) to the scraper blacklist.`, "success");
+        });
+
+        // Search & Filter
+        document.getElementById("filter-partner-urls").addEventListener("input", renderTables);
+        document.getElementById("filter-partner-type").addEventListener("change", renderTables);
+        document.getElementById("filter-bl-rules").addEventListener("input", renderTables);
+        document.getElementById("filter-bl-scope").addEventListener("change", renderTables);
+        document.getElementById("filter-bl-age").addEventListener("change", renderTables);
+
+        // CSV Export
+        document.getElementById("btn-export-partner-urls").addEventListener("click", () => {
+            const allEntries = buildUnifiedPartnerUrlDirectory();
+            if (!allEntries || !allEntries.length) {
+                showAlert("No partner URLs to export.", "warning");
+                return;
+            }
+
+            const header = ["Status", "Partner / Source Name", "Source Type", "Searched / Registered URL", "Match Scope", "Blacklist Reason"];
+            const rows = allEntries.map(item => [
+                cleanCsvField(item.is_blacklisted ? "BLACKLISTED" : "ACTIVE"),
+                cleanCsvField(item.source_name),
+                cleanCsvField(item.source_type),
+                cleanCsvField(item.url),
+                cleanCsvField(item.matched_rule?.match_type || ""),
+                cleanCsvField(item.matched_rule?.reason || "")
+            ]);
+
+            const csvContent = "\uFEFF" + [header.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `WelcomeEG_Partner_Scraped_URLs_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsroom &amp; RSS Scrape Sources — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=70.5">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=70.5"></script>
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+        .src-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .src-badge-ok { display: inline-block; padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .src-badge-paused { display: inline-block; padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .src-guide { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #00008b; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; font-size: 13.5px; color: #1e293b; }
+    </style>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <h1 style="margin: 0 0 6px 0; color: var(--brand);">&#128240; Newsroom &amp; RSS Scrape Sources</h1>
+                    <p style="margin: 0; color: var(--muted); font-size: 14px;">
+                        Add any local news webpage or RSS feed URL to scrape <strong>one time right now</strong> or <strong>regularly with the automated scraper schedule</strong>. All imported stories are saved as <code>local_news</code> for the Newsroom.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <a href="/newsroom" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">View Live Newsroom &#8599;</a>
+                    <a href="/staff/audit.html" class="btn btn-secondary btn-sm">Crawl Audit Log</a>
+                </div>
+            </div>
+
+            <div id="page-alert" class="alert" style="display: none;"></div>
+
+            <!-- INSTRUCTIONS -->
+            <div class="src-guide">
+                <strong style="color: #00008b; font-size: 14px;">&#128214; Beginner&rsquo;s Guide: How to Add a News Source</strong>
+                <ol style="margin: 8px 0 0 0; padding-left: 20px; line-height: 1.7;">
+                    <li><strong>Type the Name &amp; Web Address:</strong> Enter the name of the blog, newspaper, or website, then paste its web link (URL).</li>
+                    <li><strong>To grab stories just ONCE right now:</strong> Click the green <strong>One-Time Scrape Now</strong> button. You will see a list of stories &mdash; check the ones you like and click <strong>Publish Selected to Newsroom</strong>.</li>
+                    <li><strong>To check this website automatically every week:</strong> Click the blue <strong>Add to Regular Scraper Schedule</strong> button. Our system will check it for new stories every Monday and Thursday morning.</li>
+                    <li><strong>Manage Scheduled Sources &amp; Blacklist:</strong> Use <strong>Run Now</strong>, <strong>Pause</strong>, <strong>Edit</strong>, or <strong>Delete</strong> on any source below, or use the <strong>Shared Blacklist</strong> at the bottom to block unwanted links or websites across the entire site.</li>
+                </ol>
+            </div>
+
+            <!-- ADD SOURCE URL FORM -->
+            <div class="card" style="margin-bottom: 24px;">
+                <h2 id="form-heading" style="margin: 0 0 12px 0;">Add Newsroom / RSS Source URL</h2>
+                <form id="source-form">
+                    <input type="hidden" id="src-id">
+                    <div class="src-grid" style="margin-bottom: 12px;">
+                        <div class="form-group">
+                            <label for="src-name">Source / Publication Name *</label>
+                            <input type="text" id="src-name" class="form-control" required placeholder="e.g. East Gwillimbury Local News Blog">
+                        </div>
+                        <div class="form-group">
+                            <label for="src-url">RSS Feed or News Webpage URL *</label>
+                            <input type="url" id="src-url" class="form-control" required placeholder="https://example.ca/feed/">
+                        </div>
+                        <div class="form-group">
+                            <label for="src-location">Community / Location</label>
+                            <input type="text" id="src-location" class="form-control" value="East Gwillimbury, ON" placeholder="East Gwillimbury, ON">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label for="src-notes">Notes (optional)</label>
+                        <input type="text" id="src-notes" class="form-control" value="Newsroom / Local News Source" placeholder="Newsroom / Local News Source">
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" id="btn-one-time-scrape" class="btn btn-primary" style="background: #047857; border-color: #047857;">&#9889; One-Time Scrape Now</button>
+                        <button type="submit" id="btn-add-schedule" class="btn btn-primary">&#128197; Add to Regular Scraper Schedule</button>
+                        <button type="button" id="btn-cancel-edit" class="btn btn-secondary btn-sm" style="display: none;">Cancel Edit</button>
+                        <span id="scrape-status" style="font-size: 13px; font-weight: 700; color: #00008b;"></span>
+                    </div>
+                </form>
+
+                <!-- ONE-TIME EXTRACT PREVIEW -->
+                <div id="one-time-results" style="display: none; margin-top: 16px; padding: 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="color: #0f172a;">Extracted Stories (Ready to Publish as Local News)</strong>
+                        <button type="button" id="btn-publish-extracted" class="btn btn-primary btn-sm">Publish Selected to Newsroom</button>
+                    </div>
+                    <div id="one-time-list"></div>
+                </div>
+            </div>
+
+            <!-- SCHEDULED NEWSROOM SOURCES -->
+            <div class="card" style="margin-bottom: 24px;">
+                <h2 style="margin: 0 0 12px 0;">Regularly Scheduled Newsroom &amp; RSS Sources</h2>
+                <div id="sources-list" style="overflow-x: auto;">Loading scheduled sources...</div>
+            </div>
+
+            <!-- SHARED BLACKLIST -->
+            <div class="card" id="shared-blacklist">
+                <h2 style="margin: 0 0 6px 0;">&#128683; Shared URL &amp; Domain Blacklist</h2>
+                <p style="margin: 0 0 14px 0; font-size: 13.5px; color: var(--muted);">
+                    Blocked links and domains are shared with <a href="/staff/blacklist.html">URL Blacklist Manager</a> and automatically skipped by all event, dining, sale, and news crawlers.
+                </p>
+                <form id="blacklist-form" class="src-grid" style="margin-bottom: 14px; align-items: end;">
+                    <div class="form-group">
+                        <label for="bl-url">Website Domain or Exact URL to Block *</label>
+                        <input type="text" id="bl-url" class="form-control" required placeholder="e.g. spamwebsite.com or https://example.ca/bad-page">
+                    </div>
+                    <div class="form-group">
+                        <label for="bl-match">Match Rule</label>
+                        <select id="bl-match" class="form-control">
+                            <option value="domain">Entire Website (Domain)</option>
+                            <option value="prefix">URL Starts With (Prefix)</option>
+                            <option value="exact_url">Exact Page Link Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bl-reason">Reason (optional)</label>
+                        <input type="text" id="bl-reason" class="form-control" placeholder="e.g. Spam or off-topic">
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-danger">&#128683; Block URL / Domain</button>
+                    </div>
+                </form>
+                <div id="blacklist-table-wrap" style="overflow-x: auto;">Loading blacklist...</div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127754; Welcome East Gwillimbury</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <p style="font-size: 13px; color: #cbd5e1; line-height: 1.6; margin: 0 0 12px 0;">East Gwillimbury's community event calendar, dining guide, local business directory, and digital Welcome Hamper.</p>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128240; Explore</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">Community Events</a></li>
+                            <li><a href="/dining">Dining Guide</a></li>
+                            <li><a href="/sales">Local Sales &amp; Deals</a></li>
+                            <li><a href="/directory">Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127978; Submissions</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/submit-event">Submit an Event</a></li>
+                            <li><a href="/hamper/">Welcome Hamper</a></li>
+                            <li><a href="/newsroom">Newsroom</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128274; Accounts &amp; Legal</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/staff/admin-approvals.html">Admin &amp; Staff Operations</a></li>
+                            <li><a href="/terms">Terms of Service</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. We are not responsible for errors or omissions.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let sbClient = null;
+        let cachedSources = [];
+        let extractedItems = [];
+
+        function escapeHtml(s) {
+            return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function showAlert(msg, type) {
+            const el = document.getElementById("page-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.innerHTML = msg;
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function isNewsSourceRow(r) {
+            const notes = String(r.notes || "").toLowerCase();
+            const url = String(r.scrape_url || "").toLowerCase();
+            return notes.includes("newsroom") || notes.includes("local news") || notes.includes("rss") || url.includes("reddit.com") || url.endsWith(".rss") || url.includes("/feed");
+        }
+
+        async function loadSources() {
+            const listEl = document.getElementById("sources-list");
+            let data = null;
+            let error = null;
+            const rpcRes = await sbClient.rpc("get_all_scrapes_admin");
+            if (!rpcRes.error && Array.isArray(rpcRes.data)) {
+                data = rpcRes.data;
+            } else {
+                const tblRes = await sbClient
+                    .from("vendor_scrape_sources")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+                data = tblRes.data;
+                error = tblRes.error;
+            }
+            if (error) {
+                listEl.innerHTML = `<p style="color:#dc2626;">Could not load sources: ${escapeHtml(error.message)}</p>`;
+                return;
+            }
+            cachedSources = (data || []).filter(isNewsSourceRow);
+            if (!cachedSources.length) {
+                listEl.innerHTML = `<p style="color:var(--muted);">No scheduled Newsroom / RSS sources yet. Add one above.</p>`;
+                return;
+            }
+            listEl.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Source Name &amp; URL</th>
+                            <th>Status</th>
+                            <th>Last Scraped</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cachedSources.map((r) => `
+                            <tr>
+                                <td>
+                                    <strong>${escapeHtml(r.business_name)}</strong>
+                                    <div style="font-size:12px;color:#0284c7;word-break:break-all;">${escapeHtml(r.scrape_url)}</div>
+                                    ${r.notes ? `<div style="font-size:11px;color:#64748b;">${escapeHtml(r.notes)}</div>` : ""}
+                                </td>
+                                <td>${r.status === "approved" ? '<span class="src-badge-ok">Scheduled</span>' : '<span class="src-badge-paused">' + escapeHtml(r.status || "paused") + '</span>'}</td>
+                                <td style="font-size:12px;white-space:nowrap;">${r.last_scraped_at ? escapeHtml(new Date(r.last_scraped_at).toLocaleString("en-CA")) : "Pending next run"}</td>
+                                <td style="white-space:nowrap;">
+                                    <button type="button" class="btn btn-primary btn-sm" style="background:#047857;border-color:#047857;" onclick="runScheduledSourceNow('${r.id}')">&#9889; Run Now</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="toggleSourceStatus('${r.id}')">${r.status === "approved" ? "Pause" : "Resume"}</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="editSource('${r.id}')">Edit</button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="blockSourceUrl('${r.id}')">Block</button>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteSource('${r.id}')">Delete</button>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        window.editSource = function (id) {
+            const r = cachedSources.find((x) => x.id === id);
+            if (!r) return;
+            document.getElementById("src-id").value = r.id;
+            document.getElementById("src-name").value = r.business_name || "";
+            document.getElementById("src-url").value = r.scrape_url || "";
+            document.getElementById("src-location").value = r.default_location || "East Gwillimbury, ON";
+            document.getElementById("src-notes").value = r.notes || "Newsroom / Local News Source";
+            document.getElementById("form-heading").textContent = "Edit Scheduled Newsroom Source";
+            document.getElementById("btn-cancel-edit").style.display = "inline-block";
+            window.scrollTo({ top: 180, behavior: "smooth" });
+        };
+
+        async function writeScrapeSource(id, updates) {
+            const fn = updates ? "admin_update_scrape_source" : "admin_delete_scrape_source";
+            const args = updates ? { id_input: id, updates_input: updates } : { id_input: id };
+            const { data, error } = await sbClient.rpc(fn, args);
+            if (!error) return { error: null };
+            if (error.code !== "PGRST202") return { error };
+            const q = updates
+                ? sbClient.from("vendor_scrape_sources").update(updates).eq("id", id)
+                : sbClient.from("vendor_scrape_sources").delete().eq("id", id);
+            return await q;
+        }
+
+        window.toggleSourceStatus = async function (id) {
+            const r = cachedSources.find((x) => x.id === id);
+            if (!r) return;
+            const nextStatus = r.status === "approved" ? "paused" : "approved";
+            const { error } = await writeScrapeSource(id, { status: nextStatus });
+            if (error) { showAlert("Update failed: " + escapeHtml(error.message), "danger"); return; }
+            document.getElementById("blacklist-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const urlVal = document.getElementById("bl-url").value.trim();
+                const matchVal = document.getElementById("bl-match").value;
+                const reasonVal = document.getElementById("bl-reason").value.trim();
+                await addBlacklistRule(urlVal, matchVal, "Newsroom & RSS Sources", reasonVal);
+                document.getElementById("blacklist-form").reset();
+            });
+
+            await Promise.all([loadSources(), loadBlacklist()]);
+        };
+
+        window.runScheduledSourceNow = async function (id) {
+            const r = cachedSources.find((x) => x.id === id);
+            if (!r) return;
+            document.getElementById("src-name").value = r.business_name || "";
+            document.getElementById("src-url").value = r.scrape_url || "";
+            document.getElementById("src-location").value = r.default_location || "East Gwillimbury, ON";
+            window.scrollTo({ top: 180, behavior: "smooth" });
+            await runOneTimeScrape();
+            await writeScrapeSource(id, { last_scraped_at: new Date().toISOString() });
+            document.getElementById("blacklist-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const urlVal = document.getElementById("bl-url").value.trim();
+                const matchVal = document.getElementById("bl-match").value;
+                const reasonVal = document.getElementById("bl-reason").value.trim();
+                await addBlacklistRule(urlVal, matchVal, "Newsroom & RSS Sources", reasonVal);
+                document.getElementById("blacklist-form").reset();
+            });
+
+            await Promise.all([loadSources(), loadBlacklist()]);
+        };
+
+        window.blockSourceUrl = async function (id) {
+            const r = cachedSources.find((x) => x.id === id);
+            if (!r || !r.scrape_url) return;
+            if (!confirm(`Block "${r.scrape_url}" in the shared blacklist?`)) return;
+            await addBlacklistRule(r.scrape_url, "prefix", r.business_name || "", "Blocked from Newsroom & RSS Sources");
+        };
+
+        async function loadBlacklist() {
+            const wrap = document.getElementById("blacklist-table-wrap");
+            const { data, error } = await sbClient
+                .from("scraped_url_blacklist")
+                .select("*")
+                .order("created_at", { ascending: false });
+            if (error) {
+                wrap.innerHTML = `<p style="color:#dc2626;">Could not load blacklist: ${escapeHtml(error.message)}</p>`;
+                return;
+            }
+            const rows = data || [];
+            if (!rows.length) {
+                wrap.innerHTML = `<p style="color:var(--muted);">No blocked URLs or domains yet.</p>`;
+                return;
+            }
+            wrap.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Blocked URL / Domain</th>
+                            <th>Rule</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows.map((b) => `
+                            <tr>
+                                <td style="word-break:break-all;"><strong>${escapeHtml(b.target_url)}</strong></td>
+                                <td style="font-size:12px;">${escapeHtml(b.match_type || "exact_url")}</td>
+                                <td style="font-size:12px;color:#475569;">${escapeHtml(b.reason || b.source_label || "—")}</td>
+                                <td style="white-space:nowrap;">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="removeBlacklistRule('${escapeHtml(b.id || "")}', '${escapeHtml(b.target_url || "")}')">Unblock / Remove</button>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function addBlacklistRule(urlPattern, matchType, sourceLabel, reason) {
+            const cleanPattern = String(urlPattern || "").trim().toLowerCase().replace(/\/+$/, "");
+            if (!cleanPattern) return;
+            const { error } = await sbClient.rpc("upsert_url_blacklist", {
+                target_url_input: cleanPattern,
+                match_type_input: matchType || "domain",
+                source_label_input: sourceLabel || "",
+                reason_input: reason || ""
+            });
+            if (error) { showAlert("Blacklist save failed: " + escapeHtml(error.message), "danger"); return; }
+            showAlert(`Blocked <code>${escapeHtml(cleanPattern)}</code> across all crawlers.`, "success");
+            await loadBlacklist();
+        }
+
+        window.removeBlacklistRule = async function (ruleId, urlPattern) {
+            const cleanPattern = String(urlPattern || "").trim();
+            if (!confirm(`Unblock "${cleanPattern || "this rule"}"?`)) return;
+            let removed = false;
+            if (ruleId) {
+                const { error } = await sbClient.rpc("delete_url_blacklist", { id_input: ruleId });
+                if (!error) removed = true;
+            }
+            if (!removed && cleanPattern) {
+                const { error } = await sbClient.from("scraped_url_blacklist").delete().eq("target_url", cleanPattern.toLowerCase().replace(/\/+$/, ""));
+                if (error) { showAlert("Unblock failed: " + escapeHtml(error.message), "danger"); return; }
+            }
+            showAlert("Blacklist rule removed.", "success");
+            await loadBlacklist();
+        };
+
+        window.deleteSource = async function (id) {
+            if (!confirm("Remove this source from the regular scraper schedule?")) return;
+            const { error } = await writeScrapeSource(id, null);
+            if (error) { showAlert("Delete failed: " + escapeHtml(error.message), "danger"); return; }
+            showAlert("Source removed from schedule.", "success");
+            document.getElementById("blacklist-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const urlVal = document.getElementById("bl-url").value.trim();
+                const matchVal = document.getElementById("bl-match").value;
+                const reasonVal = document.getElementById("bl-reason").value.trim();
+                await addBlacklistRule(urlVal, matchVal, "Newsroom & RSS Sources", reasonVal);
+                document.getElementById("blacklist-form").reset();
+            });
+
+            await Promise.all([loadSources(), loadBlacklist()]);
+        };
+
+        function resetForm() {
+            document.getElementById("source-form").reset();
+            document.getElementById("src-id").value = "";
+            document.getElementById("src-location").value = "East Gwillimbury, ON";
+            document.getElementById("src-notes").value = "Newsroom / Local News Source";
+            document.getElementById("form-heading").textContent = "Add Newsroom / RSS Source URL";
+            document.getElementById("btn-cancel-edit").style.display = "none";
+        }
+
+        async function runOneTimeScrape() {
+            const name = document.getElementById("src-name").value.trim() || "Local News Source";
+            const url = document.getElementById("src-url").value.trim();
+            if (!url) { showAlert("Enter a webpage or RSS URL first.", "warning"); return; }
+
+            const btn = document.getElementById("btn-one-time-scrape");
+            const statusEl = document.getElementById("scrape-status");
+            btn.disabled = true;
+            statusEl.textContent = "Extracting stories from URL...";
+            try {
+                const { data, error } = await sbClient.functions.invoke("admin-extract-listing", {
+                    body: { url, kind: "event" }
+                });
+                if (error || data?.error) throw new Error(data?.error || error?.message || "Extraction failed.");
+                const items = Array.isArray(data?.items) ? data.items : (Array.isArray(data?.listings) ? data.listings : []);
+                if (!items.length) {
+                    statusEl.textContent = "No stories extracted from that URL.";
+                    document.getElementById("one-time-results").style.display = "none";
+                    return;
+                }
+                extractedItems = items.map((it) => ({
+                    title: (it.title || "").trim(),
+                    summary: (it.summary || it.description || "").trim(),
+                    link: (it.link || url).trim(),
+                    business_name: name,
+                    date: (it.event_start_date || it.date || new Date().toISOString().slice(0, 10)).slice(0, 10)
+                })).filter((it) => it.title);
+
+                document.getElementById("one-time-list").innerHTML = extractedItems.map((it, idx) => `
+                    <label style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #e2e8f0;cursor:pointer;">
+                        <input type="checkbox" class="one-time-cb" value="${idx}" checked style="margin-top:3px;">
+                        <div>
+                            <div style="font-weight:800;font-size:13.5px;color:#0f172a;">${escapeHtml(it.title)}</div>
+                            <div style="font-size:12px;color:#475569;">${escapeHtml(it.date)} &bull; ${escapeHtml(it.summary.slice(0, 160))}</div>
+                        </div>
+                    </label>
+                `).join("");
+                document.getElementById("one-time-results").style.display = "block";
+                statusEl.textContent = `Found ${extractedItems.length} item(s). Review and click Publish Selected to Newsroom.`;
+            } catch (err) {
+                statusEl.textContent = "";
+                showAlert("One-time scrape error: " + escapeHtml(err.message), "danger");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function publishExtracted() {
+            const checked = Array.from(document.querySelectorAll(".one-time-cb:checked")).map((cb) => extractedItems[Number(cb.value)]).filter(Boolean);
+            if (!checked.length) { showAlert("Select at least one story to publish.", "warning"); return; }
+            const todayIso = new Date().toISOString().slice(0, 10);
+            const rows = checked.map((it) => {
+                const startIso = /^\d{4}-\d{2}-\d{2}$/.test(it.date) ? it.date : todayIso;
+                const expDate = new Date(startIso + "T00:00:00Z");
+                expDate.setUTCDate(expDate.getUTCDate() + 366);
+                const expIso = expDate.toISOString().slice(0, 10);
+                return {
+                    business_name: it.business_name,
+                    submitter_email: "crawler@welcomeeg.ca",
+                    title: it.title,
+                    event_date_label: it.date || todayIso,
+                    event_start_date: startIso,
+                    expires_after: expIso,
+                    location: document.getElementById("src-location").value.trim() || "East Gwillimbury, ON",
+                    link: it.link,
+                    summary: it.summary.slice(0, 500),
+                    category: "local_news",
+                    status: "approved"
+                };
+            });
+            const { error } = await sbClient.from("vendor_events").insert(rows);
+            if (error) { showAlert("Publish failed: " + escapeHtml(error.message), "danger"); return; }
+            document.getElementById("one-time-results").style.display = "none";
+            document.getElementById("scrape-status").textContent = "";
+            showAlert(`Published ${rows.length} story/stories to the Newsroom!`, "success");
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase is not configured.", "warning");
+                return;
+            }
+            sbClient = window.GeorginaStore.getClient();
+            const { data: { session } } = await sbClient.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").toLowerCase();
+            const { data: profile } = await sbClient.from("user_profiles").select("role").eq("id", session.user.id).maybeSingle();
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "super_admin" || role === "staff" || userEmail === "cheerfulweb@gmail.com";
+            if (!isAdmin) {
+                window.location.replace("/staff/login.html");
+                return;
+            }
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+
+            document.getElementById("btn-one-time-scrape").addEventListener("click", runOneTimeScrape);
+            document.getElementById("btn-publish-extracted").addEventListener("click", publishExtracted);
+            document.getElementById("btn-cancel-edit").addEventListener("click", resetForm);
+
+            document.getElementById("source-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const id = document.getElementById("src-id").value.trim();
+                const business_name = document.getElementById("src-name").value.trim();
+                const scrape_url = document.getElementById("src-url").value.trim();
+                const default_location = document.getElementById("src-location").value.trim() || "East Gwillimbury, ON";
+                let notes = document.getElementById("src-notes").value.trim() || "Newsroom / Local News Source";
+                if (!notes.toLowerCase().includes("newsroom")) notes = "Newsroom / Local News Source — " + notes;
+                if (!business_name || !scrape_url) {
+                    showAlert("Source Name and URL are required.", "warning");
+                    return;
+                }
+                const payload = {
+                    business_name,
+                    scrape_url,
+                    default_location,
+                    notes,
+                    submitter_email: "crawler@welcomeeg.ca",
+                    status: "approved"
+                };
+                const res = id
+                    ? await writeScrapeSource(id, payload)
+                    : await sbClient.from("vendor_scrape_sources").insert([payload]);
+                if (res.error) { showAlert("Save failed: " + escapeHtml(res.error.message), "danger"); return; }
+                showAlert(id ? "Scheduled source updated." : "Added to Regular Scraper Schedule!", "success");
+                resetForm();
+                document.getElementById("blacklist-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const urlVal = document.getElementById("bl-url").value.trim();
+                const matchVal = document.getElementById("bl-match").value;
+                const reasonVal = document.getElementById("bl-reason").value.trim();
+                await addBlacklistRule(urlVal, matchVal, "Newsroom & RSS Sources", reasonVal);
+                document.getElementById("blacklist-form").reset();
+            });
+
+            await Promise.all([loadSources(), loadBlacklist()]);
+            });
+
+            document.getElementById("blacklist-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const urlVal = document.getElementById("bl-url").value.trim();
+                const matchVal = document.getElementById("bl-match").value;
+                const reasonVal = document.getElementById("bl-reason").value.trim();
+                await addBlacklistRule(urlVal, matchVal, "Newsroom & RSS Sources", reasonVal);
+                document.getElementById("blacklist-form").reset();
+            });
+
+            await Promise.all([loadSources(), loadBlacklist()]);
+        }
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1310 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Edition Newsletter Studio • Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .studio-tab-bar {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 24px;
+            padding-bottom: 2px;
+        }
+        .studio-tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .studio-tab-btn:hover {
+            color: #0f172a;
+        }
+        .studio-tab-btn.active {
+            color: #00008b;
+            border-bottom-color: #00008b;
+        }
+        .drop-zone {
+            border: 2px dashed #3b82f6;
+            background: #eff6ff;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            background: #dbeafe;
+            border-color: #1d4ed8;
+        }
+        .content-card-selectable {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .content-card-selectable:hover {
+            border-color: #93c5fd;
+            background: #f8fafc;
+        }
+        .content-card-selectable.selected {
+            border-color: #00008b;
+            background: #eff6ff;
+            box-shadow: 0 2px 8px rgba(0, 0, 139, 0.08);
+        }
+        .content-card-selectable input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #00008b;
+            margin-top: 3px;
+        }
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="dash-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-dash-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="container admin-content-area" style="max-width: 1440px; margin: 24px auto; padding: 0 24px;">
+        <!-- Top Navigation Sub-Bar -->
+        <!-- Unified Admin Navigation Bar -->
+        
+
+        <!-- Studio Header Banner -->
+        <div style="background: linear-gradient(135deg, #00008b 0%, #1e3a8a 100%); color: #ffffff; padding: 28px 32px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,139,0.15); margin-bottom: 24px;">
+            <div style="max-width: 860px;">
+                <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #fde047; margin-bottom: 10px;">
+                    <span>✨ Custom Curated Broadcast Engine</span>
+                </div>
+                <h1 style="font-size: 28px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: -0.02em;">
+                    Special Edition Newsletter Studio
+                </h1>
+                <p style="font-size: 14px; color: #bfdbfe; margin: 0; line-height: 1.6;">
+                    Select <strong>only the events, dining offers, and business sales</strong> you want to include in a custom edition. Import and rotate monthly CSV audience rosters (such as Chamber of Commerce members), purge past contacts, and dispatch branded emails directly from Welcome East Gwillimbury.
+                </p>
+            </div>
+        </div>
+
+        <div id="studio-alert" style="display: none; padding: 14px 18px; border-radius: 12px; font-weight: 700; margin-bottom: 20px;"></div>
+        <details class="wg-admin-guide">
+            <summary><span>&#128214; Beginner&rsquo;s Guide: How to Send a Custom Special Edition</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+            <ol>
+                <li><strong>Step 1 &mdash; Pick Who Receives It:</strong> Upload or choose your email list under the Audience tab.</li>
+                <li><strong>Step 2 &mdash; Pick Which Stories/Events Go In:</strong> Check only the specific events, dining specials, or sales you want to include.</li>
+                <li><strong>Step 3 &mdash; Test, Then Send:</strong> Always send a test email to yourself first to check how it looks, then click Send to your chosen list.</li>
+            </ol>
+        </details>
+
+        <!-- Studio Main Tabs -->
+        <div class="studio-tab-bar">
+            <button type="button" class="studio-tab-btn active" id="tab-btn-audience" onclick="switchStudioTab('audience')">
+                <span>👥 1. Chamber &amp; Custom Audience (CSV Manager)</span>
+            </button>
+            <button type="button" class="studio-tab-btn" id="tab-btn-content" onclick="switchStudioTab('content')">
+                <span>✍️ 2. Curate Content Selection</span>
+                <span id="badge-selected-count" class="pill-badge" style="background:#e0f2fe; color:#0369a1; margin-left:4px;">0 Selected</span>
+            </button>
+            <button type="button" class="studio-tab-btn" id="tab-btn-dispatch" onclick="switchStudioTab('dispatch')">
+                <span>🚀 3. Preview &amp; Dispatch</span>
+            </button>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 1: AUDIENCE & CSV ROSTER MANAGER                                  -->
+        <!-- ===================================================================== -->
+        <div id="studio-tab-audience" class="studio-tab-content">
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                    <div>
+                        <h2 style="font-size: 20px; font-weight: 900; margin: 0 0 4px 0;">Audience Segment: Chamber of Commerce Members</h2>
+                        <p style="font-size: 13px; color: var(--muted); margin: 0;">
+                            Manage opt-in business member contacts. Dump previous month rosters anytime to cleanly import fresh rosters.
+                        </p>
+                    </div>
+
+                    <!-- Monthly Dump / Purge / Export Action Buttons -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="exportCurrentAudienceCsv()">
+                            📥 Export Audience (CSV)
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" style="background: #be123c; border-color: #9f1239; font-weight: 800;" onclick="dumpChamberAudienceRoster()">
+                            🗑️ Reset / Dump Previous Month Roster
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CSV Uploader Box -->
+                <div style="margin-bottom: 24px;">
+                    <div class="drop-zone" id="csv-drop-zone" onclick="document.getElementById('csv-file-input').click()">
+                        <input type="file" id="csv-file-input" accept=".csv,text/csv,application/vnd.ms-excel" style="display: none;" onchange="handleCsvFileSelected(event)">
+                        <div style="font-size: 36px; margin-bottom: 8px;">📂</div>
+                        <h3 style="font-size: 16px; font-weight: 800; margin: 0 0 6px 0; color: #1e3a8a;">
+                            Click to Upload or Drag &amp; Drop Monthly Chamber Member CSV
+                        </h3>
+                        <p style="font-size: 12px; color: #64748b; margin: 0 0 10px 0;">
+                            Supports columns: <strong>First Name, Last Name, Business Name, Email Address, Phone Number</strong>
+                        </p>
+                        <span class="pill-badge" style="background:#dbeafe; color:#1e40af;">
+                            🛡️ Auto-enforces CASL Unsubscribe Suppression (Never re-adds opted-out contacts)
+                        </span>
+                    </div>
+
+                    <!-- CSV Import Preview Card (Hidden until file selected) -->
+                    <div id="csv-preview-card" style="display: none; margin-top: 16px; padding: 18px; border: 2px solid #10b981; border-radius: 14px; background: #f0fdf4;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0; color: #064e3b; font-size: 15px; font-weight: 800;">
+                                    CSV Inspection Ready (<span id="csv-contact-count">0</span> valid contacts found)
+                                </h4>
+                                <p style="margin: 0; font-size: 12px; color: #334155;">
+                                    Review contacts below before committing to the live Chamber audience database.
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelCsvImport()">Cancel</button>
+                                <button type="button" class="btn btn-primary btn-sm" style="background: #047857;" onclick="executeCsvImport()">
+                                    ✅ Confirm &amp; Import Contacts
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mini Preview Table -->
+                        <div class="table-wrap" style="max-height: 220px; overflow-y: auto; background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <table class="data-table" style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Business</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>CASL Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="csv-preview-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Active Audience Roster Table -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                        <h3 style="font-size: 16px; font-weight: 800; margin: 0;">
+                            Current Active Chamber Member Audience (<span id="audience-active-count">0</span> Active Members)
+                        </h3>
+                        <input type="text" id="filter-roster-search" class="form-control" placeholder="Search members by name, business, email..." style="max-width: 280px; font-size: 12px; padding: 6px 12px;" oninput="renderAudienceTable()">
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Name</th>
+                                    <th>Business</th>
+                                    <th>Email</th>
+                                    <th>Phone / Details</th>
+                                    <th>Date Added</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audience-roster-tbody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 24px; color: var(--muted);">Loading Chamber audience roster...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 2: CURATE CONTENT SELECTION                                       -->
+        <!-- ===================================================================== -->
+        <div id="studio-tab-content" class="studio-tab-content" style="display: none;">
+            <div class="card" style="margin-bottom: 24px;">
+                <h2 style="font-size: 20px; font-weight: 900; margin: 0 0 16px 0;">Special Edition Header &amp; Curated Message</h2>
+
+                <div class="grid-2" style="margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label for="special-edition-title"><strong>Email Subject Line *</strong></label>
+                        <input type="text" id="special-edition-title" class="form-control" value="Welcome East Gwillimbury • Special Chamber Edition (November 2026)" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="special-edition-cta-text"><strong>Primary Action Button Text (Optional)</strong></label>
+                        <input type="text" id="special-edition-cta-text" class="form-control" value="View All Chamber Specials on WelcomeEG.ca">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="special-edition-intro"><strong>Introductory Note / Message from Robert (Optional)</strong></label>
+                    <textarea id="special-edition-intro" class="form-control" rows="3" placeholder="Add a personal greeting or note to Chamber members explaining the contents of this special edition...">Dear East Gwillimbury Chamber Members,
+
+Here is your exclusive, handpicked monthly briefing of featured community gatherings, local business highlights, and upcoming member spotlights across East Gwillimbury. We invite you to explore the opportunities below and support fellow local businesses!</textarea>
+                </div>
+            </div>
+
+            <!-- Content Item Selector -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                    <div>
+                        <h2 style="font-size: 20px; font-weight: 900; margin: 0 0 4px 0;">Select Events, Dining &amp; Sales to Include</h2>
+                        <p style="font-size: 13px; color: var(--muted); margin: 0;">
+                            Check only the exact items you want featured in this special edition.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="selectAllCuratedItems(true)">✓ Select All</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="selectAllCuratedItems(false)">✕ Clear All</button>
+                        <input type="text" id="curated-search-input" class="form-control" placeholder="Search items..." style="max-width: 200px; font-size: 12px; padding: 6px 10px;" oninput="renderCuratedContentList()">
+                    </div>
+                </div>
+
+                <!-- Category Filter Pills -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                    <button type="button" class="btn btn-sm" id="cat-filter-all" style="background:#00008b; color:#ffffff;" onclick="filterCuratedCategory('All')">All Items</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="cat-filter-events" onclick="filterCuratedCategory('Events')">Community Events</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="cat-filter-dining" onclick="filterCuratedCategory('Dining')">Local Dining</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="cat-filter-sales" onclick="filterCuratedCategory('Sales')">Store Sales &amp; Deals</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="cat-filter-news" onclick="filterCuratedCategory('News')">Town &amp; Chamber News</button>
+                </div>
+
+                <!-- Grid of Selectable Cards -->
+                <div id="curated-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px;">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: var(--muted);">Loading approved events &amp; sales...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================================================================== -->
+        <!-- TAB 3: PREVIEW & DISPATCH                                             -->
+        <!-- ===================================================================== -->
+        <div id="studio-tab-dispatch" class="studio-tab-content" style="display: none;">
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                    <div>
+                        <h2 style="font-size: 20px; font-weight: 900; margin: 0 0 4px 0;">Preview &amp; Broadcast Dispatch</h2>
+                        <p style="font-size: 13px; color: var(--muted); margin: 0;">
+                            Review the rendered email below. Send a test to yourself or dispatch to all active Chamber members.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <button type="button" class="btn btn-secondary" onclick="sendTestSpecialEdition()" id="btn-send-test">
+                            🧪 Send Test to robert@welcomeeg.ca
+                        </button>
+                        <button type="button" class="btn btn-primary" style="background: #00008b; font-weight: 900;" onclick="dispatchSpecialEditionLive()" id="btn-dispatch-live">
+                            🚀 Broadcast to Chamber Audience (<span id="dispatch-recipient-counter">0</span> Recipients)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Dispatch Terminal Console -->
+                <div id="special-dispatch-console" style="display: none; margin-bottom: 20px; padding: 18px; background: #0f172a; border-radius: 12px; color: #f8fafc; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span id="dispatch-console-title" style="font-weight: 800; color: #38bdf8;">Broadcasting Special Edition...</span>
+                        <span id="dispatch-console-percent" style="font-weight: 900; color: #94a3b8; font-family: monospace;">0%</span>
+                    </div>
+                    <div style="background: #1e293b; border-radius: 9999px; height: 8px; overflow: hidden; margin-bottom: 14px;">
+                        <div id="dispatch-progress-bar" style="background: linear-gradient(90deg, #38bdf8, #22c55e); width: 0%; height: 100%; transition: width 0.3s ease;"></div>
+                    </div>
+                    <div id="dispatch-log-box" style="background: #020617; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; height: 160px; overflow-y: auto; font-family: monospace; font-size: 11px; line-height: 1.6; color: #a5f3fc; white-space: pre-wrap;"></div>
+                </div>
+
+                <!-- Live Responsive Newsletter Preview Iframe / Container -->
+                <div style="background: #cbd5e1; padding: 24px; border-radius: 16px; display: flex; justify-content: center;">
+                    <div style="width: 100%; max-width: 660px; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+                        <iframe id="newsletter-preview-frame" sandbox="allow-popups allow-popups-to-escape-sandbox" style="width: 100%; height: 750px; border: none; display: block;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standard Main Site 4-Column Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.src='https://welcomeeg.ca/welcome-eg-logo.png'">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury weather, 7 day forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/weather">☀️ East Gwillimbury weather, 7 day forecast</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Subscribe to Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Newsletter Archive &amp; Past Editions</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Business & Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">📅 My Submissions &rarr;</a></li>
+                            <li><a href="/submission">📅 Submit an Event</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; Knowledge Base</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Media Kit</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MAIN STUDIO JAVASCRIPT LOGIC -->
+    <script>
+        const SUPABASE_URL = "https://cyxomkhydsmttefanalx.supabase.co";
+        const SUPABASE_ANON = "sb_publishable_o21_dFCXCHW2fvVJNS45Tw_sFVcprqw";
+        // NOTE: must NOT be named `supabase` — the supabase-js CDN build declares a global
+        // `var supabase`, and redeclaring it with const is a SyntaxError that stopped this
+        // whole script from running (CSV upload, roster, dispatch all dead).
+        const studioDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+        const AUDIENCE_TAG = "Chamber of Commerce Members";
+
+        let audienceList = [];
+        let unsubscribedSet = new Set();
+        let approvedContent = [];
+        let selectedItemIds = new Set();
+        let parsedCsvRows = [];
+        let activeCategoryFilter = "All";
+
+        // Tab Switcher
+        window.switchStudioTab = function (tabName) {
+            document.querySelectorAll(".studio-tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".studio-tab-content").forEach(c => c.style.display = "none");
+
+            document.getElementById(`tab-btn-${tabName}`).classList.add("active");
+            document.getElementById(`studio-tab-${tabName}`).style.display = "block";
+
+            if (tabName === "dispatch") {
+                updateNewsletterPreview();
+            }
+        };
+
+        function showStudioAlert(msg, type = "info") {
+            const el = document.getElementById("studio-alert");
+            if (!el) return;
+            el.style.display = "block";
+            el.textContent = msg;
+            if (type === "success") {
+                el.style.background = "#dcfce7"; el.style.color = "#15803d"; el.style.border = "1px solid #86efac";
+            } else if (type === "danger") {
+                el.style.background = "#fee2e2"; el.style.color = "#b91c1c"; el.style.border = "1px solid #fca5a5";
+            } else {
+                el.style.background = "#e0f2fe"; el.style.color = "#0369a1"; el.style.border = "1px solid #bae6fd";
+            }
+            setTimeout(() => { el.style.display = "none"; }, 5000);
+        }
+
+        // Initialize Studio (Requires verified Admin/Staff session)
+        async function initStudio() {
+            const client = (window.GeorginaStore && window.GeorginaStore.getClient) ? window.GeorginaStore.getClient() : studioDb;
+            let isVerifiedAdmin = false;
+            if (client && client.auth) {
+                try {
+                    const { data } = await client.auth.getSession();
+                    if (data && data.session && data.session.user) {
+                        const email = (data.session.user.email || "").trim().toLowerCase();
+                        const { data: prof } = await client.from("user_profiles").select("role").eq("id", data.session.user.id).maybeSingle();
+                        const role = (prof && prof.role ? prof.role : "").toLowerCase();
+                        if (role === "admin" || role === "super_admin" || role === "staff" || email === "cheerfulweb@gmail.com" || email.endsWith("@welcomeeg.ca")) {
+                            isVerifiedAdmin = true;
+                            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(email, true);
+                        }
+                    }
+                } catch (authErr) {
+                    console.warn("Special edition auth check:", authErr);
+                }
+            }
+
+            if (!isVerifiedAdmin) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            await loadUnsubscribedList();
+            await loadChamberAudience();
+            await loadApprovedContent();
+            renderAudienceTable();
+            renderCuratedContentList();
+            updateNewsletterPreview();
+        }
+
+        // 1. Load Unsubscribed List for CASL Protection
+        async function loadUnsubscribedList() {
+            try {
+                const { data } = await studioDb
+                    .from("newsletter_subscribers")
+                    .select("email")
+                    .eq("status", "unsubscribed");
+                if (data) {
+                    data.forEach(r => {
+                        if (r.email) unsubscribedSet.add(r.email.trim().toLowerCase());
+                    });
+                }
+            } catch (e) {
+                console.warn("Unsubscribed check:", e);
+            }
+        }
+
+        // 2. Load Active Chamber Audience
+        async function loadChamberAudience() {
+            try {
+                const { data } = await studioDb
+                    .from("newsletter_subscribers")
+                    .select("*")
+                    .or(`community_area.ilike.%Chamber%,first_name.ilike.%Chamber%`)
+                    .order("created_at", { ascending: false });
+
+                audienceList = data || [];
+                const activeCount = audienceList.filter(m => m.status === "active").length;
+                document.getElementById("audience-active-count").textContent = activeCount;
+                document.getElementById("dispatch-recipient-counter").textContent = activeCount;
+            } catch (err) {
+                console.error("Failed to load Chamber audience:", err);
+            }
+        }
+
+        // Render Audience Roster Table
+        window.renderAudienceTable = function () {
+            const tbody = document.getElementById("audience-roster-tbody");
+            const search = (document.getElementById("filter-roster-search").value || "").toLowerCase().trim();
+
+            const filtered = audienceList.filter(m => {
+                const text = `${m.first_name || ""} ${m.email || ""} ${m.community_area || ""}`.toLowerCase();
+                return !search || text.includes(search);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--muted);">No Chamber members found. Upload a monthly CSV above to add members.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(m => {
+                const isOptOut = m.status === "unsubscribed" || unsubscribedSet.has((m.email || "").toLowerCase());
+                const dateAdded = m.created_at ? new Date(m.created_at).toLocaleDateString() : "Active";
+                
+                // Parse business / phone from community_area if encoded
+                const parts = (m.community_area || "").split("•").map(s => s.trim());
+                const bizName = parts.length > 1 ? parts[1] : "Chamber Member";
+                const phone = parts.length > 2 ? parts[2] : "";
+
+                return `<tr>
+                    <td>
+                        <span class="pill-badge" style="background: ${isOptOut ? '#fee2e2' : '#dcfce7'}; color: ${isOptOut ? '#b91c1c' : '#15803d'};">
+                            ${isOptOut ? 'Disabled' : (m.status === 'pending' ? 'Pending' : 'Active')}
+                        </span>
+                    </td>
+                    <td><strong>${escapeHtml(m.first_name || 'Member')}</strong></td>
+                    <td>${escapeHtml(bizName)}</td>
+                    <td><code>${escapeHtml(m.email)}</code></td>
+                    <td style="font-size: 12px; color: #475569;">${escapeHtml(phone || '—')}</td>
+                    <td style="font-size: 12px; color: #64748b;">${dateAdded}</td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        ${m.status === "unsubscribed"
+                            ? `<button type="button" class="btn btn-success btn-sm" style="padding: 4px 8px; font-size: 11px;" onclick="setAudienceMemberStatus('${m.id}', 'active')">Enable</button>`
+                            : `<button type="button" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;" onclick="setAudienceMemberStatus('${m.id}', 'unsubscribed')">Disable</button>`}
+                        <button type="button" class="btn btn-danger btn-sm" style="padding: 4px 8px; font-size: 11px;" onclick="removeAudienceMember('${m.id}')">
+                            Remove
+                        </button>
+                    </td>
+                </tr>`;
+            }).join("");
+        };
+
+        // 3. Dump / Reset Previous Month's Chamber Roster
+        window.dumpChamberAudienceRoster = async function () {
+            if (audienceList.length === 0) {
+                alert("The audience roster is currently empty.");
+                return;
+            }
+
+            const activeMembers = audienceList.filter(m => m.status === "active");
+            const confirmMsg = `SAFETY CONFIRMATION:
+
+You are about to reset and dump the previous month's Chamber roster (${activeMembers.length} active members).
+
+An automated backup CSV will download to your computer first.
+CASL unsubscribes will remain permanently respected and preserved.
+
+Type "DUMP" to proceed:`;
+            const promptVal = prompt(confirmMsg);
+            if (promptVal !== "DUMP") {
+                showStudioAlert("Roster reset cancelled.", "info");
+                return;
+            }
+
+            // 1. Download date-stamped backup CSV
+            exportCurrentAudienceCsv(`chamber_roster_backup_${new Date().toISOString().slice(0, 10)}.csv`);
+
+            // 2. Remove active members from Supabase
+            try {
+                let removed = 0;
+                const ids = activeMembers.map(m => m.id);
+                for (let i = 0; i < ids.length; i += 100) {
+                    const { data, error } = await studioDb
+                        .from("newsletter_subscribers")
+                        .delete()
+                        .in("id", ids.slice(i, i + 100))
+                        .select("id");
+                    if (error) throw error;
+                    removed += (data || []).length;
+                }
+                await loadChamberAudience();
+                renderAudienceTable();
+                if (removed === ids.length) {
+                    showStudioAlert(`Removed ${removed} previous month records. The roster is ready for your fresh monthly CSV. (The backup CSV was downloaded first.)`, "success");
+                } else {
+                    showStudioAlert(`Only ${removed} of ${ids.length} records were removed. The database refused the rest (admin sign-in required, or run the latest SQL update).`, "danger");
+                }
+            } catch (err) {
+                showStudioAlert(`Error during dump: ${err.message}`, "danger");
+            }
+        };
+
+        // Export CSV
+        window.exportCurrentAudienceCsv = function (filename = "chamber-audience-roster.csv") {
+            if (audienceList.length === 0) {
+                alert("No members to export.");
+                return;
+            }
+            let csv = "First Name,Last Name,Business Name,Email Address,Phone Number,Status,Date Added\n";
+            for (const m of audienceList) {
+                const parts = (m.community_area || "").split("•").map(s => s.trim());
+                const biz = parts.length > 1 ? parts[1] : "";
+                const ph = parts.length > 2 ? parts[2] : "";
+                csv += [m.first_name || '', '', biz, m.email, ph, m.status, m.created_at || ''].map(seCsvCell).join(',') + '\n';
+            }
+            const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // Remove Single Member
+        window.removeAudienceMember = async function (id) {
+            if (!confirm("Remove this contact from the Chamber audience?")) return;
+            try {
+                const { data, error } = await studioDb.from("newsletter_subscribers").delete().eq("id", id).select("id");
+                if (error) throw error;
+                if (!data || !data.length) throw new Error("the database refused the change (admin sign-in required, or run the latest SQL update)");
+                await loadChamberAudience();
+                renderAudienceTable();
+                showStudioAlert("Contact removed.", "info");
+            } catch (err) {
+                showStudioAlert("Could not remove the contact: " + err.message, "danger");
+            }
+        };
+
+        // Disable (stop sending, keep the address) or enable one contact
+        window.setAudienceMemberStatus = async function (id, newStatus) {
+            const m = audienceList.find(x => x.id === id);
+            const label = newStatus === "unsubscribed" ? "Disable" : "Enable";
+            if (!confirm(`${label} ${m ? m.email : "this contact"}?${newStatus === "active" ? "\n\nOnly enable an address whose owner agreed to receive email." : ""}`)) return;
+            try {
+                const { data, error } = await studioDb.from("newsletter_subscribers")
+                    .update({ status: newStatus, unsubscribed_at: newStatus === "unsubscribed" ? new Date().toISOString() : null })
+                    .eq("id", id).select("id");
+                if (error) throw error;
+                if (!data || !data.length) throw new Error("the database refused the change (admin sign-in required)");
+                await loadChamberAudience();
+                renderAudienceTable();
+                showStudioAlert(newStatus === "unsubscribed" ? "Contact disabled. They will not receive sends." : "Contact enabled.", "success");
+            } catch (err) {
+                showStudioAlert("Could not update the contact: " + err.message, "danger");
+            }
+        };
+
+        // CSV Parsing & Import Handling
+        window.handleCsvFileSelected = function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                parseCsvText(event.target.result);
+            };
+            reader.readAsText(file);
+        };
+
+        function parseCsvText(text) {
+            // Tolerant parsing: strip UTF-8 BOM (Excel "CSV UTF-8"), accept CRLF/LF/CR,
+            // and allow quoted fields that contain commas or line breaks.
+            const lines = parseCsvRecords(String(text || "").replace(/^﻿/, ""))
+                .filter(cols => cols.some(c => c.trim().length > 0));
+            if (lines.length < 2) {
+                alert("CSV file appears to be empty or missing headers.");
+                return;
+            }
+
+            // Detect headers ("First Name", "first_name", "FIRST-NAME" all become "first name")
+            const headerRow = lines[0].map(h => h.replace(/﻿/g, "").trim().toLowerCase().replace(/[\s_\-]+/g, " "));
+            let fnIdx = headerRow.findIndex(h => h.includes("first") || h === "fname" || h === "name");
+            let lnIdx = headerRow.findIndex(h => h.includes("last") || h === "lname");
+            let bizIdx = headerRow.findIndex(h => h.includes("business") || h.includes("company") || h.includes("org"));
+            let emailIdx = headerRow.findIndex(h => h.includes("email") || h.includes("mail"));
+            let phoneIdx = headerRow.findIndex(h => h.includes("phone") || h.includes("tel") || h.includes("cell"));
+
+            if (emailIdx === -1) {
+                alert("Could not locate an 'Email Address' column in your CSV. Please check the header names.");
+                return;
+            }
+
+            parsedCsvRows = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i];
+                const email = (cols[emailIdx] || "").trim().toLowerCase();
+                if (!email || !email.includes("@")) continue;
+
+                const first = fnIdx !== -1 ? (cols[fnIdx] || "").trim() : "";
+                const last = lnIdx !== -1 ? (cols[lnIdx] || "").trim() : "";
+                const fullName = `${first} ${last}`.trim() || first || "Chamber Member";
+                const biz = bizIdx !== -1 ? (cols[bizIdx] || "").trim() : "";
+                const phone = phoneIdx !== -1 ? (cols[phoneIdx] || "").trim() : "";
+
+                const isBlockedCasl = unsubscribedSet.has(email);
+
+                parsedCsvRows.push({
+                    name: fullName,
+                    business: biz,
+                    email: email,
+                    phone: phone,
+                    isBlocked: isBlockedCasl
+                });
+            }
+
+            document.getElementById("csv-contact-count").textContent = parsedCsvRows.length;
+            const previewTbody = document.getElementById("csv-preview-tbody");
+            previewTbody.innerHTML = parsedCsvRows.slice(0, 10).map(r => `<tr>
+                <td><strong>${escapeHtml(r.name)}</strong></td>
+                <td>${escapeHtml(r.business || '—')}</td>
+                <td><code>${escapeHtml(r.email)}</code></td>
+                <td>${escapeHtml(r.phone || '—')}</td>
+                <td>
+                    <span class="pill-badge" style="background:${r.isBlocked ? '#fee2e2' : '#dcfce7'}; color:${r.isBlocked ? '#b91c1c' : '#15803d'};">
+                        ${r.isBlocked ? '🚫 Skipped (CASL Opt-Out)' : '✓ Valid Opt-In'}
+                    </span>
+                </td>
+            </tr>`).join("");
+
+            if (parsedCsvRows.length > 10) {
+                previewTbody.innerHTML += `<tr><td colspan="5" style="text-align:center; color:#64748b; font-style:italic;">... and ${parsedCsvRows.length - 10} more rows.</td></tr>`;
+            }
+
+            document.getElementById("csv-preview-card").style.display = "block";
+        }
+
+        function parseCsvLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const c = line[i];
+                if (c === '"') {
+                    if (inQuotes && line[i + 1] === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (c === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += c;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        // Splits a whole CSV document into rows of fields (RFC 4180 style).
+        function parseCsvRecords(text) {
+            const rows = [];
+            let row = [];
+            let field = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (text[i + 1] === '"') { field += '"'; i++; }
+                        else { inQuotes = false; }
+                    } else {
+                        field += c;
+                    }
+                } else if (c === '"') {
+                    inQuotes = true;
+                } else if (c === ',') {
+                    row.push(field); field = '';
+                } else if (c === '\r' || c === '\n') {
+                    if (c === '\r' && text[i + 1] === '\n') i++;
+                    row.push(field); field = '';
+                    rows.push(row); row = [];
+                } else {
+                    field += c;
+                }
+            }
+            if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+            return rows;
+        }
+
+        // Drag & drop support for the CSV drop zone (previously only click worked;
+        // dropping a file made the browser open it instead).
+        (function wireCsvDropZone() {
+            const zone = document.getElementById("csv-drop-zone");
+            if (!zone || !zone.addEventListener) return;
+            zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("dragover"); });
+            zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
+            zone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                zone.classList.remove("dragover");
+                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file) window.handleCsvFileSelected({ target: { files: [file] } });
+            });
+        })();
+
+        window.cancelCsvImport = function () {
+            parsedCsvRows = [];
+            document.getElementById("csv-preview-card").style.display = "none";
+            document.getElementById("csv-file-input").value = "";
+        };
+
+        window.executeCsvImport = async function () {
+            if (parsedCsvRows.length === 0) return;
+            const validRows = parsedCsvRows.filter(r => !r.isBlocked);
+            const blockedCount = parsedCsvRows.length - validRows.length;
+
+            let imported = 0;
+            let failed = 0;
+            let lastError = null;
+            for (const r of validRows) {
+                const communityTag = `${AUDIENCE_TAG} • ${r.business || 'Local Business'} • ${r.phone || ''}`;
+                const payload = {
+                    email: r.email,
+                    first_name: r.name,
+                    community_area: communityTag,
+                    audience_type: "vendor",
+                    status: "active"
+                };
+
+                const { error } = await studioDb
+                    .from("newsletter_subscribers")
+                    .upsert(payload, { onConflict: "email" });
+
+                if (!error) imported++;
+                else { failed++; lastError = error; console.error("CSV import row failed:", error); }
+            }
+
+            if (failed > 0) {
+                showStudioAlert(`Imported ${imported} Chamber members, but ${failed} could not be saved (${(lastError && lastError.message) || "database error"}). Saving existing contacts requires an Admin login.`, "danger");
+            } else {
+                showStudioAlert(`Imported ${imported} Chamber members! (${blockedCount} contacts were safely skipped due to previous CASL unsubscribes).`, "success");
+            }
+            cancelCsvImport();
+            await loadChamberAudience();
+            renderAudienceTable();
+        };
+
+        // =====================================================================
+        // TAB 2: LOAD & CURATE CONTENT SELECTION
+        // =====================================================================
+        async function loadApprovedContent() {
+            try {
+                const { data } = await studioDb
+                    .from("vendor_events")
+                    .select("id, slug, title, business_name, category, community, contact_phone, created_at, date_type, event_date_label, event_start_date, expires_after, image_url, is_featured, link, location, price_text, recurrence_rule, status, summary, service_options, sale_category")
+                    .eq("status", "approved")
+                    .order("event_start_date", { ascending: true });
+
+                approvedContent = (data || []).map(it => {
+                    const cat = (it.category || '').toLowerCase();
+                    const text = `${it.title} ${it.summary}`.toLowerCase();
+                    let group = "Events";
+                    if (cat === "dining" || cat === "restaurant" || cat.includes("food")) group = "Dining";
+                    else if (cat.includes("sale") || text.includes("sale") || text.includes("discount")) group = "Sales";
+                    else if (cat.includes("news")) group = "News";
+
+                    return {
+                        id: it.id,
+                        title: it.title,
+                        business_name: it.business_name || "Community Partner",
+                        date: it.event_date_label || it.event_start_date || "Upcoming",
+                        location: it.location || "East Gwillimbury, ON",
+                        summary: it.summary || "",
+                        link: it.link || "https://welcomeeg.ca/events",
+                        group: group,
+                        sortDate: String(it.event_start_date || "").slice(0, 10)
+                    };
+                });
+
+                // Chronological order starting from TODAY (special edition date):
+                // today/upcoming soonest first, then past items most-recent first, undated last.
+                const t = new Date();
+                const todayIso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+                const rank = (d) => !/^\d{4}-\d{2}-\d{2}$/.test(d) ? 2 : (d >= todayIso ? 0 : 1);
+                approvedContent.sort((a, b) => {
+                    const ra = rank(a.sortDate), rb = rank(b.sortDate);
+                    if (ra !== rb) return ra - rb;
+                    if (ra === 0) return a.sortDate.localeCompare(b.sortDate);
+                    if (ra === 1) return b.sortDate.localeCompare(a.sortDate);
+                    return 0;
+                });
+            } catch (err) {
+                console.error("Content load error:", err);
+            }
+        }
+
+        window.filterCuratedCategory = function (cat) {
+            activeCategoryFilter = cat;
+            document.querySelectorAll("#studio-tab-content .btn-sm").forEach(b => {
+                b.style.background = "#f1f5f9";
+                b.style.color = "#0f172a";
+            });
+            const activeBtn = document.getElementById(`cat-filter-${cat.toLowerCase()}`);
+            if (activeBtn) {
+                activeBtn.style.background = "#00008b";
+                activeBtn.style.color = "#ffffff";
+            }
+            renderCuratedContentList();
+        };
+
+        window.renderCuratedContentList = function () {
+            const container = document.getElementById("curated-cards-grid");
+            const search = (document.getElementById("curated-search-input")?.value || "").toLowerCase().trim();
+
+            const filtered = approvedContent.filter(it => {
+                const matchCat = activeCategoryFilter === "All" || it.group === activeCategoryFilter;
+                const matchSearch = !search || `${it.title} ${it.business_name} ${it.summary}`.toLowerCase().includes(search);
+                return matchCat && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: var(--muted);">No items match this category filter.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(it => {
+                const isChecked = selectedItemIds.has(it.id);
+                return `<div class="content-card-selectable ${isChecked ? 'selected' : ''}" onclick="toggleCuratedItem('${it.id}', event)">
+                    <input type="checkbox" id="chk-${it.id}" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleCuratedItem('${it.id}')">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span class="pill-badge" style="background:#f1f5f9; color:#00008b;">${escapeHtml(it.group)}</span>
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b;">${escapeHtml(it.date)}</span>
+                        </div>
+                        <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 800; color: #0f172a;">${escapeHtml(it.title)}</h4>
+                        <div style="font-size: 11px; font-weight: 700; color: #d97706; margin-bottom: 4px;">🏷️ ${escapeHtml(it.business_name)} &bull; 📍 ${escapeHtml(it.location)}</div>
+                        <p style="margin: 0; font-size: 12px; color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            ${escapeHtml(it.summary)}
+                        </p>
+                    </div>
+                </div>`;
+            }).join("");
+
+            document.getElementById("badge-selected-count").textContent = `${selectedItemIds.size} Selected`;
+        };
+
+        window.toggleCuratedItem = function (id) {
+            if (selectedItemIds.has(id)) {
+                selectedItemIds.delete(id);
+            } else {
+                selectedItemIds.add(id);
+            }
+            renderCuratedContentList();
+        };
+
+        window.selectAllCuratedItems = function (select) {
+            if (select) {
+                approvedContent.forEach(it => selectedItemIds.add(it.id));
+            } else {
+                selectedItemIds.clear();
+            }
+            renderCuratedContentList();
+        };
+
+        // =====================================================================
+        // TAB 3: RENDER HTML PREVIEW & DISPATCH
+        // =====================================================================
+        function compileSpecialEditionHtml() {
+            const title = document.getElementById("special-edition-title").value.trim() || "Welcome East Gwillimbury • Special Chamber Edition";
+            const intro = document.getElementById("special-edition-intro").value.trim();
+            const ctaText = document.getElementById("special-edition-cta-text").value.trim();
+
+            const selectedCards = approvedContent.filter(it => selectedItemIds.has(it.id));
+
+            let cardsHtml = "";
+            if (selectedCards.length === 0) {
+                cardsHtml = `<div style="text-align: center; padding: 40px 20px; background: #ffffff; border-radius: 16px; border: 2px dashed #cbd5e1; color: #64748b;">
+                    <strong>No items selected yet.</strong><br>Go to Tab 2 to check the events, dining offers, and store sales you wish to feature!
+                </div>`;
+            } else {
+                for (const card of selectedCards) {
+                    cardsHtml += `
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 22px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+                        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #00008b; letter-spacing: 0.05em; margin-bottom: 6px;">
+                            ${escapeHtml(card.group)} &bull; ${escapeHtml(card.business_name)}
+                        </div>
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+                            ${escapeHtml(card.title)}
+                        </h3>
+                        <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 10px;">
+                            📅 <strong>${escapeHtml(card.date)}</strong> &nbsp;&bull;&nbsp; 📍 ${escapeHtml(card.location)}
+                        </div>
+                        <p style="margin: 0 0 14px 0; font-size: 13px; color: #334155; line-height: 1.55;">
+                            ${escapeHtml(card.summary)}
+                        </p>
+                        <a href="${escapeHtml(seSafeLink(card.link))}?utm_source=special_edition&utm_medium=email" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #00008b; color: #ffffff; font-size: 12px; font-weight: 800; padding: 8px 18px; border-radius: 9999px; text-decoration: none;">
+                            View Details &rarr;
+                        </a>
+                    </div>`;
+                }
+            }
+
+            const introHtml = intro ? `
+                <div style="background: #eff6ff; border-left: 4px solid #00008b; border-radius: 8px; padding: 18px 20px; margin-bottom: 24px; font-size: 14px; color: #1e3a8a; line-height: 1.6; white-space: pre-wrap;">
+${escapeHtml(intro)}
+                </div>` : "";
+
+            const ctaButtonHtml = ctaText ? `
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="https://welcomeeg.ca/events?utm_source=special_edition&utm_medium=email" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #d97706; color: #ffffff; font-size: 14px; font-weight: 800; padding: 12px 28px; border-radius: 9999px; text-decoration: none; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);">
+                        ${escapeHtml(ctaText)} &rarr;
+                    </a>
+                </div>` : "";
+
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(title)}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
+    <div style="max-width: 640px; margin: 0 auto; padding: 24px 12px;">
+        <!-- Header -->
+        <div style="background: #00008b; border-radius: 20px 20px 0 0; padding: 32px 24px; text-align: center; color: #ffffff;">
+            <img src="https://welcomeeg.ca/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 38px; width: auto; margin-bottom: 14px; filter: brightness(0) invert(1);">
+            <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; color: #fde047; margin-bottom: 4px;">
+                Special Edition Briefing &bull; Central York Chamber of Commerce
+            </div>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 900; line-height: 1.25; color: #ffffff;">
+                ${escapeHtml(title)}
+            </h1>
+        </div>
+
+        <!-- Body -->
+        <div style="background: #ffffff; padding: 28px 24px; border: 1px solid #cbd5e1; border-top: none;">
+            ${introHtml}
+            ${cardsHtml}
+            ${ctaButtonHtml}
+        </div>
+
+        <!-- CASL Verified Footer -->
+        <div style="background: #0f172a; border-radius: 0 0 20px 20px; padding: 28px 20px; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+            <p style="margin: 0 0 10px 0; color: #cbd5e1; font-weight: 700;">
+                Welcome East Gwillimbury &bull; Hyper-Local Community Platform &amp; Business Network
+            </p>
+            <p style="margin: 0 0 14px 0;">
+                You received this special edition as a registered member of the Central York Chamber of Commerce and Welcome East Gwillimbury partner community.
+            </p>
+            <p style="margin: 0;">
+                <a href="https://welcomeeg.ca/news/unsubscribe.html?token={{UNSUBSCRIBE_TOKEN}}" style="color: #38bdf8; text-decoration: underline; font-weight: 700;">
+                    1-Click Unsubscribe / Manage Preferences
+                </a> &nbsp;&bull;&nbsp;
+                <a href="https://welcomeeg.ca/privacy" style="color: #94a3b8; text-decoration: underline;">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>`;
+        }
+
+        function updateNewsletterPreview() {
+            const frame = document.getElementById("newsletter-preview-frame");
+            if (!frame) return;
+            const compiledHtml = compileSpecialEditionHtml();
+            frame.srcdoc = compiledHtml;
+        }
+
+        // Test Send to Robert
+        window.sendTestSpecialEdition = async function () {
+            const btn = document.getElementById("btn-send-test");
+            btn.disabled = true;
+            btn.textContent = "Sending test to robert@welcomeeg.ca...";
+
+            const subject = "[TEST SPECIAL EDITION] " + (document.getElementById("special-edition-title").value.trim() || "Special Briefing");
+            const html = compileSpecialEditionHtml();
+
+            try {
+                const { error } = await studioDb.functions.invoke("send-email", {
+                    body: {
+                        formType: "newsletter_dispatch",
+                        record: {
+                            email: "robert@welcomeeg.ca",
+                            subject: subject,
+                            html_body: html,
+                            edition: "special_edition"
+                        }
+                    }
+                });
+
+                if (error) throw error;
+                showStudioAlert("✅ Test email dispatched successfully to robert@welcomeeg.ca!", "success");
+            } catch (err) {
+                showStudioAlert(`Notice during test dispatch: ${err.message}`, "info");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "🧪 Send Test to robert@welcomeeg.ca";
+            }
+        };
+
+        // Live Broadcast to Chamber Audience
+        window.dispatchSpecialEditionLive = async function () {
+            const activeRecipients = audienceList.filter(m => m.status === "active");
+            if (activeRecipients.length === 0) {
+                alert("Cannot dispatch: The active Chamber audience is currently empty. Please import a CSV first.");
+                return;
+            }
+            if (selectedItemIds.size === 0) {
+                alert("Cannot dispatch: No content items selected. Please select at least 1 item in Tab 2.");
+                return;
+            }
+
+            const confirmVal = prompt(`SAFETY CONFIRMATION:
+
+You are about to broadcast this Special Edition to ${activeRecipients.length} active Chamber members.
+
+Type "DISPATCH" to confirm and proceed:`);
+            if (confirmVal !== "DISPATCH") {
+                showStudioAlert("Broadcast cancelled.", "info");
+                return;
+            }
+
+            const consoleBox = document.getElementById("special-dispatch-console");
+            const pBar = document.getElementById("dispatch-progress-bar");
+            const pText = document.getElementById("dispatch-console-percent");
+            const logBox = document.getElementById("dispatch-log-box");
+            const btn = document.getElementById("btn-dispatch-live");
+
+            consoleBox.style.display = "block";
+            btn.disabled = true;
+            btn.textContent = "Broadcasting... Please wait";
+            logBox.textContent = "";
+
+            function log(msg) {
+                logBox.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+
+            const subject = document.getElementById("special-edition-title").value.trim();
+            const compiledHtml = compileSpecialEditionHtml();
+
+            log(`Starting Special Edition Broadcast [${activeRecipients.length} recipients]`);
+            log(`Subject: "${subject}"`);
+            log(`Featured items: ${selectedItemIds.size} cards`);
+
+            let delivered = 0;
+            for (let i = 0; i < activeRecipients.length; i++) {
+                const sub = activeRecipients[i];
+                const pct = Math.round(((i + 1) / activeRecipients.length) * 100);
+                pBar.style.width = pct + "%";
+                pText.textContent = pct + "%";
+
+                log(`Sending to: ${sub.email}...`);
+                try {
+                    const token = sub.unsubscribe_token || "manage";
+                    const personalizedHtml = compiledHtml.replace("{{UNSUBSCRIBE_TOKEN}}", token);
+
+                    const { error } = await studioDb.functions.invoke("send-email", {
+                        body: {
+                            formType: "newsletter_dispatch",
+                            record: {
+                                email: sub.email,
+                                subject: subject,
+                                html_body: personalizedHtml,
+                                edition: "special_edition"
+                            }
+                        }
+                    });
+
+                    if (error) {
+                        log(`  ⚠️ Warning sending to ${sub.email}: ${error.message}`);
+                    } else {
+                        log(`  ✅ Delivered to ${sub.email}`);
+                        delivered++;
+                    }
+                } catch (e) {
+                    log(`  ⚠️ Delivery notice for ${sub.email}: ${e.message}`);
+                }
+            }
+
+            log(`Broadcast complete! Successfully dispatched to ${delivered}/${activeRecipients.length} Chamber members.`);
+            btn.disabled = false;
+            btn.textContent = `🚀 Broadcast to Chamber Audience (${activeRecipients.length} Recipients)`;
+            showStudioAlert(`Special Edition broadcast complete! Dispatched to ${delivered} Chamber members.`, "success");
+        };
+
+        // Only http(s) links go into the email
+        function seSafeLink(u) {
+            const s = String(u || "").trim();
+            return /^https?:\/\//i.test(s) ? s : "https://welcomeeg.ca/events";
+        }
+        // CSV cell: quoted, and text starting with = + - @ is not run as a formula
+        function seCsvCell(v) {
+            let s = String(v == null ? "" : v);
+            if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+            return '"' + s.replace(/"/g, '""') + '"';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Run on load
+        document.addEventListener("DOMContentLoaded", initStudio);
+    </script>
+</body>
+</html>

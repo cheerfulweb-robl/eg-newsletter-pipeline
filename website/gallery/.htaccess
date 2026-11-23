@@ -1,0 +1,11 @@
+# Home gallery photos (uploaded by /api/gallery_upload.php). Images only: never run scripts here.
+Options -Indexes
+<FilesMatch "\.(php|php\d|phtml|phar|pl|py|cgi|sh|shtml|htm|html|js|svg)$">
+  Require all denied
+</FilesMatch>
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  <FilesMatch "\.jpg$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>

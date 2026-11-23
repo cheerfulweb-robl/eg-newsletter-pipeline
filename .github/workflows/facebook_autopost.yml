@@ -1,0 +1,69 @@
+name: Facebook Page Autoposter (3x Daily)
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: 'Post slot: auto (by Toronto time), morning (events >= tomorrow), midday (dining/deals/biz), afternoon (news/press/CTA)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - morning
+          - midday
+          - afternoon
+      dry_run:
+        description: 'Dry run (preview selected post in logs without posting to Facebook)'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    # ~8:30 AM EST / 9:30 AM EDT
+    - cron: '30 13 * * *'
+    # ~12:30 PM EST / 1:30 PM EDT
+    - cron: '30 17 * * *'
+    # ~4:30 PM EST / 5:30 PM EDT
+    - cron: '30 21 * * *'
+
+concurrency:
+  group: facebook-autopost
+  cancel-in-progress: false
+
+jobs:
+  post-to-facebook:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Initialize Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Facebook Autoposter
+        env:
+          FB_POST_SLOT: ${{ inputs.slot || 'auto' }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          SITE_NAME: ${{ vars.SITE_NAME || 'Welcome East Gwillimbury' }}
+          SITE_DOMAIN: ${{ vars.SITE_DOMAIN || 'https://welcomeeg.ca' }}
+          FB_NOTIFY_EMAIL: ${{ vars.FB_NOTIFY_EMAIL || 'contact@welcomeeg.ca' }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python post_facebook.py

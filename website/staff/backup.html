@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Backup &amp; Disaster Recovery — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=71.0">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=71.0"></script>
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+        .bk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 22px; }
+        .bk-status-ok { color: #166534; font-weight: 800; }
+        .bk-status-warn { color: #92400e; font-weight: 800; }
+    </style>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <h1 style="margin: 0 0 6px 0; color: var(--brand);">&#128190; Full Backup &amp; Disaster Recovery</h1>
+            <p style="margin: 0 0 18px 0; color: var(--muted); font-size: 14px;">
+                Download an on-demand backup of all website data right to your computer, or run the full automated database backup on GitHub Actions.
+            </p>
+            <div id="page-alert" class="alert" style="display: none;"></div>
+
+            <details class="wg-admin-guide">
+                <summary><span>&#128214; Beginner&rsquo;s Guide: How to Back Up Your Entire Site</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+                <ol>
+                    <li><strong>Quick Data Backup (Right Here):</strong> Click the blue <strong>Download Full Site Data Backup</strong> button below. It saves a single file containing all your events, businesses, subscribers, ads, gallery info, press releases, and blacklist rules to your computer.</li>
+                    <li><strong>Full Server &amp; Database Backup (GitHub Actions):</strong> Open your GitHub repository &rarr; <strong>Actions</strong> &rarr; <strong>Database &amp; Data Backup</strong> &rarr; <strong>Run workflow</strong> to save a downloadable backup archive in the cloud (also runs automatically every Sunday).</li>
+                    <li><strong>Store Safely:</strong> Save downloaded backup files to Google Drive, OneDrive, or an external drive so you always have an off-site copy.</li>
+                </ol>
+            </details>
+
+            <div class="bk-grid">
+                <div class="card" style="border-left: 4px solid #00008b;">
+                    <h2 style="margin: 0 0 8px 0; color: #00008b;">1. On-Demand Data Backup</h2>
+                    <p style="margin: 0 0 14px 0; font-size: 13.5px; color: var(--muted);">
+                        Exports all live tables (Events, Dining, Sales, News, Businesses, Subscribers, Ads, Gallery, Pressroom, Scrape Sources, Blacklist, Orders) into one <code>.json</code> file.
+                    </p>
+                    <button type="button" id="btn-download-backup" class="btn btn-primary" style="width: 100%;">&#11015;&#65039; Download Full Site Data Backup (.json)</button>
+                    <div id="backup-progress" style="margin-top: 10px; font-size: 12.5px; color: #334155;"></div>
+                </div>
+
+                <div class="card" style="border-left: 4px solid #047857;">
+                    <h2 style="margin: 0 0 8px 0; color: #047857;">2. Cloud Database &amp; Code Backup</h2>
+                    <p style="margin: 0 0 12px 0; font-size: 13.5px; color: var(--muted);">
+                        Your code, migrations, and Edge Functions are backed up in GitHub. Weekly automatic database backups (and on-demand runs) are stored in GitHub Actions Artifacts for 90 days.
+                    </p>
+                    <a href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/backup_database.yml" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%; text-align: center; display: block;">Open GitHub Backup Workflow &#8599;</a>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 22px;">
+                <h2 style="margin: 0 0 10px 0;">Backup Table Summary</h2>
+                <div id="backup-summary" style="overflow-x: auto;">
+                    <p style="color: var(--muted); margin: 0;">Click <strong>Download Full Site Data Backup</strong> above to export and verify row counts for every table.</p>
+                </div>
+            </div>
+
+            <div class="card" style="border-left: 4px solid #b45309; background: #fffbeb;">
+                <h2 style="margin: 0 0 8px 0; color: #92400e;">3. How to Restore from a Backup</h2>
+                <p style="margin: 0 0 10px 0; font-size: 13.5px; color: #78350f;">
+                    If your website or database ever needs to be rebuilt from scratch, follow these 4 steps in order:
+                </p>
+                <ol style="margin: 0; padding-left: 20px; font-size: 13.5px; line-height: 1.75; color: #1e293b;">
+                    <li><strong>Recreate Database Tables:</strong> In a fresh Supabase project, open <strong>SQL Editor</strong> and run the files in <code>supabase/migrations/</code> in date order.</li>
+                    <li><strong>Restore Your Data:</strong> Either import your downloaded <code>.json</code> backup file (using your Supabase Service Role key or Table Editor CSV/JSON import) or restore <code>supabase_pg_dump.sql.gz</code> from the GitHub <code>wg-backup-*</code> artifact.</li>
+                    <li><strong>Restore Edge Functions &amp; Secrets:</strong> Re-enter your API secrets (<code>ANTHROPIC_API_KEY</code>, <code>BREVO_API_KEY</code>, <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>) in Supabase and re-deploy the 4 functions (<code>admin-extract-listing</code>, <code>admin-press-release</code>, <code>send-email</code>, <code>stripe-webhook</code>).</li>
+                    <li><strong>Re-Upload Website Files:</strong> Run <code>python _work/build_production.py</code> and extract the generated <code>.zip</code> into cPanel <code>public_html/wg/</code>. (Full command-line instructions are in <code>RESTORE_RUNBOOK.md</code> in your GitHub repo.)</li>
+                </ol>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127754; Welcome East Gwillimbury</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <p style="font-size: 13px; color: #cbd5e1; line-height: 1.6; margin: 0 0 12px 0;">East Gwillimbury's community event calendar, dining guide, local business directory, and digital Welcome Hamper.</p>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128240; Explore</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">Community Events</a></li>
+                            <li><a href="/dining">Dining Guide</a></li>
+                            <li><a href="/sales">Local Sales &amp; Deals</a></li>
+                            <li><a href="/directory">Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127978; Submissions</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/submit-event">Submit an Event</a></li>
+                            <li><a href="/hamper/">Welcome Hamper</a></li>
+                            <li><a href="/newsroom">Newsroom</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128274; Accounts &amp; Legal</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/staff/admin-approvals.html">Admin &amp; Staff Operations</a></li>
+                            <li><a href="/terms">Terms of Service</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. We are not responsible for errors or omissions.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let sbClient = null;
+        const BACKUP_TABLES = [
+            "vendor_events",
+            "businesses",
+            "newsletter_subscribers",
+            "newsletter_ad_placements",
+            "home_gallery",
+            "press_articles",
+            "vendor_scrape_sources",
+            "scraped_url_blacklist",
+            "search_sponsors",
+            "editorial_corrections",
+            "ad_orders",
+            "newsletter_editions"
+        ];
+
+        function escapeHtml(s) {
+            return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function showAlert(msg, type) {
+            const el = document.getElementById("page-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.innerHTML = msg;
+            el.style.display = "block";
+        }
+
+        async function fetchAllRows(table) {
+            const all = [];
+            const pageSize = 1000;
+            let from = 0;
+            while (true) {
+                const { data, error } = await sbClient
+                    .from(table)
+                    .select("*")
+                    .range(from, from + pageSize - 1);
+                if (error) return { rows: all, error: error.message };
+                if (!data || !data.length) break;
+                all.push(...data);
+                if (data.length < pageSize) break;
+                from += pageSize;
+            }
+            return { rows: all, error: null };
+        }
+
+        async function runBackup() {
+            const btn = document.getElementById("btn-download-backup");
+            const prog = document.getElementById("backup-progress");
+            const sumEl = document.getElementById("backup-summary");
+            btn.disabled = true;
+            prog.textContent = "Starting full backup...";
+
+            const snapshot = {
+                exported_at: new Date().toISOString(),
+                site: window.location.origin,
+                tables: {}
+            };
+            const report = [];
+
+            for (const tbl of BACKUP_TABLES) {
+                prog.textContent = `Exporting ${tbl}...`;
+                let res = await fetchAllRows(tbl);
+                if (res.error && tbl === "vendor_scrape_sources") {
+                    const rpc = await sbClient.rpc("get_all_scrapes_admin");
+                    if (!rpc.error && Array.isArray(rpc.data)) {
+                        res = { rows: rpc.data, error: null };
+                    }
+                }
+                snapshot.tables[tbl] = res.rows;
+                report.push({ table: tbl, count: res.rows.length, error: res.error });
+            }
+
+            const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+            const filename = `welcomegeorgina_backup_${stamp}.json`;
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            sumEl.innerHTML = `
+                <table class="data-table">
+                    <thead><tr><th>Table</th><th>Rows Exported</th><th>Status</th></tr></thead>
+                    <tbody>
+                        ${report.map((r) => `
+                            <tr>
+                                <td><code>${escapeHtml(r.table)}</code></td>
+                                <td><strong>${r.count}</strong></td>
+                                <td>${r.error ? `<span class="bk-status-warn">Skipped (${escapeHtml(r.error)})</span>` : '<span class="bk-status-ok">Backed up</span>'}</td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+            prog.textContent = `Downloaded ${filename}`;
+            showAlert(`Full backup downloaded: <code>${escapeHtml(filename)}</code>`, "success");
+            btn.disabled = false;
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase is not configured.", "warning");
+                return;
+            }
+            sbClient = window.GeorginaStore.getClient();
+            const { data: { session } } = await sbClient.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").toLowerCase();
+            const { data: profile } = await sbClient.from("user_profiles").select("role").eq("id", session.user.id).maybeSingle();
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "super_admin" || userEmail === "cheerfulweb@gmail.com";
+            if (!isAdmin) {
+                window.location.replace("/staff/login.html");
+                return;
+            }
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+            document.getElementById("btn-download-backup").addEventListener("click", runBackup);
+        }
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

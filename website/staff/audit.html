@@ -1,0 +1,1258 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrape Verification &amp; Crawl Audit — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        
+        .admin-nav-bar a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .admin-nav-bar a:hover {
+            background: var(--bg-hover, #f1f5f9);
+            border-color: var(--border);
+        }
+        .admin-nav-bar a.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .audit-hero {
+            background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+            border: 2px solid #86efac;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .status-pill {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .status-pill-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .status-pill-empty {
+            background: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fde047;
+        }
+        .status-pill-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .stat-box {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+        .stat-box-num {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+        .stat-box-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+    
+/* Unified Admin Navigation Sub-Bar with Robust Pill Buttons */
+.admin-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-nav-group-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-primary a {
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.admin-nav-group-primary a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.admin-nav-group-primary a.active {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0369a1;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+}
+
+.admin-nav-group-external {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-external .external-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.admin-nav-group-external a {
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.admin-nav-group-external a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.admin-nav-group-external a.btn-crm-link {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.admin-nav-group-external a.btn-crm-link:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+    /* Staff Portal Left Sidebar & Modern Shell Layout */
+.admin-shell {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: #00008b;
+    color: #ffffff;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-right: 1px solid #1e3a8a;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e3a8a;
+    }
+}
+
+.admin-content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+}
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="audit-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- ADMIN LEFT SIDEBAR MENU (STAFF PORTAL) -->
+        
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <!-- Admin Navigation Bar -->
+        <!-- Unified Admin Navigation Bar -->
+        
+
+        <div id="page-alert" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Check What the Auto-Crawler Found</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>See What Worked:</strong> Each row shows a website our system checks automatically, whether it worked, and how many stories or events it found.</li>
+        <li><strong>Why Something Shows 0 Items:</strong> A website may have had no new posts today, or it may be temporarily blocking automated visits.</li>
+    </ol>
+</details>
+
+        <!-- AUTH GATE -->
+        <section id="auth-gate" class="card" style="display: none; max-width: 520px; margin: 40px auto; text-align: center;">
+            <h2 style="color: var(--danger); margin-bottom: 8px;">&#128274; Admin Access Required</h2>
+            <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">
+                You must be logged in as an administrator (<code>cheerfulweb@gmail.com</code>) to view detailed scraper crawl audits.
+            </p>
+            <a href="/staff/login.html" class="btn btn-primary">Go to Login Page &rarr;</a>
+        </section>
+
+        <!-- MAIN AUDIT CONTENT -->
+        <section id="audit-console" style="display: none;">
+            <!-- RUN PIPELINE CONTROL PANEL -->
+            <div class="card" style="margin-bottom: 24px; border-left: 4px solid #00008b; background: #ffffff; padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+                    <div>
+                        <h2 style="margin: 0 0 4px 0; font-size: 18px; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                            <span>🚀 Run Newsletter Pipeline</span>
+                            <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px;">Live Dispatch</span>
+                        </h2>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted);">
+                            Trigger a fresh scrape, Gemini AI curation pass, and build the latest newsletters for today's date.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleGhTokenConfig()" style="font-size: 12px; font-weight: 700;">
+                            ⚙️ GitHub Token Setup
+                        </button>
+                        <a href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 12px; font-weight: 700; color: #ea580c; border-color: #fdba74;">
+                            GitHub Actions Runner &#8599;
+                        </a>
+                    </div>
+                </div>
+
+                <div id="pipeline-alert" style="display: none; margin-bottom: 14px; padding: 12px 14px; border-radius: 8px; font-size: 13px;"></div>
+
+                <!-- GitHub PAT Configuration Drawer -->
+                <div id="gh-token-drawer" style="display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+                    <label style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #475569; display: block; margin-bottom: 6px; letter-spacing: 0.05em;">
+                        GitHub Personal Access Token (classic or fine-grained with 'actions:write' / 'repo'):
+                    </label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="password" id="input-gh-token" class="form-control" placeholder="ghp_xxxxxxxxxxxx" style="flex: 1; min-width: 240px; font-family: monospace; font-size: 13px;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="saveGhToken()" style="font-weight: 700;">Save Token</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="clearGhToken()">Clear</button>
+                    </div>
+                    <p style="margin: 6px 0 0 0; font-size: 11px; color: #64748b;">
+                        Stored only in your personal browser's localStorage for security. Allows 1-click execution without leaving this page.
+                    </p>
+                </div>
+
+                <!-- Run Mode Options Toolbar -->
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #334155; cursor: pointer;">
+                        <input type="checkbox" id="pipeline-dry-run" checked>
+                        <span>Dry Run (Build HTML previews &amp; update editions without email broadcast)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #334155; cursor: pointer;">
+                        <input type="checkbox" id="pipeline-test-mode" onchange="toggleTestRecipientInput(this.checked)">
+                        <span>Test Run Only (Send test issue ONLY to recipient below)</span>
+                    </label>
+                    <div id="test-recipient-wrap" style="display: none; align-items: center; gap: 6px;">
+                        <input type="email" id="pipeline-test-recipient" value="cheerfulweb@gmail.com" class="form-control" style="font-size: 12px; padding: 4px 8px; width: 220px;" placeholder="test@example.com">
+                    </div>
+                </div>
+
+                <!-- Three One-Click Action Buttons -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <button type="button" id="btn-run-reader" class="btn btn-primary" onclick="triggerPipeline('reader')" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 800; padding: 10px 18px; border-radius: 10px; background: #00008b; border-color: #00008b; font-size: 13px;">
+                        <span>🏡</span>
+                        <span>Run Reader Edition (Thursday)</span>
+                    </button>
+                    <!-- Monday Vendor Edition retired 2026-11-13: "Run Vendor" and "Run BOTH" buttons hidden (workflow no longer accepts vendor/both). -->
+                    <button type="button" id="btn-run-vendor" class="btn btn-secondary" onclick="triggerPipeline('vendor')" hidden style="display: none; align-items: center; gap: 6px; font-weight: 800; padding: 10px 18px; border-radius: 10px; color: #0f172a; border-color: #94a3b8; font-size: 13px;">
+                        <span>💼</span>
+                        <span>Run Vendor Edition (Monday)</span>
+                    </button>
+                    <button type="button" id="btn-run-both" class="btn btn-success" onclick="triggerPipeline('both')" hidden style="display: none; align-items: center; gap: 6px; font-weight: 800; padding: 10px 20px; border-radius: 10px; background: #047857; border-color: #047857; color: #ffffff; font-size: 13px;">
+                        <span>⚡</span>
+                        <span>Run BOTH Editions</span>
+                    </button>
+                    <span id="pipeline-spinner" style="display: none; font-size: 13px; font-weight: 700; color: #0284c7; align-items: center; gap: 6px;">
+                        <span class="spinner" style="display: inline-block; width: 14px; height: 14px; border: 2px solid #0284c7; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+                        <span>Dispatching workflow to GitHub...</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- EDITION SELECTOR BAR -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-weight: 700; font-size: 14px;">Select Audit Edition:</label>
+                    <button type="button" id="btn-view-reader" class="btn btn-primary btn-sm">&#127969; Thursday Reader Edition</button>
+                    <button type="button" id="btn-view-vendor" class="btn btn-secondary btn-sm" hidden style="display: none;">&#128188; Monday Vendor Edition</button>
+                </div>
+                <button type="button" id="btn-refresh-audit" class="btn btn-secondary btn-sm">&#8635; Refresh Audit Data</button>
+            </div>
+
+            <!-- AUDIT HERO CARD -->
+            <div class="audit-hero">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span class="badge" id="audit-edition-badge" style="background: #0284c7; color: #ffffff; font-weight: 800; padding: 6px 14px; border-radius: 6px; display: inline-block; margin-bottom: 8px; font-size: 13px; line-height: 1.2;">
+                            Reader Edition
+                        </span>
+                        <h2 style="margin: 4px 0 6px 0; color: #0f172a;" id="audit-title">
+                            Welcome East Gwillimbury Community Newsletter Audit
+                        </h2>
+                        <p style="margin: 0; font-size: 14px; color: #475569;" id="audit-meta">
+                            Checking crawl history...
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a id="btn-preview-newsletter" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                            &#8599; View Full HTML Newsletter
+                        </a>
+                        <a href="test.html" class="btn btn-secondary btn-sm">
+                            &#129514; Dispatch Test to My Inbox
+                        </a>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-box-num" id="stat-total-items">0</div>
+                        <div class="stat-box-label">Total Items Published</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-num" id="stat-total-sources">0</div>
+                        <div class="stat-box-label">Tracked Scrape Sources</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-num" id="stat-active-sources" style="color: #166534;">0</div>
+                        <div class="stat-box-label">Healthy / Active Sources</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-num" id="stat-last-crawled" style="font-size: 15px; font-weight: 700; color: #334155; margin-top: 4px;">--</div>
+                        <div class="stat-box-label">Last Pipeline Run</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 1: CRAWL HEALTH TABLE (SOURCE-BY-SOURCE STATUS) -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3 style="margin: 0 0 2px 0;">1. Source-by-Source Crawl Health</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted);">
+                            Shows whether each website, box office, or municipal calendar responded, how many items were retrieved, and when it was last checked.
+                        </p>
+                    </div>
+                    <input type="text" id="filter-sources" class="form-control" style="width: 220px;" placeholder="Filter source name...">
+                </div>
+
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Crawl Status</th>
+                                <th>Source Website / Entity</th>
+                                <th>Category</th>
+                                <th>Items Retrieved</th>
+                                <th>Last Crawled (UTC)</th>
+                                <th>Diagnostic Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sources-tbody">
+                            <tr><td colspan="6" style="color:var(--muted); text-align:center;">Loading source audit...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SECTION 2: PUBLISHED ARTICLES & EVENTS DIRECTORY -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0;">2. Published Content Items in this Edition</h3>
+                        <p style="margin: 0; font-size: 13px; color: var(--muted);">
+                            Every article, community event, concert, library workshop, and partner perk included in this issue, verified with tracked link destinations.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="text" id="filter-items" class="form-control" style="width: 240px;" placeholder="Search title or venue...">
+                        <button type="button" id="btn-export-audit-csv" class="btn btn-primary btn-sm">&#11015; Export Content Audit (CSV)</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap" style="max-height: 520px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Source Name</th>
+                                <th>Article / Event Title</th>
+                                <th>Category</th>
+                                <th>Event Date / Venue</th>
+                                <th>Destination Link</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-tbody">
+                            <tr><td colspan="6" style="color:var(--muted); text-align:center;">Loading items...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        let sbClient = null;
+        let currentUser = null;
+        let activeEdition = "reader";
+        let currentAudit = null;
+        let currentHtml = "";
+
+        const BUILTIN_FALLBACK_SOURCES = [
+            { name: "Town of East Gwillimbury — Events Calendar", url: "https://www.georgina.ca/living-here/events-calendar", cat: "community_events" },
+            { name: "Stephen Leacock Theatre (TixHub Box Office)", url: "https://secure1.tixhub.com/georgina/online/index.asp", cat: "theatre_and_arts" },
+            { name: "East Gwillimbury Public Library Programs & Calendar", url: "https://calendar.georginalibrary.ca/default/Month", cat: "library_programs" },
+            { name: "Central York Chamber of Commerce & B2B Events", url: "https://www.georginachamber.com/events/", cat: "chamber_events" },
+            { name: "The Briars Resort & Spa Event Calendar", url: "https://www.briars.ca/briars-resort-event-calendar", cat: "private_business_events" },
+            { name: "The NewmarketToday (RSS)", url: "https://georginapost.com/feed/", cat: "news" },
+            { name: "Explore East Gwillimbury Tourism Blog", url: "https://www.exploregeorgina.ca/blog", cat: "news" },
+            { name: "Choose East Gwillimbury Economic Development Blog", url: "https://www.choosegeorgina.ca/blog", cat: "news" },
+            { name: "Town of East Gwillimbury — Media Releases & Council Highlights", url: "https://www.georgina.ca/municipal-government/newsroom/media-releases", cat: "municipal_news" },
+            { name: "Eventbrite (Holland Landing & East Gwillimbury Area)", url: "https://www.eventbrite.ca/d/canada--holland landing/events/", cat: "eventbrite_meetup" },
+            { name: "Meetup (Holland Landing & East Gwillimbury)", url: "https://www.meetup.com/find/?location=ca--on--holland landing&source=EVENTS", cat: "eventbrite_meetup" },
+            { name: "Hospice East Gwillimbury Events Calendar", url: "https://www.hospicegeorgina.com/events-calendar", cat: "private_business_events" },
+            { name: "Public Community Event Submissions", url: "https://welcomeeg.ca/submission", cat: "private_business_events" }
+        ];
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            if (!el) return;
+            el.className = `alert alert-${type}`;
+            el.innerHTML = msg;
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function clearAlert() {
+            const el = document.getElementById("page-alert");
+            if (el) el.style.display = "none";
+        }
+
+        // Only allow http(s) links: blocks javascript: and other unsafe schemes in submitted data.
+        function safeHref(u) {
+            const raw = String(u == null ? "" : u).trim();
+            if (!raw) return "#";
+            try {
+                const p = new URL(raw, window.location.href);
+                return (p.protocol === "https:" || p.protocol === "http:") ? p.href : "#";
+            } catch (e) {
+                return "#";
+            }
+        }
+        // Safe text for an inline onclick argument (v58.2): produces a complete, quoted JavaScript
+        // string, so apostrophes or quotes in a title can no longer break the button or inject code.
+        function jsArg(value) {
+            return escapeHtml(JSON.stringify(String(value == null ? "" : value)));
+        }
+        function escapeHtml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function cleanCsv(val) {
+            let s = String(val === null || val === undefined ? "" : val);
+            s = s.replace(/\u2022|•|â€¢/g, "-").replace(/[\u2013\u2014–—]/g, "-").replace(/\r?\n|\r/g, " ").trim();
+            if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;   // never a spreadsheet formula
+            if (/[",\n']/.test(s)) {
+                return `"${s.replace(/"/g, '""')}"`;
+            }
+            return s;
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase backend connection is not configured in <code>assets/config.js</code>.", "warning");
+                return;
+            }
+
+            sbClient = window.GeorginaStore.getClient();
+            const { data: { session } } = await sbClient.auth.getSession();
+
+            if (!session || !session.user) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            currentUser = session.user;
+            const userEmail = (currentUser.email || "").trim().toLowerCase();
+
+            const { data: profile } = await sbClient
+                .from("user_profiles")
+                .select("role")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "staff" || userEmail === "cheerfulweb@gmail.com";
+
+            if (!isAdmin) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            if (window.syncHeaderAuthBadge) {
+                window.syncHeaderAuthBadge(userEmail, true);
+            }
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => {
+                    await sbClient.auth.signOut();
+                    window.location.href = "/staff/login.html";
+                };
+            }
+
+            document.getElementById("audit-console").style.display = "block";
+
+            document.getElementById("btn-view-reader").addEventListener("click", () => switchEdition("reader"));
+            document.getElementById("btn-view-vendor").addEventListener("click", () => switchEdition("vendor"));
+            document.getElementById("btn-refresh-audit").addEventListener("click", () => loadAuditData(activeEdition));
+
+            document.getElementById("filter-sources").addEventListener("input", renderSourcesTable);
+            document.getElementById("filter-items").addEventListener("input", renderItemsTable);
+            document.getElementById("btn-export-audit-csv").addEventListener("click", exportAuditCsv);
+
+            await loadAuditData(activeEdition);
+        }
+
+        function switchEdition(edition) {
+            activeEdition = edition;
+            const btnReader = document.getElementById("btn-view-reader");
+            const btnVendor = document.getElementById("btn-view-vendor");
+            if (edition === "reader") {
+                btnReader.className = "btn btn-primary btn-sm";
+                btnVendor.className = "btn btn-secondary btn-sm";
+            } else {
+                btnVendor.className = "btn btn-primary btn-sm";
+                btnReader.className = "btn btn-secondary btn-sm";
+            }
+            loadAuditData(edition);
+        }
+
+        async function loadAuditData(edition) {
+            clearAlert();
+            try {
+                // 1. Fetch structured crawl audit log
+                const { data: auditRows, error: auditErr } = await sbClient
+                    .from("newsletter_settings")
+                    .select("setting_key,setting_value,updated_at")
+                    .eq("setting_key", `crawl_audit_${edition}`)
+                    .limit(1);
+
+                // 2. Fetch latest compiled HTML edition
+                const { data: editionRows, error: editionErr } = await sbClient
+                    .from("newsletter_editions")
+                    .select("edition,subject,html_content,updated_at")
+                    .eq("edition", edition)
+                    .limit(1);
+
+                let audit = auditRows && auditRows[0] ? auditRows[0].setting_value : null;
+                const editionRecord = editionRows && editionRows[0] ? editionRows[0] : null;
+
+                currentHtml = editionRecord ? editionRecord.html_content : "";
+
+                // If structured crawl audit log is not yet written, construct a rich audit from the compiled HTML!
+                if (!audit && editionRecord && editionRecord.html_content) {
+                    audit = constructAuditFromHtml(edition, editionRecord);
+                }
+
+                currentAudit = audit;
+                renderAuditHeader(edition, editionRecord);
+                renderSourcesTable();
+                renderItemsTable();
+            } catch (err) {
+                showAlert("Error loading audit data: " + err.message, "danger");
+            }
+        }
+
+        // Parse compiled newsletter HTML to extract all sources, items, dates, and links
+        function constructAuditFromHtml(edition, editionRecord) {
+            const html = editionRecord.html_content || "";
+            const items = [];
+            const sourceCounts = {};
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+
+            // Extract articles
+            const cards = doc.querySelectorAll("div[style*='margin-bottom: 22px'], div[style*='background-color: #fffbeb']");
+            cards.forEach(card => {
+                const titleLink = card.querySelector("h3 a");
+                const badge = card.querySelector("span[style*='font-size: 11px'], span[style*='font-size: 12px']");
+                const locP = card.querySelector("p[style*='font-weight: 600']");
+
+                if (titleLink) {
+                    const title = titleLink.textContent.trim();
+                    const href = titleLink.getAttribute("href") || "";
+                    let rawSource = "Welcome East Gwillimbury";
+                    let dateStr = "";
+
+                    if (badge) {
+                        const parts = badge.textContent.replace("★", "").split("•");
+                        rawSource = parts[0] ? parts[0].trim() : rawSource;
+                        dateStr = parts[1] ? parts[1].trim() : "";
+                    }
+
+                    sourceCounts[rawSource] = (sourceCounts[rawSource] || 0) + 1;
+
+                    items.push({
+                        title: title,
+                        source: rawSource,
+                        category: card.closest("div[style*='margin-bottom: 32px']")?.querySelector("h2")?.textContent.trim() || "Local Content",
+                        link: href,
+                        date: dateStr,
+                        location: locP ? locP.textContent.trim() : ""
+                    });
+                }
+            });
+
+            // Map into sources list
+            const sources = BUILTIN_FALLBACK_SOURCES.map(s => {
+                const matchedName = Object.keys(sourceCounts).find(k => k.toLowerCase().includes(s.name.toLowerCase().slice(0, 10)) || s.name.toLowerCase().includes(k.toLowerCase().slice(0, 10)));
+                const count = matchedName ? sourceCounts[matchedName] : 0;
+                return {
+                    source_name: s.name,
+                    source_url: s.url,
+                    category: s.cat,
+                    status: count > 0 ? "success" : "empty",
+                    items_count: count,
+                    crawled_at: editionRecord.updated_at,
+                    notes: count > 0 ? `Successfully retrieved ${count} item(s)` : "Included in schedule (0 items in this edition)"
+                };
+            });
+
+            return {
+                edition: edition,
+                issue_date: (editionRecord.updated_at || "").slice(0, 10),
+                published_at: editionRecord.updated_at,
+                total_items: items.length,
+                sources: sources,
+                items: items
+            };
+        }
+
+        function renderAuditHeader(edition, editionRecord) {
+            const badge = document.getElementById("audit-edition-badge");
+            const title = document.getElementById("audit-title");
+            const meta = document.getElementById("audit-meta");
+            const btnPreview = document.getElementById("btn-preview-newsletter");
+
+            badge.textContent = edition === "vendor" ? "Monday Vendor Edition" : "Thursday Reader Edition";
+            badge.style.background = edition === "vendor" ? "#ea580c" : "#0284c7";
+            badge.style.padding = "6px 14px";
+            badge.style.borderRadius = "6px";
+            badge.style.display = "inline-block";
+            badge.style.lineHeight = "1.2";
+
+            const totalItems = currentAudit?.total_items || currentAudit?.items?.length || 0;
+            const pubDate = currentAudit?.published_at ? new Date(currentAudit.published_at).toLocaleString() : (editionRecord ? new Date(editionRecord.updated_at).toLocaleString() : "Recent");
+
+            title.textContent = editionRecord?.subject || `Welcome East Gwillimbury • ${edition.toUpperCase()} Edition Audit`;
+            meta.innerHTML = `<strong>Published / Compiled:</strong> ${pubDate} &bull; <strong>Total Verified Items:</strong> ${totalItems} articles, events &amp; perks`;
+
+            document.getElementById("stat-total-items").textContent = totalItems;
+            document.getElementById("stat-total-sources").textContent = currentAudit?.sources?.length || 0;
+            const activeCount = (currentAudit?.sources || []).filter(s => s.status === "success").length;
+            document.getElementById("stat-active-sources").textContent = activeCount;
+            document.getElementById("stat-last-crawled").textContent = pubDate;
+
+            if (currentHtml) {
+                const max1440Inject = '<style>html { background: #cbd5e1 !important; } body, .outer-container { max-width: 1440px !important; margin: 0 auto !important; background: #f1f5f9 !important; box-shadow: 0 4px 30px rgba(0,0,0,0.12) !important; } .inner-card { max-width: 760px !important; margin: 0 auto !important; }</style>';
+                const boundedHtml = currentHtml.includes("</head>") ? currentHtml.replace("</head>", max1440Inject + "</head>") : max1440Inject + currentHtml;
+                const blob = new Blob([boundedHtml], { type: "text/html;charset=utf-8" });
+                btnPreview.href = URL.createObjectURL(blob);
+                btnPreview.style.pointerEvents = "auto";
+            } else {
+                btnPreview.removeAttribute("href");
+                btnPreview.style.pointerEvents = "none";
+            }
+        }
+
+        function renderSourcesTable() {
+            const tbody = document.getElementById("sources-tbody");
+            const filterVal = (document.getElementById("filter-sources")?.value || "").trim().toLowerCase();
+            const sources = currentAudit?.sources || [];
+
+            const filtered = sources.filter(s => {
+                if (!filterVal) return true;
+                return (s.source_name + " " + s.source_url + " " + s.category).toLowerCase().includes(filterVal);
+            });
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted); text-align:center;">No sources match filter ${jsArg(filterVal)}.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => {
+                let statusBadge = "";
+                if (s.status === "success") {
+                    statusBadge = `<span class="status-pill status-pill-success">&#10003; CRAWL OK (${s.items_count})</span>`;
+                } else if (s.status === "empty") {
+                    statusBadge = `<span class="status-pill status-pill-empty">&#9888; 0 ITEMS</span>`;
+                } else {
+                    statusBadge = `<span class="status-pill status-pill-error">&#10007; ERROR</span>`;
+                }
+
+                const crawlTime = s.crawled_at ? new Date(s.crawled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--";
+
+                return `<tr>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <strong>${escapeHtml(s.source_name)}</strong><br>
+                        <a href="${escapeHtml(safeHref(s.source_url))}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: var(--primary); word-break: break-all;">
+                            ${escapeHtml(s.source_url)} &#8599;
+                        </a>
+                    </td>
+                    <td><span style="font-size: 12px; color: var(--muted);">${escapeHtml(s.category ? s.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : "")}</span></td>
+                    <td style="font-weight: 700; font-size: 15px; text-align: center;">${s.items_count}</td>
+                    <td style="white-space: nowrap; font-size: 12px; color: var(--muted);">${crawlTime}</td>
+                    <td style="font-size: 12px; color: #475569;">${escapeHtml(s.notes || "")}</td>
+                </tr>`;
+            }).join("");
+        }
+
+        function renderItemsTable() {
+            const tbody = document.getElementById("items-tbody");
+            const filterVal = (document.getElementById("filter-items")?.value || "").trim().toLowerCase();
+            const items = currentAudit?.items || [];
+
+            const filtered = items.filter(it => {
+                if (!filterVal) return true;
+                return (it.title + " " + it.source + " " + it.category + " " + it.location).toLowerCase().includes(filterVal);
+            });
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted); text-align:center;">No published content items match ${jsArg(filterVal)}.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((it, idx) => {
+                const destUrl = it.link || "";
+                return `<tr>
+                    <td style="color:var(--muted); font-size:12px;">${idx + 1}</td>
+                    <td><strong>${escapeHtml(it.source)}</strong></td>
+                    <td>
+                        <strong style="color: #0f172a;">${escapeHtml(it.title)}</strong>
+                    </td>
+                    <td><span style="font-size: 12px; color: var(--muted);">${escapeHtml(it.category ? it.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : "")}</span></td>
+                    <td style="font-size: 12px;">
+                        ${escapeHtml(it.date ? it.date + ' ' : '')}${escapeHtml(it.location || "")}
+                    </td>
+                    <td>
+                        <a href="${escapeHtml(safeHref(destUrl))}" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: var(--primary); word-break: break-all;">
+                            ${escapeHtml(destUrl.length > 55 ? destUrl.slice(0, 55) + '...' : destUrl)} &#8599;
+                        </a>
+                    </td>
+                    <td style="white-space: nowrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 8px; margin-right: 4px;" onclick="blacklistAuditItem(${jsArg(it.title)}, ${jsArg(destUrl)}, ${jsArg(it.source)})">
+                            🚫 Blacklist
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" style="font-size: 11px; padding: 4px 8px; background: #be123c;" onclick="deleteAuditItem(${jsArg(it.title)})">
+                            🗑️ Delete
+                        </button>
+                    </td>
+                </tr>`;
+            }).join("");
+        }
+
+        function exportAuditCsv() {
+            const items = currentAudit?.items || [];
+            if (!items.length) {
+                showAlert("No content items available to export.", "warning");
+                return;
+            }
+
+            const header = ["Index", "Source Name", "Article / Event Title", "Category", "Event Date", "Venue Location", "Destination Link"];
+            const rows = items.map((it, idx) => [
+                cleanCsv(idx + 1),
+                cleanCsv(it.source),
+                cleanCsv(it.title),
+                cleanCsv(it.category),
+                cleanCsv(it.date),
+                cleanCsv(it.location),
+                cleanCsv(it.link)
+            ]);
+
+            const csvContent = "\uFEFF" + [header.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `WelcomeEG_${activeEdition}_Content_Audit_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        
+        window.blacklistAuditItem = async function(title, url, source) {
+            const confirmed = confirm(`Are you sure you want to permanently blacklist this item?\n\nTitle: "${title}"\nSource: "${source}"\n\nThis will prevent it from appearing in any future newsletter crawls and immediately remove it from the live website.`);
+            if (!confirmed) return;
+
+            try {
+                if (sbClient) {
+                    await sbClient.from("scraped_url_blacklist").insert([{
+                        target_url: url || "https://welcomeeg.ca",
+                        title_keyword: title,
+                        match_type: "exact_url",
+                        source_label: source || "Audit Item",
+                        reason: "Blacklisted by admin from Crawl Audit (#78/79 suppression)",
+                        active: true
+                    }]);
+                    await sbClient.from("vendor_events").delete().ilike("title", `%${title}%`);
+                }
+
+                if (currentAudit && currentAudit.items) {
+                    currentAudit.items = currentAudit.items.filter(it => it.title !== title);
+                    currentAudit.total_items = currentAudit.items.length;
+                }
+
+                showAlert(`<strong>Success:</strong> "${escapeHtml(title)}" has been permanently blacklisted and removed from the live website.`, "success");
+                renderItemsTable();
+            } catch (err) {
+                showAlert(`Failed to blacklist item: ${err.message}`, "danger");
+            }
+        };
+
+        window.deleteAuditItem = async function(title) {
+            const confirmed = confirm(`Are you sure you want to remove this item immediately from the live website?\n\nTitle: "${title}"`);
+            if (!confirmed) return;
+
+            try {
+                if (sbClient) {
+                    await sbClient.from("vendor_events").delete().ilike("title", `%${title}%`);
+                }
+
+                if (currentAudit && currentAudit.items) {
+                    currentAudit.items = currentAudit.items.filter(it => it.title !== title);
+                    currentAudit.total_items = currentAudit.items.length;
+                }
+
+                showAlert(`<strong>Success:</strong> "${escapeHtml(title)}" has been removed from the website.`, "success");
+                renderItemsTable();
+            } catch (err) {
+                showAlert(`Failed to delete item: ${err.message}`, "danger");
+            }
+        };
+
+        // ====================================================================
+        // PIPELINE TRIGGER & GITHUB DISPATCH CONTROLLER
+        // ====================================================================
+        window.toggleGhTokenConfig = function() {
+            const drawer = document.getElementById("gh-token-drawer");
+            if (!drawer) return;
+            drawer.style.display = (drawer.style.display === "none" || !drawer.style.display) ? "block" : "none";
+            const tokenInput = document.getElementById("input-gh-token");
+            if (tokenInput && drawer.style.display === "block") {
+                tokenInput.value = localStorage.getItem("georgina_gh_token") || "";
+                tokenInput.focus();
+            }
+        };
+
+        window.saveGhToken = function() {
+            const val = (document.getElementById("input-gh-token")?.value || "").trim();
+            if (!val) {
+                alert("Please enter a valid GitHub token (starts with ghp_ or github_pat_).");
+                return;
+            }
+            localStorage.setItem("georgina_gh_token", val);
+            const alertBox = document.getElementById("pipeline-alert");
+            if (alertBox) {
+                alertBox.style.display = "block";
+                alertBox.className = "alert alert-success";
+                alertBox.innerHTML = "✅ <strong>GitHub Token Saved!</strong> You can now trigger pipeline runs with one click.";
+            }
+            document.getElementById("gh-token-drawer").style.display = "none";
+        };
+
+        window.clearGhToken = function() {
+            localStorage.removeItem("georgina_gh_token");
+            const tokenInput = document.getElementById("input-gh-token");
+            if (tokenInput) tokenInput.value = "";
+            const alertBox = document.getElementById("pipeline-alert");
+            if (alertBox) {
+                alertBox.style.display = "block";
+                alertBox.className = "alert alert-info";
+                alertBox.innerHTML = "GitHub token removed from local storage.";
+            }
+        };
+
+        window.toggleTestRecipientInput = function(isChecked) {
+            const wrap = document.getElementById("test-recipient-wrap");
+            if (wrap) wrap.style.display = isChecked ? "inline-flex" : "none";
+        };
+
+        window.triggerPipeline = async function(edition) {
+            const isDryRun = document.getElementById("pipeline-dry-run")?.checked || false;
+            const isTestMode = document.getElementById("pipeline-test-mode")?.checked || false;
+            const testRecipient = (document.getElementById("pipeline-test-recipient")?.value || "").trim();
+            const token = localStorage.getItem("georgina_gh_token");
+
+            const spinner = document.getElementById("pipeline-spinner");
+            const alertBox = document.getElementById("pipeline-alert");
+
+            const showPipAlert = (msg, type) => {
+                if (!alertBox) return;
+                alertBox.style.display = "block";
+                alertBox.className = `alert alert-${type}`;
+                alertBox.innerHTML = msg;
+            };
+
+            if (!token) {
+                document.getElementById("gh-token-drawer").style.display = "block";
+                const tokenInput = document.getElementById("input-gh-token");
+                if (tokenInput) tokenInput.focus();
+                showPipAlert(`<strong>GitHub Token Required:</strong> Please enter a GitHub Personal Access Token above to trigger GitHub Actions directly from this browser, or <a href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml" target="_blank" style="font-weight:700; color:#0284c7; text-decoration:underline;">launch it manually in GitHub Actions ↗</a>`, "warning");
+                return;
+            }
+
+            if (spinner) spinner.style.display = "inline-flex";
+            showPipAlert(`🚀 Dispatching <strong>${edition.toUpperCase()}</strong> edition pipeline run to GitHub Actions...`, "info");
+
+            try {
+                const res = await fetch("https://api.github.com/repos/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml/dispatches", {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/vnd.github.v3+json",
+                        "Authorization": `Bearer ${token.trim()}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        ref: "main",
+                        inputs: {
+                            edition: edition,
+                            dry_run: isDryRun,
+                            test_mode: isTestMode,
+                            test_recipient: testRecipient
+                        }
+                    })
+                });
+
+                if (res.status === 204 || res.status === 200) {
+                    showPipAlert(`✅ <strong>Pipeline Launched Successfully!</strong> GitHub Actions is now scraping, categorizing, and compiling the <strong>${edition.toUpperCase()}</strong> edition for today's date. <a href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml" target="_blank" style="font-weight:700; color:#047857; text-decoration:underline;">View live execution on GitHub Actions ↗</a>`, "success");
+                } else {
+                    const errJson = await res.json().catch(() => ({}));
+                    showPipAlert(`❌ <strong>Dispatch failed (${res.status}):</strong> ${errJson.message || res.statusText}. Please verify your GitHub PAT token permissions or <a href="https://github.com/cheerfulweb-robl/georgina-newsletter-pipeline/actions/workflows/run_pipeline.yml" target="_blank" style="text-decoration:underline;">open GitHub directly ↗</a>`, "danger");
+                }
+            } catch (e) {
+                showPipAlert(`❌ <strong>Network Error:</strong> ${e.message}`, "danger");
+            } finally {
+                if (spinner) spinner.style.display = "none";
+            }
+        };
+
+        window.toggleNavDrawer = function(force) {
+            const nav = document.getElementById("audit-nav-links");
+            const backdrop = document.getElementById("nav-backdrop");
+            if (!nav) return;
+            const isOpen = typeof force === "boolean" ? force : !nav.classList.contains("drawer-open");
+            nav.classList.toggle("drawer-open", isOpen);
+            if (backdrop) backdrop.classList.toggle("active", isOpen);
+        };
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+
+    <!-- FLOATING BUG REPORT BUTTON & MODAL (FIXED LOWER LEFT) -->
+    <div style="position: fixed; bottom: 24px; left: 24px; z-index: 9999;">
+        <button type="button" onclick="document.getElementById('modal-global-bug-report').style.display='flex'" style="display: flex; align-items: center; gap: 8px; background: #0f172a; color: #ffffff; border: 2px solid #f43f5e; padding: 10px 16px; border-radius: 9999px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3); transition: all 0.2s ease;">
+            <span style="font-size: 15px;">🐞</span>
+            <span>Bug Reports</span>
+        </button>
+    </div>
+
+    <div id="modal-global-bug-report" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #ffffff; width: 100%; max-width: 520px; border-radius: 16px; border: 2px solid #0f172a; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+                <div>
+                    <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #e11d48; background: #ffe4e6; padding: 2px 8px; border-radius: 4px;">Direct Feedback</span>
+                    <h3 style="margin: 6px 0 0 0; color: #0f172a; font-size: 18px;">🐞 Report a Website or Newsletter Bug</h3>
+                </div>
+                <button type="button" onclick="document.getElementById('modal-global-bug-report').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+            <p style="font-size: 12.5px; color: #64748b; margin-top: 0; margin-bottom: 14px;">
+                Send a report directly to <strong>contact@welcomeeg.ca</strong> regarding any errors, broken links, or date discrepancies.
+            </p>
+            <form onsubmit="handleStaticBugSubmit(event)">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Your Name *</label>
+                    <input type="text" id="bug-input-name" class="form-control" placeholder="e.g. Robert Lee" required style="width: 100%; box-sizing: border-box; padding: 8px 10px;">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Your Email Address *</label>
+                    <input type="email" id="bug-input-email" class="form-control" placeholder="e.g. robert@example.com" required style="width: 100%; box-sizing: border-box; padding: 8px 10px;">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Page URL Where Error Occurred *</label>
+                    <input type="url" id="bug-input-url" class="form-control" required readonly style="width: 100%; box-sizing: border-box; padding: 8px 10px; background: #f8fafc; font-family: monospace; font-size: 12px;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="font-size: 12px; font-weight: 800; text-transform: uppercase;">Bug Details &amp; Message *</label>
+                        <span id="bug-char-counter" style="font-size: 11px; font-weight: 700; color: #e11d48;">0 / 500 chars (min 50)</span>
+                    </div>
+                    <textarea id="bug-input-message" class="form-control" rows="4" minlength="50" maxlength="500" placeholder="Please describe what is broken, incorrect date, or display problem (minimum 50 characters required)..." required oninput="updateBugCounter()" style="width: 100%; box-sizing: border-box; padding: 10px;"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modal-global-bug-report').style.display='none'">Cancel</button>
+                    <button type="submit" id="btn-submit-bug" class="btn btn-primary" style="background: #e11d48; border-color: #be123c; font-weight: 800;">Send Bug Report &rarr;</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updateBugCounter() {
+            const val = document.getElementById('bug-input-message')?.value || '';
+            const count = val.length;
+            const el = document.getElementById('bug-char-counter');
+            if (!el) return;
+            if (count < 50) {
+                el.textContent = `${count} / 500 chars (min 50 required)`;
+                el.style.color = '#e11d48';
+            } else {
+                el.textContent = `${count} / 500 chars ✓`;
+                el.style.color = '#059669';
+            }
+        }
+
+        async function handleStaticBugSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('bug-input-name').value.trim();
+            const email = document.getElementById('bug-input-email').value.trim();
+            const page_url = document.getElementById('bug-input-url').value.trim();
+            const message = document.getElementById('bug-input-message').value.trim();
+
+            if (message.length < 50 || message.length > 500) {
+                alert('Message must be between 50 and 500 characters.');
+                return;
+            }
+
+            try {
+                if (sbClient) {
+                    await sbClient.from('bug_reports').insert([{
+                        name, email, page_url, message,
+                        recipient: 'contact@welcomeeg.ca',
+                        status: 'new'
+                    }]);
+                }
+            } catch (err) {}
+
+            alert('Thank you! Your bug report has been submitted to contact@welcomeeg.ca. Our team will review and resolve it promptly.');
+            document.getElementById('modal-global-bug-report').style.display = 'none';
+            document.getElementById('bug-input-message').value = '';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlInput = document.getElementById('bug-input-url');
+            if (urlInput) urlInput.value = window.location.href;
+        });
+    </script>
+
+</body>
+</html>

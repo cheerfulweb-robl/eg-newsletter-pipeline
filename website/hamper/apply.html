@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Hamper Application — Welcome East Gwillimbury</title>
+    <meta name="description" content="Local East Gwillimbury businesses: apply to include your welcome offer or coupon in the Welcome Hamper for new residents.">
+    <link rel="icon" type="image/x-icon" href="/favicon.png">
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=70.4">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=70.4"></script>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='/welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='/welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link active" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/login" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="main-content" style="max-width: 820px; margin: 0 auto; padding: 32px 16px 48px;">
+        <div style="margin-bottom: 18px;">
+            <a href="/hamper/" style="font-size:13px;font-weight:700;color:#1e3a8a;text-decoration:none;">&larr; Back to Welcome Hamper</a>
+        </div>
+
+        <div class="card" style="padding: 28px;">
+            <span style="display:inline-block;padding:4px 10px;border-radius:99px;background:#eff6ff;color:#1e3a8a;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;">Local Business Partner</span>
+            <h1 style="margin:0 0 8px 0;">Business Hamper Application</h1>
+            <p style="margin:0 0 22px 0;color:var(--muted);line-height:1.5;">
+                Submit your business details and newcomer welcome offer (coupon or voucher) for the Welcome East Gwillimbury Hamper. Start typing your business name to auto-fill from our Business Directory, or enter a new business.
+            </p>
+
+            <div id="apply-alert" class="alert" style="display:none;margin-bottom:18px;"></div>
+
+            <form id="hamper-biz-apply-form">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="hb-business">Business Name *</label>
+                        <input type="text" id="hb-business" list="hb-directory-list" class="form-control" placeholder="Start typing to pick from Directory..." required>
+                        <datalist id="hb-directory-list"></datalist>
+                        <div id="hb-dir-match" style="display:none;font-size:12px;font-weight:700;color:#047857;margin-top:4px;">&#10003; Connected to Business Directory — details prefilled.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="hb-community">Community Area *</label>
+                        <select id="hb-community" class="form-control" required></select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="hb-email">Business Contact Email *</label>
+                        <input type="email" id="hb-email" class="form-control" placeholder="owner@yourbusiness.ca" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hb-website">Business Website (optional)</label>
+                        <input type="url" id="hb-website" class="form-control" placeholder="https://yourbusiness.ca">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="hb-offer-title">Welcome Offer / Coupon Title *</label>
+                    <input type="text" id="hb-offer-title" class="form-control" placeholder="e.g. 20% Off Your First Visit or Free Coffee with Any Pastry" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hb-offer-details">Offer Details *</label>
+                    <textarea id="hb-offer-details" class="form-control" rows="3" placeholder="Describe what newcomers receive and how to redeem it in-store or online..." required></textarea>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="hb-terms">Terms &amp; Restrictions (optional)</label>
+                        <input type="text" id="hb-terms" class="form-control" placeholder="e.g. One per household, valid in-store only">
+                    </div>
+                    <div class="form-group">
+                        <label for="hb-valid-until">Offer Valid Until (optional)</label>
+                        <input type="date" id="hb-valid-until" class="form-control">
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+                    <button type="submit" id="hb-submit-btn" class="btn btn-primary" style="padding:12px 24px;font-weight:800;">Submit Business Hamper Application</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A&mdash;Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const COMMUNITIES = [
+            "Baldwin", "Franklin", "Brown Hill", "Egypt", "Brown Hill",
+            "Sharon", "Holland Landing", "Queensville", "Ravenshoe",
+            "Holt", "Mount Albert", "Brown Hill", "Virginia", "River Drive Park", "All East Gwillimbury", "Out of Area"
+        ];
+        let dirBusinesses = [];
+
+        function escHtml(v) {
+            return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+        }
+
+        function showApplyAlert(msg, type) {
+            const el = document.getElementById("apply-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.textContent = msg;
+            el.style.display = "block";
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const commSel = document.getElementById("hb-community");
+            COMMUNITIES.forEach(c => {
+                const o = document.createElement("option");
+                o.value = c; o.textContent = c;
+                commSel.appendChild(o);
+            });
+            commSel.value = "Holland Landing";
+
+            const client = window.GeorginaStore ? window.GeorginaStore.getClient() : null;
+            if (client) {
+                let all = [], from = 0, pageSize = 1000;
+                while (true) {
+                    const { data, error } = await client
+                        .from("directory_listings")
+                        .select("id, name, community, link, status")
+                        .or("status.eq.approved,status.is.null")
+                        .order("name", { ascending: true })
+                        .range(from, from + pageSize - 1);
+                    if (error || !data || !data.length) break;
+                    all = all.concat(data);
+                    if (data.length < pageSize) break;
+                    from += pageSize;
+                }
+                dirBusinesses = all;
+                const dl = document.getElementById("hb-directory-list");
+                dl.innerHTML = all.map(b => `<option value="${String(b.name || "").replace(/"/g, "&quot;")}"></option>`).join("");
+            }
+
+            document.getElementById("hb-business").addEventListener("input", function () {
+                const norm = this.value.trim().toLowerCase();
+                const match = norm ? dirBusinesses.find(b => (b.name || "").trim().toLowerCase() === norm) : null;
+                document.getElementById("hb-dir-match").style.display = match ? "block" : "none";
+                if (match) {
+                    if (match.community && COMMUNITIES.includes(match.community)) {
+                        document.getElementById("hb-community").value = match.community;
+                    }
+                    const rawLink = String(match.link || "").trim();
+                    const webEl = document.getElementById("hb-website");
+                    if (rawLink && !/^https?:\/\/(www\.)?welcomeeg\.ca(\/|$)/i.test(rawLink) && !webEl.value.trim()) {
+                        webEl.value = rawLink;
+                    }
+                }
+            });
+
+            document.getElementById("hamper-biz-apply-form").addEventListener("submit", async function (e) {
+                e.preventDefault();
+                if (!client) {
+                    showApplyAlert("Service is temporarily unavailable. Please email admin@welcomeeg.ca.", "danger");
+                    return;
+                }
+                const btn = document.getElementById("hb-submit-btn");
+                btn.disabled = true;
+                btn.textContent = "Submitting...";
+                try {
+                    const name = document.getElementById("hb-business").value.trim();
+                    const email = document.getElementById("hb-email").value.trim().toLowerCase();
+                    const title = document.getElementById("hb-offer-title").value.trim();
+                    const details = document.getElementById("hb-offer-details").value.trim();
+                    const terms = document.getElementById("hb-terms").value.trim();
+                    const community = document.getElementById("hb-community").value;
+                    const website = document.getElementById("hb-website").value.trim();
+                    const validUntil = document.getElementById("hb-valid-until").value;
+
+                    const { data, error } = await client.rpc("hamper_submit_business_offer", {
+                        merchant_name_input: name,
+                        merchant_email_input: email,
+                        offer_title_input: title,
+                        offer_details_input: details,
+                        terms_input: terms,
+                        community_input: community,
+                        merchant_website_input: website,
+                        valid_until_input: validUntil
+                    });
+                    if (error || !data || !data.success) {
+                        throw new Error((data && data.error) || (error && error.message) || "Submission failed");
+                    }
+                    try {
+                        await client.functions.invoke("send-email", {
+                            body: {
+                                to: "admin@welcomeeg.ca",
+                                subject: `New Business Hamper Application: ${name}`,
+                                html: `<p><strong>Business:</strong> ${escHtml(name)} (${escHtml(community)})</p><p><strong>Email:</strong> ${escHtml(email)}</p><p><strong>Offer:</strong> ${escHtml(title)}</p><p><strong>Details:</strong> ${escHtml(details)}</p><p><a href="https://welcomeeg.ca/hamper/admin.html">Review in Welcome Hamper Admin &rarr;</a></p>`
+                            }
+                        });
+                    } catch (_) {}
+
+                    showApplyAlert("Thank you! Your Business Hamper Application has been received and queued for review in Welcome Hamper Admin.", "success");
+                    this.reset();
+                    document.getElementById("hb-dir-match").style.display = "none";
+                } catch (err) {
+                    showApplyAlert("Could not submit application: " + err.message, "danger");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = "Submit Business Hamper Application";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

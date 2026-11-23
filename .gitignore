@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables & local secrets
+.env
+
+# Local dry-run preview output
+preview.html
+preview_*.html
+
+# Scratch & temporary scripts
+scratch/
+*.zip
+00 new chat copy paste to start.txt
+install_filters.php
+update_crm_lead_layout.php
+
+# --- added 2026-11-13: never commit secrets or local work ---
+SUPABASE_SERVICE_KEY.txt
+_work/
+node_modules/
+site-src/node_modules/
+site-src/dist/
+*.tar.gz
+.env
+*.env
+
+# Local secrets (never commit)
+.env.*
+!.env.example
+brevo smtp key for supabase.txt
+SUPABASE_SERVICE_KEY.txt
+
+# Old session notes (contain a personal email and a one-time link)
+restart next steps 2026-11-11.txt
+New Welcome EG steps.txt

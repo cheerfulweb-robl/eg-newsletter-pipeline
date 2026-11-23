@@ -1,0 +1,176 @@
+name: Cloud Disaster Recovery Backup (On-Demand + Weekly)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly full backup every Sunday at 06:00 UTC (1:00 AM EST / 2:00 AM EDT)
+    - cron: '0 6 * * 0'
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Initialize Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Export Supabase tables & Storage buckets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          mkdir -p backup_out/storage
+          python - << 'EOF'
+          import json, os, pathlib, urllib.request, urllib.parse
+          from datetime import datetime, timezone
+
+          url = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
+          key = os.environ.get("SUPABASE_SERVICE_KEY") or ""
+          if not url or not key:
+              raise SystemExit("Missing SUPABASE_URL or SUPABASE_SERVICE_KEY")
+
+          tables = [
+              "user_profiles", "newsletter_settings",
+              "directory_listings", "directory_listing_admin_notes",
+              "business_accounts", "business_claims",
+              "vendor_events", "vendor_event_admin_notes",
+              "vendor_scrape_sources", "scraped_url_blacklist",
+              "newsletter_subscribers", "newsletter_editions", "newsletter_ad_placements",
+              "home_gallery", "press_articles", "search_sponsors", "spotlight_schedule",
+              "editorial_corrections", "ad_orders",
+              "hamper_applications", "hamper_offers", "hamper_coupons", "wallets", "redemptions",
+              "click_monthly_archives", "link_clicks"
+          ]
+          headers = {"apikey": key, "Authorization": f"Bearer {key}"}
+          snapshot = {"exported_at": datetime.now(timezone.utc).isoformat(), "tables": {}}
+
+          for tbl in tables:
+              rows = []
+              offset = 0
+              while True:
+                  req = urllib.request.Request(
+                      f"{url}/rest/v1/{tbl}?select=*&limit=1000&offset={offset}",
+                      headers=headers,
+                  )
+                  try:
+                      with urllib.request.urlopen(req, timeout=30) as resp:
+                          batch = json.loads(resp.read().decode("utf-8"))
+                      if not batch:
+                          break
+                      rows.extend(batch)
+                      if len(batch) < 1000:
+                          break
+                      offset += 1000
+                  except Exception as exc:
+                      print(f"Warning exporting {tbl}: {exc}")
+                      break
+              snapshot["tables"][tbl] = rows
+              print(f"Exported {tbl}: {len(rows)} rows")
+
+          with open("backup_out/supabase_data_backup.json", "w", encoding="utf-8") as f:
+              json.dump(snapshot, f, ensure_ascii=False, indent=2)
+
+          # Export Supabase Storage buckets & files
+          try:
+              req = urllib.request.Request(f"{url}/storage/v1/bucket", headers=headers)
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  buckets = json.loads(resp.read().decode("utf-8"))
+          except Exception as exc:
+              print(f"Warning listing storage buckets: {exc}")
+              buckets = []
+
+          def list_objects(bucket_id, prefix=""):
+              items = []
+              offset = 0
+              while True:
+                  body = json.dumps({"prefix": prefix, "limit": 100, "offset": offset}).encode("utf-8")
+                  req = urllib.request.Request(
+                      f"{url}/storage/v1/object/list/{urllib.parse.quote(bucket_id)}",
+                      data=body,
+                      headers={**headers, "Content-Type": "application/json"},
+                      method="POST",
+                  )
+                  with urllib.request.urlopen(req, timeout=30) as resp:
+                      batch = json.loads(resp.read().decode("utf-8"))
+                  if not batch:
+                      break
+                  for entry in batch:
+                      name = entry.get("name") or ""
+                      full = f"{prefix}{name}" if prefix else name
+                      if entry.get("id") is None:
+                          items.extend(list_objects(bucket_id, full.rstrip("/") + "/"))
+                      else:
+                          items.append(full)
+                  if len(batch) < 100:
+                      break
+                  offset += 100
+              return items
+
+          total_files = 0
+          for b in buckets:
+              bid = b.get("id") or b.get("name")
+              if not bid:
+                  continue
+              try:
+                  objs = list_objects(bid)
+                  for obj_path in objs:
+                      dest = pathlib.Path("backup_out/storage") / bid / obj_path
+                      dest.parent.mkdir(parents=True, exist_ok=True)
+                      dl_url = f"{url}/storage/v1/object/authenticated/{urllib.parse.quote(bid)}/{urllib.parse.quote(obj_path)}"
+                      req = urllib.request.Request(dl_url, headers=headers)
+                      with urllib.request.urlopen(req, timeout=60) as resp:
+                          dest.write_bytes(resp.read())
+                      total_files += 1
+                  print(f"Exported bucket {bid}: {len(objs)} files")
+              except Exception as exc:
+                  print(f"Warning exporting bucket {bid}: {exc}")
+          print(f"Total storage files exported: {total_files}")
+          EOF
+          tar -czf backup_out/supabase_storage_backup.tar.gz -C backup_out storage
+          rm -rf backup_out/storage
+
+      - name: Full PostgreSQL pg_dump (if SUPABASE_DB_URL secret is set)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            sudo apt-get update && sudo apt-get install -y postgresql-client
+            pg_dump "$SUPABASE_DB_URL" --no-owner --no-acl | gzip > backup_out/supabase_pg_dump.sql.gz
+            echo "pg_dump complete."
+          else
+            echo "SUPABASE_DB_URL not set; skipping raw pg_dump (JSON backup succeeded)."
+          fi
+
+      - name: Archive repository source snapshot
+        run: |
+          tar --exclude='.git' --exclude='node_modules' --exclude='_work' --exclude='community_package' --exclude='backup_out' -czf backup_out/repo_snapshot.tar.gz .
+
+      - name: Upload to External Cloud Bucket (Optional S3 / Cloudflare R2 / Backblaze B2)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+        run: |
+          if [ -n "$BUCKET" ] && [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+            STAMP=$(date -u +%Y-%m-%d_%H%M%S)
+            ARGS=""
+            if [ -n "$ENDPOINT" ]; then
+              ARGS="--endpoint-url $ENDPOINT"
+            fi
+            aws s3 cp backup_out/ "s3://$BUCKET/backups/$STAMP/" --recursive $ARGS
+            echo "Uploaded off-site backup to s3://$BUCKET/backups/$STAMP/"
+          else
+            echo "External S3/R2/B2 secrets not configured; keeping GitHub Artifact only."
+          fi
+
+      - name: Upload Backup Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: wg-backup-${{ github.run_number }}
+          path: backup_out/
+          retention-days: 90

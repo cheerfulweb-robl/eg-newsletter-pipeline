@@ -1,0 +1,508 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotlight Schedule — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .admin-shell {
+            display: block;
+            background: #f8fafc;
+        }
+        .admin-content-area {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <div id="page-alert" role="status" aria-live="polite" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Feature a Business Spotlight</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Pick a Business &amp; Dates:</strong> Choose which East Gwillimbury business you want to spotlight and set the start and end dates.</li>
+        <li><strong>Shown on the Spotlight Page:</strong> Active spotlights (and past spotlight events from the last 13 months) appear automatically on the public Spotlight page.</li>
+    </ol>
+</details>
+
+        <section id="spotlight-console" style="display: none;">
+            <div class="card" style="margin-bottom: 20px;">
+                <h1 style="margin: 0 0 4px 0; font-size: 22px;">&#128294; Spotlight Schedule</h1>
+                <p style="margin: 0; font-size: 13px; color: var(--muted); max-width: 820px;">
+                    Choose which approved listing (event, sale or dining special) is featured as a <strong>Current Spotlight</strong> on
+                    <a href="/spotlight" target="_blank" rel="noopener">/spotlight</a> and in the Home page's Weekend Spotlight card,
+                    and when it shows. Times are Toronto time. The <a href="/spotlight" target="_blank" rel="noopener">/spotlight</a> page
+                    shows only current scheduled/selected spotlight businesses &amp; events, plus past spotlight events from the last 13 months.
+                </p>
+                <p id="now-showing" style="margin: 10px 0 0 0; font-size: 13px; font-weight: 700;"></p>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h2 id="form-title" style="margin: 0 0 12px 0; font-size: 18px;">Schedule a spotlight</h2>
+                <form id="spot-form" autocomplete="off">
+                    <input type="hidden" id="f-id">
+                    <div style="display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                        <label style="font-size: 12px; font-weight: 700;">Find a listing (title or business)
+                            <input type="search" id="f-search" class="form-control" maxlength="80" placeholder="Santa Claus Parade">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Show only
+                            <select id="f-kind-filter" class="form-control">
+                                <option value="">Events, sales and dining</option>
+                                <option value="events">Events</option>
+                                <option value="sales">Sales</option>
+                                <option value="dining">Dining specials</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label style="display: block; font-size: 12px; font-weight: 700; margin-top: 14px;">Listing to spotlight *
+                        <select id="f-listing" class="form-control" required size="8" style="height: auto;"></select>
+                    </label>
+                    <p id="listing-preview" style="font-size: 12px; margin: 6px 0 0 0; color: var(--muted);"></p>
+
+                    <div style="display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 14px;">
+                        <label style="font-size: 12px; font-weight: 700;">Start showing (Toronto time) *
+                            <input type="datetime-local" id="f-start" class="form-control" required>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Stop showing (Toronto time) *
+                            <input type="datetime-local" id="f-end" class="form-control" required>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Priority (higher wins overlaps)
+                            <input type="number" id="f-priority" class="form-control" min="-100" max="100" step="1" value="0">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700; display: flex; gap: 8px; align-items: center; padding-top: 18px;">
+                            <input type="checkbox" id="f-active" checked> On (untick to pause without deleting)
+                        </label>
+                    </div>
+                    <label style="display: block; font-size: 12px; font-weight: 700; margin-top: 14px;">Notes (staff only: who asked, price paid, invoice)
+                        <textarea id="f-notes" class="form-control" maxlength="1000" rows="2"></textarea>
+                    </label>
+                    <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+                        <button type="submit" id="btn-save" class="btn btn-primary">Save spotlight</button>
+                        <button type="button" id="btn-cancel" class="btn btn-secondary" style="display: none;">Cancel editing</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <h2 style="margin: 0; font-size: 18px;">All scheduled spotlights</h2>
+                    <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">&#8635; Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Listing</th><th>Type</th><th>Shows</th><th>Status</th><th></th></tr></thead>
+                        <tbody id="spot-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/hamper/redeem.html">🎟️ Redemptions (Hamper Codes)</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let client = null;
+        let rows = [];
+        let listings = [];
+        let byId = {};
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+            el.scrollIntoView({ block: "nearest" });
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+        function escapeHtml(str) {
+            return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function fmtWhen(ts) {
+            if (!ts) return "";
+            const d = new Date(ts);
+            return isNaN(d) ? "" : d.toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" });
+        }
+
+        function torontoParts(ms) {
+            const p = {};
+            new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+                .formatToParts(new Date(ms)).forEach(x => { p[x.type] = x.value; });
+            return p;
+        }
+        function torontoOffsetMs(ms) {
+            const p = torontoParts(ms);
+            return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - Math.floor(ms / 60000) * 60000;
+        }
+        function torontoLocalToIso(value) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value || "");
+            if (!m) return null;
+            const wall = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+            let utc = wall - torontoOffsetMs(wall);
+            utc = wall - torontoOffsetMs(utc);
+            return new Date(utc).toISOString();
+        }
+        function isoToTorontoLocal(iso) {
+            const p = torontoParts(new Date(iso).getTime());
+            return `${p.year}-${p.month}-${p.day}T${String(+p.hour % 24).padStart(2, "0")}:${p.minute}`;
+        }
+
+        const SALE_CATS = ["sale", "retail_sale", "special_sale"];
+        const DINING_CATS = ["dining", "restaurant", "food_and_drink", "dining_deals"];
+        function kindOf(l) {
+            const cat = String(l.category || "").toLowerCase().trim();
+            if (String(l.title || "").startsWith("[Sale]") || SALE_CATS.includes(cat)) return "sales";
+            if (DINING_CATS.includes(cat)) return "dining";
+            if (cat === "partner_deals") return "skip";
+            return "events";
+        }
+        const KIND_LABEL = { events: "Event", sales: "Sale", dining: "Dining special", skip: "Partner deal" };
+        function listingLabel(l) {
+            const when = l.event_date_label || l.event_start_date || "";
+            const biz = l.business_name && l.business_name !== l.title ? ` · ${l.business_name}` : "";
+            return `${String(l.title || "(untitled)").replace(/^\[Sale\]\s*/i, "")}${biz}${when ? ` · ${when}` : ""}`;
+        }
+        function listingKindPath(l) {
+            const c = String(l.category || "").toLowerCase();
+            if (c === "dining") return "dining";
+            if (["special_sale", "sale", "sales", "retail_sale", "local_sales", "sales_deal"].includes(c) || /^\[sale\]/i.test(String(l.title || ""))) return "sales";
+            return "events";
+        }
+        function listingUrl(l) { return `/${listingKindPath(l)}/${encodeURIComponent(l.slug || l.id)}`; }
+        function isCurrentListing(l) {
+            const d = new Date();
+            const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            const last = String(l.expires_after || l.event_start_date || "").slice(0, 10);
+            return !last || last >= today;
+        }
+
+        function statusOf(r) {
+            const now = Date.now();
+            if (!byId[r.listing_id]) return ["Listing not approved", "badge-pill"];
+            if (!r.active) return ["Paused", "badge-pill"];
+            if (now < new Date(r.starts_at).getTime()) return ["Scheduled", "badge-pill badge-pill-purple"];
+            if (now >= new Date(r.ends_at).getTime()) return ["Ended", "badge-pill"];
+            return ["Live", "badge-pill badge-pill-success"];
+        }
+
+        function renderListingOptions(keepId) {
+            const q = document.getElementById("f-search").value.trim().toLowerCase();
+            const k = document.getElementById("f-kind-filter").value;
+            const sel = document.getElementById("f-listing");
+            const current = keepId || sel.value;
+            let list = listings.filter(l => kindOf(l) !== "skip");
+            if (k) list = list.filter(l => kindOf(l) === k);
+            if (q) list = list.filter(l => `${l.title || ""} ${l.business_name || ""} ${l.location || ""}`.toLowerCase().includes(q));
+            if (current && byId[current] && !list.some(l => l.id === current)) list.unshift(byId[current]);
+            sel.innerHTML = list.slice(0, 300).map(l =>
+                `<option value="${escapeHtml(l.id)}">${escapeHtml(`[${KIND_LABEL[kindOf(l)]}] ${listingLabel(l)}`)}</option>`).join("")
+                || `<option value="" disabled>No approved listings match.</option>`;
+            if (current && byId[current]) sel.value = current;
+            syncPreview();
+        }
+        function syncPreview() {
+            const l = byId[document.getElementById("f-listing").value];
+            document.getElementById("listing-preview").innerHTML = l
+                ? `Selected: <strong>${escapeHtml(l.title)}</strong> &middot; <a href="${escapeHtml(listingUrl(l))}" target="_blank" rel="noopener">open listing &#8599;</a>`
+                : "Pick a listing from the list above.";
+        }
+
+        async function load() {
+            clearAlert();
+            const [sched, lst, live] = await Promise.all([
+                client.from("spotlight_schedule").select("*").order("starts_at", { ascending: false }),
+                client.from("vendor_events").select("id, title, business_name, category, event_start_date, event_date_label, location, slug, expires_after").eq("status", "approved").order("created_at", { ascending: false }),
+                client.rpc("wg_active_spotlight")
+            ]);
+            if (sched.error) { showAlert("Could not load the spotlight schedule: " + sched.error.message + " (has the 20261122 database update been run?)", "danger"); return; }
+            if (lst.error) { showAlert("Could not load listings: " + lst.error.message, "danger"); return; }
+            rows = sched.data || [];
+            listings = (lst.data || []).filter(isCurrentListing);
+            byId = {};
+            listings.forEach(l => { byId[l.id] = l; });
+            const nowId = !live.error && typeof live.data === "string" ? live.data : null;
+            document.getElementById("now-showing").innerHTML = nowId && byId[nowId]
+                ? `Showing now: <a href="${escapeHtml(listingUrl(byId[nowId]))}" target="_blank" rel="noopener">${escapeHtml(byId[nowId].title)}</a>`
+                : "Nothing scheduled right now: /spotlight only displays scheduled or flagged spotlight items.";
+            renderListingOptions();
+            render();
+        }
+
+        function render() {
+            document.getElementById("spot-tbody").innerHTML = rows.map(r => {
+                const [label, cls] = statusOf(r);
+                const l = byId[r.listing_id];
+                return `<tr>
+                    <td>${l ? `<a href="${escapeHtml(listingUrl(l))}" target="_blank" rel="noopener"><strong>${escapeHtml(l.title)}</strong></a>${l.business_name ? `<br><span style="font-size:11px; color:var(--muted);">${escapeHtml(l.business_name)}</span>` : ""}` : `<em>Listing no longer approved</em>`}${r.notes ? `<br><span style="font-size:11px; color:var(--muted);">${escapeHtml(r.notes)}</span>` : ""}</td>
+                    <td>${l ? KIND_LABEL[kindOf(l)] : "&mdash;"}</td>
+                    <td style="font-size:12px; white-space:nowrap;">${escapeHtml(fmtWhen(r.starts_at))}<br>to ${escapeHtml(fmtWhen(r.ends_at))}</td>
+                    <td><span class="${cls}">${label}</span>${r.priority ? `<br><span style="font-size:11px; color:var(--muted);">priority ${Number(r.priority)}</span>` : ""}</td>
+                    <td style="white-space:nowrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-edit="${escapeHtml(r.id)}">Edit</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-toggle="${escapeHtml(r.id)}">${r.active ? "Pause" : "Turn on"}</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-delete="${escapeHtml(r.id)}">Delete</button>
+                    </td></tr>`;
+            }).join("") || `<tr><td colspan="5" style="color:var(--muted); text-align:center;">Nothing scheduled yet. Add one above.</td></tr>`;
+        }
+
+        function resetForm() {
+            document.getElementById("spot-form").reset();
+            document.getElementById("f-id").value = "";
+            document.getElementById("form-title").textContent = "Schedule a spotlight";
+            document.getElementById("btn-cancel").style.display = "none";
+            const now = new Date();
+            document.getElementById("f-start").value = isoToTorontoLocal(now.toISOString());
+            document.getElementById("f-end").value = isoToTorontoLocal(new Date(now.getTime() + 7 * 86400000).toISOString());
+            renderListingOptions();
+        }
+        function editRow(id) {
+            const r = rows.find(x => x.id === id);
+            if (!r) return;
+            document.getElementById("f-id").value = r.id;
+            document.getElementById("f-search").value = "";
+            document.getElementById("f-kind-filter").value = "";
+            renderListingOptions(r.listing_id);
+            document.getElementById("f-start").value = isoToTorontoLocal(r.starts_at);
+            document.getElementById("f-end").value = isoToTorontoLocal(r.ends_at);
+            document.getElementById("f-priority").value = r.priority || 0;
+            document.getElementById("f-active").checked = !!r.active;
+            document.getElementById("f-notes").value = r.notes || "";
+            const l = byId[r.listing_id];
+            document.getElementById("form-title").textContent = `Edit spotlight: ${l ? l.title : "listing"}`;
+            document.getElementById("btn-cancel").style.display = "inline-flex";
+            document.getElementById("spot-form").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        function friendlyError(error) {
+            const m = String(error && error.message || "");
+            if (error && (error.code === "42501" || /row-level security|permission denied/i.test(m))) return "Only admins can schedule the spotlight.";
+            if (/spotlight_schedule_window/.test(m)) return "The stop time must be after the start time.";
+            if (/foreign key|listing_id/i.test(m)) return "That listing no longer exists. Refresh and pick another.";
+            return m || "Something went wrong.";
+        }
+
+        document.getElementById("spot-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearAlert();
+            const id = document.getElementById("f-id").value;
+            const payload = {
+                listing_id: document.getElementById("f-listing").value,
+                starts_at: torontoLocalToIso(document.getElementById("f-start").value),
+                ends_at: torontoLocalToIso(document.getElementById("f-end").value),
+                priority: Math.max(-100, Math.min(100, parseInt(document.getElementById("f-priority").value, 10) || 0)),
+                active: document.getElementById("f-active").checked,
+                notes: document.getElementById("f-notes").value.trim() || null
+            };
+            if (!payload.listing_id || !byId[payload.listing_id]) { showAlert("Pick a listing to spotlight.", "warning"); return; }
+            if (!payload.starts_at || !payload.ends_at) { showAlert("Enter both a start and a stop time.", "warning"); return; }
+            if (payload.ends_at <= payload.starts_at) { showAlert("The stop time must be after the start time.", "warning"); return; }
+            const btn = document.getElementById("btn-save");
+            btn.disabled = true;
+            const { error } = id
+                ? await client.from("spotlight_schedule").update(payload).eq("id", id).select("id").single()
+                : await client.from("spotlight_schedule").insert(payload).select("id").single();
+            btn.disabled = false;
+            if (error) { showAlert(friendlyError(error), "danger"); return; }
+            resetForm();
+            await load();
+            showAlert(id ? "Spotlight updated." : "Spotlight scheduled.", "success");
+        });
+
+        document.getElementById("spot-tbody").addEventListener("click", async (e) => {
+            const b = e.target.closest("button");
+            if (!b) return;
+            if (b.dataset.edit) { editRow(b.dataset.edit); return; }
+            if (b.dataset.toggle) {
+                const r = rows.find(x => x.id === b.dataset.toggle);
+                if (!r) return;
+                const { error } = await client.from("spotlight_schedule").update({ active: !r.active }).eq("id", r.id).select("id").single();
+                if (error) { showAlert(friendlyError(error), "danger"); return; }
+                await load();
+                return;
+            }
+            if (b.dataset.delete) {
+                const r = rows.find(x => x.id === b.dataset.delete);
+                const l = r && byId[r.listing_id];
+                if (!r || !window.confirm(`Delete the spotlight for "${l ? l.title : "this listing"}"? The listing itself is not affected. To stop it showing but keep it here, use Pause instead.`)) return;
+                const { error } = await client.from("spotlight_schedule").delete().eq("id", r.id).select("id").single();
+                if (error) { showAlert(friendlyError(error), "danger"); return; }
+                await load();
+                showAlert("Spotlight deleted.", "success");
+            }
+        });
+
+        document.getElementById("f-search").addEventListener("input", () => renderListingOptions());
+        document.getElementById("f-kind-filter").addEventListener("change", () => renderListingOptions());
+        document.getElementById("f-listing").addEventListener("change", syncPreview);
+        document.getElementById("btn-cancel").addEventListener("click", resetForm);
+        document.getElementById("btn-refresh").addEventListener("click", load);
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("The database connection is not configured.", "warning");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").trim().toLowerCase();
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => { await client.auth.signOut(); window.location.href = "/staff/login.html"; };
+            }
+            document.getElementById("spotlight-console").style.display = "block";
+            await load();
+            resetForm();
+        }
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

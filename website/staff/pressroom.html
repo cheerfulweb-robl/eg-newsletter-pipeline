@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pressroom Manager — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=70.4">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=70.4"></script>
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+        .pr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .pr-badge-pub { display: inline-block; padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .pr-badge-draft { display: inline-block; padding: 2px 9px; border-radius: 9999px; font-size: 11px; font-weight: 800; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .pr-preview-box { background: #ffffff; border: 2px solid #bfdbfe; border-radius: 14px; padding: 20px; }
+        .pr-nap-card { background: #eff6ff; border: 2px solid #93c5fd; border-radius: 12px; padding: 14px 16px; margin-top: 14px; }
+        .pr-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+        .pr-schema-pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 10px; font-size: 11.5px; overflow-x: auto; max-height: 240px; }
+    </style>
+</head>
+<body>
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer;" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">&#9776;</button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <main class="container">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <h1 style="margin: 0 0 6px 0; color: var(--brand);">&#128226; Pressroom Manager &amp; AI Writer</h1>
+                    <p style="margin: 0; color: var(--muted); font-size: 14px;">
+                        Create standard AP-style press releases with verified <strong>NAP</strong> (Name, Address, Phone), one hero image with <code>ImageObject</code> + <code>NewsArticle</code> + <code>LocalBusiness</code> JSON-LD schema, and AI drafting.
+                    </p>
+                </div>
+                <a href="/press" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">View Public Pressroom &#8599;</a>
+            </div>
+            <div id="page-alert" class="alert" style="display: none;"></div>
+            <details class="wg-admin-guide">
+                <summary><span>&#128214; Beginner&rsquo;s Guide: How to Write &amp; Publish a Press Release</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+                <ol>
+                    <li><strong>Pick the Business:</strong> Choose a business from the dropdown (or type its Name, Address, Phone, and Website in Section 2). This creates the official business contact card that helps Google verify the business.</li>
+                    <li><strong>Let AI Write the First Draft (Optional):</strong> Type a few bullet notes (or paste a webpage link) in the blue AI box and click <strong>Draft Press Release with AI</strong>. Read through the draft and edit any words you want.</li>
+                    <li><strong>Add One Photo:</strong> Upload one photo from your computer (or paste a photo link) and write a short description and caption.</li>
+                    <li><strong>Preview &amp; Publish:</strong> Click <strong>Toggle Live Preview</strong> to see how it will look. Click <strong>Save as Draft</strong> to finish later, or <strong>Save &amp; Publish Live</strong> to put it on the public Pressroom page right away.</li>
+                </ol>
+            </details>
+
+            <!-- AI PRESS RELEASE WRITER -->
+            <div class="card" style="margin-bottom: 22px; border-left: 4px solid #00008b; background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);">
+                <h2 style="margin: 0 0 8px 0; color: #00008b;">&#10024; AI Press Release Writer (Claude)</h2>
+                <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--muted);">
+                    Fill in the business NAP below (or pick an existing business), add brief announcement notes or a source webpage URL, and click <strong>Draft Press Release with AI</strong>. Review and edit the draft before saving or publishing.
+                </p>
+                <div class="pr-grid" style="margin-bottom: 10px;">
+                    <div class="form-group">
+                        <label for="pr-biz-search">Quick-Fill NAP from Directory (optional)</label>
+                        <input type="text" id="pr-biz-search" list="pr-biz-datalist" class="form-control" placeholder="Type to search businesses..." style="margin-bottom:6px;">
+                        <datalist id="pr-biz-datalist"></datalist>
+                        <select id="pr-biz-picker" class="form-control" aria-label="Select a business from directory">
+                            <option value="">-- Select a business to prefill NAP --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pr-ai-url">Source Webpage URL (optional)</label>
+                        <input type="url" id="pr-ai-url" class="form-control" placeholder="https://example.ca/announcement">
+                    </div>
+                    <div class="form-group">
+                        <label for="pr-ai-tone">Editorial Tone</label>
+                        <select id="pr-ai-tone" class="form-control">
+                            <option value="professional local news">Professional Local News (AP Style)</option>
+                            <option value="grand opening or milestone celebration">Grand Opening / Milestone</option>
+                            <option value="community event or fundraiser">Community Event / Fundraiser</option>
+                            <option value="seasonal promotion or new service">New Service / Seasonal Launch</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="pr-ai-notes">Announcement Notes / Key Facts *</label>
+                    <textarea id="pr-ai-notes" class="form-control" rows="3" placeholder="e.g. Opening new storefront in Holland Landing on Nov 25, offering local artisan bakery goods, ribbon cutting at 10 AM, quote from owner Jane Doe..."></textarea>
+                </div>
+                <button type="button" id="btn-ai-draft" class="btn btn-primary">&#10024; Draft Press Release with AI</button>
+                <span id="ai-draft-status" style="margin-left: 10px; font-size: 13px; font-weight: 700; color: #00008b;"></span>
+            </div>
+
+            <!-- PRESS RELEASE EDITOR -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+                    <h2 id="form-heading" style="margin: 0;">New Press Release</h2>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" id="btn-toggle-preview" class="btn btn-secondary btn-sm">&#128065;&#65039; Toggle Live Preview &amp; Schema</button>
+                        <button type="button" id="btn-reset" class="btn btn-secondary btn-sm" style="display: none;">Cancel Edit</button>
+                    </div>
+                </div>
+
+                <form id="press-form">
+                    <input type="hidden" id="pr-id">
+
+                    <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #0f172a;">1. Headline, Slug &amp; Status</h3>
+                    <div class="pr-grid" style="margin-bottom: 12px;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="pr-title">Press Release Headline *</label>
+                            <input type="text" id="pr-title" class="form-control" required placeholder="e.g. Sammy's Chicken Coop Expands Local Offerings in East Gwillimbury">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-slug">URL Slug *</label>
+                            <input type="text" id="pr-slug" class="form-control" required placeholder="sammys-chicken-coop-georgina">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-status">Status *</label>
+                            <select id="pr-status" class="form-control">
+                                <option value="draft">Draft (hidden from public)</option>
+                                <option value="published">Published (live on /press)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="pr-summary">Summary (1-2 sentences for Pressroom card &amp; NewsArticle description)</label>
+                        <textarea id="pr-summary" class="form-control" rows="2" placeholder="Concise summary of the announcement..."></textarea>
+                    </div>
+
+                    <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #0f172a;">2. Official Business Citation (NAP)</h3>
+                    <div class="pr-grid" style="margin-bottom: 16px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+                        <div class="form-group">
+                            <label for="pr-biz-name">Business Name (N) *</label>
+                            <input type="text" id="pr-biz-name" class="form-control" required placeholder="e.g. Sammy's Chicken Coop">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-biz-address">Street Address (A) *</label>
+                            <input type="text" id="pr-biz-address" class="form-control" required placeholder="e.g. 123 The Queensway S, Holland Landing, ON">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-biz-phone">Phone Number (P)</label>
+                            <input type="text" id="pr-biz-phone" class="form-control" placeholder="e.g. (905) 555-0199">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-biz-website">Official Website</label>
+                            <input type="url" id="pr-biz-website" class="form-control" placeholder="https://example.ca">
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #0f172a;">3. Single Hero Image &amp; ImageObject Schema</h3>
+                    <div class="pr-grid" style="margin-bottom: 16px; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+                        <div class="form-group">
+                            <label for="pr-image-file">Upload Image (to Supabase <code>press-images</code>)</label>
+                            <input type="file" id="pr-image-file" class="form-control" accept="image/jpeg,image/png,image/webp">
+                            <small id="pr-upload-status" style="color: var(--muted); font-size: 12px;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-image-url">Or Image URL</label>
+                            <input type="url" id="pr-image-url" class="form-control" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-image-alt">Image Alt Text (Schema <code>description</code>)</label>
+                            <input type="text" id="pr-image-alt" class="form-control" placeholder="Storefront photo in Holland Landing, East Gwillimbury, ON">
+                        </div>
+                        <div class="form-group">
+                            <label for="pr-image-caption">Image Caption (Schema <code>caption</code>)</label>
+                            <input type="text" id="pr-image-caption" class="form-control" placeholder="Caption shown under the photo and in ImageObject schema">
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 0 0 8px 0; font-size: 15px; color: #0f172a;">4. Press Release Header, Body, Footer &amp; Additional Images</h3>
+                    <div class="pr-toolbar">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="insertTemplate('header')">+ Header</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="insertTemplate('dateline')">+ Dateline</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="insertTemplate('subhead')">+ Subheading</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="insertTemplate('quote')">+ Quote Block</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="insertTemplate('boilerplate')">+ NAP Boilerplate</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="insertTemplate('footer')">+ Footer</button>
+                    </div>
+                    <div class="pr-grid" style="margin-bottom: 12px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="pr-extra-image-file">Insert Additional Body Image (multiple supported)</label>
+                            <input type="file" id="pr-extra-image-file" class="form-control" accept="image/jpeg,image/png,image/webp" multiple>
+                            <small id="pr-extra-upload-status" style="color: var(--muted); font-size: 12px;"></small>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="pr-extra-image-caption">Optional Caption / Alt for Next Inserted Image</label>
+                            <input type="text" id="pr-extra-image-caption" class="form-control" placeholder="e.g. Interior view or team photo">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <textarea id="pr-content" class="form-control" rows="10" required placeholder="<p><strong>GEORGINA, ON &mdash;</strong> Write or AI-draft the press release body here...</p>"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="submit" class="btn btn-primary" id="btn-save-draft" data-mode="draft">Save as Draft</button>
+                        <button type="button" class="btn btn-primary" id="btn-publish-now" style="background: #047857; border-color: #047857;">Save &amp; Publish Live</button>
+                    </div>
+                </form>
+
+                <!-- LIVE PREVIEW & SCHEMA -->
+                <div id="pr-live-preview-wrap" style="display: none; margin-top: 20px;">
+                    <h3 style="margin: 0 0 10px 0; color: #00008b;">Live Layout &amp; JSON-LD Schema Preview</h3>
+                    <div class="pr-preview-box" id="pr-live-preview"></div>
+                    <h4 style="margin: 14px 0 6px 0; font-size: 13px; color: #334155;">Generated JSON-LD Schema (<code>NewsArticle</code> + <code>ImageObject</code> + <code>LocalBusiness</code>)</h4>
+                    <pre class="pr-schema-pre" id="pr-schema-preview"></pre>
+                </div>
+            </div>
+
+            <!-- EXISTING PRESS RELEASES -->
+            <div class="card">
+                <h2 style="margin: 0 0 12px 0;">All Press Releases</h2>
+                <div id="pr-list" style="overflow-x: auto;">Loading press releases...</div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127754; Welcome East Gwillimbury</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <p style="font-size: 13px; color: #cbd5e1; line-height: 1.6; margin: 0 0 12px 0;">East Gwillimbury's community event calendar, dining guide, local business directory, and digital Welcome Hamper.</p>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128240; Explore</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">Community Events</a></li>
+                            <li><a href="/dining">Dining Guide</a></li>
+                            <li><a href="/sales">Local Sales &amp; Deals</a></li>
+                            <li><a href="/directory">Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#127978; Submissions</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/submit-event">Submit an Event</a></li>
+                            <li><a href="/hamper/">Welcome Hamper</a></li>
+                            <li><a href="/press">Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading"><span>&#128274; Accounts &amp; Legal</span><span class="footer-accordion-icon">&#9660;</span></summary>
+                        <ul class="footer-links">
+                            <li><a href="/staff/admin-approvals.html">Admin &amp; Staff Operations</a></li>
+                            <li><a href="/terms">Terms of Service</a></li>
+                            <li><a href="/privacy">Privacy Policy</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. We are not responsible for errors or omissions.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let sbClient = null;
+        let cachedArticles = [];
+        let cachedBusinesses = [];
+        let slugManuallyEdited = false;
+
+        function escapeHtml(s) {
+            return String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+        }
+
+        function slugify(s) {
+            return String(s || "").toLowerCase().trim()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 90);
+        }
+
+        let activeErrorTarget = null;
+
+        function ensureFloatingToast() {
+            let toast = document.getElementById("pr-floating-toast");
+            if (toast) return toast;
+            toast = document.createElement("div");
+            toast.id = "pr-floating-toast";
+            toast.style.cssText = "position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:9999;max-width:min(94vw,560px);width:max-content;display:none;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;box-shadow:0 12px 32px rgba(15,23,42,0.28);font-size:13px;font-weight:700;border:2px solid transparent;";
+            document.body.appendChild(toast);
+            window.addEventListener("scroll", updateToastDirection, { passive: true });
+            return toast;
+        }
+
+        function updateToastDirection() {
+            const toast = document.getElementById("pr-floating-toast");
+            const dirEl = document.getElementById("pr-toast-dir");
+            if (!toast || toast.style.display === "none" || !dirEl) return;
+            if (!activeErrorTarget) { dirEl.innerHTML = ""; return; }
+            const rect = activeErrorTarget.getBoundingClientRect();
+            const vh = window.innerHeight || document.documentElement.clientHeight;
+            if (rect.bottom < 0) {
+                dirEl.innerHTML = `<button type="button" onclick="window.jumpToErrorField()" style="background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">&#8593; Scroll Up to Field</button>`;
+            } else if (rect.top > vh) {
+                dirEl.innerHTML = `<button type="button" onclick="window.jumpToErrorField()" style="background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;">&#8595; Scroll Down to Field</button>`;
+            } else {
+                dirEl.innerHTML = `<span style="font-size:11px;opacity:0.85;white-space:nowrap;">&#10003; Field in view</span>`;
+            }
+        }
+
+        window.jumpToErrorField = function () {
+            if (!activeErrorTarget) return;
+            activeErrorTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+            setTimeout(() => { try { activeErrorTarget.focus({ preventScroll: true }); } catch (_) {} }, 350);
+        };
+
+        function showAlert(msg, type, targetFieldId) {
+            const el = document.getElementById("page-alert");
+            el.className = "alert alert-" + (type || "info");
+            el.innerHTML = msg;
+            el.style.display = "block";
+
+            if (activeErrorTarget) {
+                activeErrorTarget.style.outline = "";
+                activeErrorTarget.style.boxShadow = "";
+            }
+            activeErrorTarget = targetFieldId ? document.getElementById(targetFieldId) : null;
+
+            const toast = ensureFloatingToast();
+            const palette = type === "success"
+                ? { bg: "#ecfdf5", fg: "#065f46", border: "#6ee7b7" }
+                : type === "danger"
+                ? { bg: "#fef2f2", fg: "#991b1b", border: "#fca5a5" }
+                : { bg: "#fffbeb", fg: "#92400e", border: "#fcd34d" };
+            toast.style.background = palette.bg;
+            toast.style.color = palette.fg;
+            toast.style.borderColor = palette.border;
+            toast.innerHTML = `<span style="flex:1;line-height:1.35;">${msg}</span><span id="pr-toast-dir"></span><button type="button" onclick="document.getElementById('pr-floating-toast').style.display='none'" style="background:none;border:none;color:inherit;font-size:18px;font-weight:900;cursor:pointer;padding:0 4px;line-height:1;" aria-label="Dismiss">&times;</button>`;
+            toast.style.display = "flex";
+
+            if (activeErrorTarget) {
+                activeErrorTarget.style.outline = "3px solid #dc2626";
+                activeErrorTarget.style.boxShadow = "0 0 0 6px rgba(220,38,38,0.18)";
+                activeErrorTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+                updateToastDirection();
+                setTimeout(() => { try { activeErrorTarget.focus({ preventScroll: true }); } catch (_) {} }, 350);
+            } else if (type === "success") {
+                setTimeout(() => { toast.style.display = "none"; }, 5000);
+            }
+        }
+
+        window.insertTemplate = function (kind) {
+            const ta = document.getElementById("pr-content");
+            const name = document.getElementById("pr-biz-name").value.trim() || "[Business Name]";
+            const addr = document.getElementById("pr-biz-address").value.trim() || "East Gwillimbury, ON";
+            const phone = document.getElementById("pr-biz-phone").value.trim() || "";
+            const web = document.getElementById("pr-biz-website").value.trim() || "";
+            const snippets = {
+                header: `<header>\n<p><strong>FOR IMMEDIATE RELEASE</strong></p>\n<p><em>Add subheadline or announcement summary here.</em></p>\n</header>\n`,
+                dateline: `<p><strong>GEORGINA, ON &mdash;</strong> </p>\n`,
+                subhead: `<h2>Announcement Highlights</h2>\n<p></p>\n`,
+                quote: `<blockquote><p>&ldquo;Add a direct quote from the owner or organizer here.&rdquo; &mdash; ${escapeHtml(name)}</p></blockquote>\n`,
+                boilerplate: `<h2>About ${escapeHtml(name)}</h2>\n<p><strong>${escapeHtml(name)}</strong> is located at ${escapeHtml(addr)}${phone ? ` and can be reached at ${escapeHtml(phone)}` : ""}${web ? ` or online at <a href="${escapeHtml(web)}" target="_blank" rel="noopener">${escapeHtml(web)}</a>` : ""}.</p>\n`,
+                footer: `<footer>\n<p><strong>Media Contact:</strong> ${escapeHtml(name)}${phone ? ` &bull; ${escapeHtml(phone)}` : ""}${web ? ` &bull; <a href="${escapeHtml(web)}" target="_blank" rel="noopener">${escapeHtml(web)}</a>` : ""}</p>\n<p><em>###</em></p>\n</footer>\n`
+            };
+            ta.value = (ta.value ? ta.value.trimEnd() + "\n\n" : "") + (snippets[kind] || "");
+            updatePreview();
+        };
+
+        function buildJsonLd() {
+            const title = document.getElementById("pr-title").value.trim() || "Untitled Press Release";
+            const summary = document.getElementById("pr-summary").value.trim();
+            const bizName = document.getElementById("pr-biz-name").value.trim() || "East Gwillimbury Business";
+            const bizAddr = document.getElementById("pr-biz-address").value.trim() || "East Gwillimbury, ON";
+            const bizPhone = document.getElementById("pr-biz-phone").value.trim();
+            const bizWeb = document.getElementById("pr-biz-website").value.trim();
+            const imgUrl = document.getElementById("pr-image-url").value.trim() || "https://welcomeeg.ca/press-release-og.jpg";
+            const imgAlt = document.getElementById("pr-image-alt").value.trim() || title;
+            const imgCap = document.getElementById("pr-image-caption").value.trim() || `${bizName} — ${title}`;
+            const nowIso = new Date().toISOString();
+            const imgObj = {
+                "@type": "ImageObject",
+                "url": imgUrl,
+                "contentUrl": imgUrl,
+                "caption": imgCap,
+                "description": imgAlt
+            };
+            return {
+                "@context": "https://schema.org",
+                "@type": "NewsArticle",
+                "headline": title,
+                "description": summary || undefined,
+                "image": [imgObj],
+                "datePublished": nowIso,
+                "dateModified": nowIso,
+                "author": { "@type": "Organization", "name": "Welcome East Gwillimbury Editorial Desk", "url": "https://welcomeeg.ca" },
+                "publisher": { "@type": "Organization", "name": "Welcome East Gwillimbury", "logo": { "@type": "ImageObject", "url": "https://welcomeeg.ca/welcome-eg-logo.png" } },
+                "about": {
+                    "@type": "LocalBusiness",
+                    "name": bizName,
+                    "image": imgObj,
+                    "address": { "@type": "PostalAddress", "streetAddress": bizAddr, "addressLocality": "East Gwillimbury", "addressRegion": "ON", "addressCountry": "CA" },
+                    "telephone": bizPhone || undefined,
+                    "url": bizWeb || undefined
+                }
+            };
+        }
+
+        function updatePreview() {
+            const wrap = document.getElementById("pr-live-preview-wrap");
+            if (wrap.style.display === "none") return;
+            const title = document.getElementById("pr-title").value.trim() || "Press Release Headline";
+            const bizName = document.getElementById("pr-biz-name").value.trim() || "Business Name";
+            const bizAddr = document.getElementById("pr-biz-address").value.trim() || "East Gwillimbury, ON";
+            const bizPhone = document.getElementById("pr-biz-phone").value.trim();
+            const bizWeb = document.getElementById("pr-biz-website").value.trim();
+            const imgUrl = document.getElementById("pr-image-url").value.trim();
+            const imgAlt = document.getElementById("pr-image-alt").value.trim() || title;
+            const imgCap = document.getElementById("pr-image-caption").value.trim();
+            const contentHtml = document.getElementById("pr-content").value.trim();
+            const safeHttp = (u) => (/^(https?:\/\/|\/[^/])/i.test(u) ? u : "");
+            const safeImgUrl = safeHttp(imgUrl);
+            const safeBizWeb = safeHttp(bizWeb);
+            const sanitizePreviewHtml = (raw) => {
+                if (!raw) return "";
+                const allowed = new Set(["P", "BR", "STRONG", "B", "EM", "I", "U", "H2", "H3", "H4", "UL", "OL", "LI", "BLOCKQUOTE", "A", "HR", "SPAN", "DIV", "IMG", "FIGURE", "FIGCAPTION", "HEADER", "FOOTER"]);
+                const doc = new DOMParser().parseFromString(raw, "text/html");
+                const clean = (node) => {
+                    for (const child of Array.from(node.childNodes)) {
+                        if (child.nodeType === 1) {
+                            if (!allowed.has(child.tagName)) { child.remove(); continue; }
+                            for (const attr of Array.from(child.attributes)) {
+                                const n = attr.name.toLowerCase();
+                                if (child.tagName === "A" && n === "href" && /^(https?:\/\/|\/[^/])/i.test(attr.value.trim())) continue;
+                                if (child.tagName === "A" && (n === "target" || n === "rel")) continue;
+                                if (child.tagName === "IMG" && n === "src" && /^(https?:\/\/|\/[^/])/i.test(attr.value.trim())) continue;
+                                if (child.tagName === "IMG" && (n === "alt" || n === "loading")) continue;
+                                child.removeAttribute(attr.name);
+                            }
+                            if (child.tagName === "A") child.setAttribute("rel", "noopener noreferrer");
+                            if (child.tagName === "IMG" && !child.getAttribute("src")) { child.remove(); continue; }
+                            clean(child);
+                        } else if (child.nodeType !== 3) { child.remove(); }
+                    }
+                };
+                clean(doc.body);
+                return doc.body.innerHTML;
+            };
+
+            document.getElementById("pr-live-preview").innerHTML = `
+                <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:#00008b;margin-bottom:6px;">Verified Local Citation • East Gwillimbury, Ontario</div>
+                <h2 style="margin:0 0 6px 0;font-size:24px;color:#0f172a;">${escapeHtml(title)}</h2>
+                <div style="font-size:13px;color:#475569;margin-bottom:14px;">Source: <strong>${escapeHtml(bizName)}</strong> via Welcome East Gwillimbury Press Bureau</div>
+                ${safeImgUrl ? `<figure style="margin:0 0 16px 0;"><img src="${escapeHtml(safeImgUrl)}" alt="${escapeHtml(imgAlt)}" style="width:100%;max-height:320px;object-fit:cover;border-radius:12px;">${imgCap ? `<figcaption style="font-size:12px;color:#475569;margin-top:4px;">${escapeHtml(imgCap)}</figcaption>` : ""}</figure>` : ""}
+                <div style="font-size:15px;line-height:1.65;color:#1e293b;">${sanitizePreviewHtml(contentHtml) || "<p>Body preview...</p>"}</div>
+                <div class="pr-nap-card">
+                    <div style="font-size:11px;font-weight:900;text-transform:uppercase;color:#00008b;margin-bottom:8px;">Official Business Citation Details (NAP)</div>
+                    <div><strong>Name:</strong> ${escapeHtml(bizName)}</div>
+                    <div><strong>Address:</strong> ${escapeHtml(bizAddr)}</div>
+                    <div><strong>Phone:</strong> ${escapeHtml(bizPhone || "Available on file")}</div>
+                    ${safeBizWeb ? `<div><strong>Website:</strong> <a href="${escapeHtml(safeBizWeb)}" target="_blank" rel="noopener noreferrer">${escapeHtml(bizWeb)}</a></div>` : ""}
+                </div>
+            `;
+            document.getElementById("pr-schema-preview").textContent = JSON.stringify(buildJsonLd(), null, 2);
+        }
+
+        async function loadPressReleases() {
+            const listEl = document.getElementById("pr-list");
+            const { data, error } = await sbClient
+                .from("press_articles")
+                .select("*")
+                .order("created_at", { ascending: false });
+            if (error) {
+                listEl.innerHTML = `<p style="color:#dc2626;">Could not load press releases: ${escapeHtml(error.message)}</p>`;
+                return;
+            }
+            cachedArticles = data || [];
+            if (!cachedArticles.length) {
+                listEl.innerHTML = `<p style="color:var(--muted);">No press releases yet. Draft one above with AI or write a new release.</p>`;
+                return;
+            }
+            listEl.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Headline &amp; Business (NAP)</th>
+                            <th>Status</th>
+                            <th>Published</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cachedArticles.map((r) => `
+                            <tr>
+                                <td>
+                                    <strong>${escapeHtml(r.title)}</strong>
+                                    <div style="font-size:12px;color:#475569;margin-top:2px;">
+                                        ${escapeHtml(r.business_name)} &bull; ${escapeHtml(r.business_address || "")}${r.business_phone ? " &bull; " + escapeHtml(r.business_phone) : ""}
+                                    </div>
+                                    <div style="font-size:11px;color:#64748b;"><code>/press/${escapeHtml(r.slug)}</code></div>
+                                </td>
+                                <td>${r.status === "published" ? '<span class="pr-badge-pub">Published</span>' : '<span class="pr-badge-draft">Draft</span>'}</td>
+                                <td style="font-size:12px;white-space:nowrap;">${r.published_at ? escapeHtml(new Date(r.published_at).toLocaleDateString("en-CA")) : "—"}</td>
+                                <td style="white-space:nowrap;">
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="editArticle('${r.id}')">Edit</button>
+                                    ${r.status === "published" ? `<a href="/press/${encodeURIComponent(r.slug)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">View &#8599;</a>` : ""}
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteArticle('${r.id}')">Delete</button>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function loadBusinessPicker() {
+            const sel = document.getElementById("pr-biz-picker");
+            let all = [];
+            let from = 0;
+            const pageSize = 1000;
+            while (true) {
+                const { data, error } = await sbClient
+                    .from("directory_listings")
+                    .select("id, name, location, phone, link, status")
+                    .or("status.eq.approved,status.is.null")
+                    .order("name", { ascending: true })
+                    .range(from, from + pageSize - 1);
+                if (error || !data || data.length === 0) break;
+                all = all.concat(data);
+                if (data.length < pageSize) break;
+                from += pageSize;
+            }
+            cachedBusinesses = all;
+            const dl = document.getElementById("pr-biz-datalist");
+            const searchEl = document.getElementById("pr-biz-search");
+            const applyBiz = (b) => {
+                if (!b) return;
+                document.getElementById("pr-biz-name").value = b.name || "";
+                document.getElementById("pr-biz-address").value = b.location || "";
+                document.getElementById("pr-biz-phone").value = b.phone || "";
+                const rawLink = (b.link || "").trim();
+                const isInternal = /^https?:\/\/(www\.)?welcomeeg\.ca(\/|$)/i.test(rawLink);
+                document.getElementById("pr-biz-website").value = isInternal ? "" : rawLink;
+                updatePreview();
+            };
+            cachedBusinesses.forEach((b) => {
+                const opt = document.createElement("option");
+                opt.value = b.id;
+                opt.textContent = b.name;
+                sel.appendChild(opt);
+                if (dl) {
+                    const dopt = document.createElement("option");
+                    dopt.value = b.name;
+                    dl.appendChild(dopt);
+                }
+            });
+            if (searchEl) {
+                searchEl.addEventListener("input", () => {
+                    const norm = searchEl.value.trim().toLowerCase();
+                    if (!norm) return;
+                    const match = cachedBusinesses.find((x) => (x.name || "").trim().toLowerCase() === norm);
+                    if (match) {
+                        sel.value = match.id;
+                        applyBiz(match);
+                    }
+                });
+            }
+            sel.addEventListener("change", () => {
+                const b = cachedBusinesses.find((x) => x.id === sel.value);
+                if (!b) return;
+                if (searchEl) searchEl.value = b.name || "";
+                applyBiz(b);
+            });
+        }
+
+        window.editArticle = function (id) {
+            const r = cachedArticles.find((x) => x.id === id);
+            if (!r) return;
+            document.getElementById("pr-id").value = r.id;
+            document.getElementById("pr-title").value = r.title || "";
+            document.getElementById("pr-slug").value = r.slug || "";
+            slugManuallyEdited = true;
+            document.getElementById("pr-status").value = r.status || "draft";
+            document.getElementById("pr-summary").value = r.summary || "";
+            document.getElementById("pr-biz-name").value = r.business_name || "";
+            document.getElementById("pr-biz-address").value = r.business_address || "";
+            document.getElementById("pr-biz-phone").value = r.business_phone || "";
+            document.getElementById("pr-biz-website").value = r.business_website || "";
+            document.getElementById("pr-image-url").value = r.image_url || "";
+            document.getElementById("pr-image-alt").value = r.image_alt || "";
+            document.getElementById("pr-image-caption").value = r.image_caption || "";
+            document.getElementById("pr-content").value = r.content || "";
+            document.getElementById("form-heading").textContent = "Edit Press Release";
+            document.getElementById("btn-reset").style.display = "inline-block";
+            updatePreview();
+            window.scrollTo({ top: 200, behavior: "smooth" });
+        };
+
+        window.deleteArticle = async function (id) {
+            if (!confirm("Delete this press release permanently?")) return;
+            const { error } = await sbClient.from("press_articles").delete().eq("id", id);
+            if (error) { showAlert("Delete failed: " + escapeHtml(error.message), "danger"); return; }
+            showAlert("Press release deleted.", "success");
+            await loadPressReleases();
+        };
+
+        function resetForm() {
+            document.getElementById("press-form").reset();
+            document.getElementById("pr-id").value = "";
+            slugManuallyEdited = false;
+            document.getElementById("form-heading").textContent = "New Press Release";
+            document.getElementById("btn-reset").style.display = "none";
+            document.getElementById("pr-upload-status").textContent = "";
+            updatePreview();
+        }
+
+        async function savePressRelease(targetStatus) {
+            const id = document.getElementById("pr-id").value.trim();
+            const title = document.getElementById("pr-title").value.trim();
+            const slug = slugify(document.getElementById("pr-slug").value.trim() || title);
+            const bizName = document.getElementById("pr-biz-name").value.trim();
+            const bizAddr = document.getElementById("pr-biz-address").value.trim();
+            const content = document.getElementById("pr-content").value.trim();
+            if (!title || !slug || !bizName || !bizAddr || !content) {
+                const missingId = !title ? "pr-title" : !slug ? "pr-slug" : !bizName ? "pr-biz-name" : !bizAddr ? "pr-biz-address" : "pr-content";
+                showAlert("Title, Slug, Business Name, Address, and Body are required.", "warning", missingId);
+                return;
+            }
+            const status = targetStatus || document.getElementById("pr-status").value || "draft";
+            const existing = id ? cachedArticles.find((x) => x.id === id) : null;
+            const payload = {
+                title,
+                slug,
+                status,
+                summary: document.getElementById("pr-summary").value.trim() || null,
+                business_name: bizName,
+                business_address: bizAddr,
+                business_phone: document.getElementById("pr-biz-phone").value.trim() || null,
+                business_website: document.getElementById("pr-biz-website").value.trim() || null,
+                image_url: document.getElementById("pr-image-url").value.trim() || null,
+                image_alt: document.getElementById("pr-image-alt").value.trim() || null,
+                image_caption: document.getElementById("pr-image-caption").value.trim() || null,
+                content,
+                updated_at: new Date().toISOString(),
+                published_at: status === "published" ? (existing?.published_at || new Date().toISOString()) : existing?.published_at || null
+            };
+            const res = id
+                ? await sbClient.from("press_articles").update(payload).eq("id", id)
+                : await sbClient.from("press_articles").insert([payload]);
+            if (res.error) {
+                showAlert("Save failed: " + escapeHtml(res.error.message), "danger");
+                return;
+            }
+            showAlert(status === "published"
+                ? `Published! Live at <a href="/press/${encodeURIComponent(slug)}" target="_blank" rel="noopener">/press/${escapeHtml(slug)} &#8599;</a>`
+                : "Draft saved.", "success");
+            resetForm();
+            await loadPressReleases();
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase is not configured.", "warning");
+                return;
+            }
+            sbClient = window.GeorginaStore.getClient();
+            const { data: { session } } = await sbClient.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").toLowerCase();
+            const { data: profile } = await sbClient.from("user_profiles").select("role").eq("id", session.user.id).maybeSingle();
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "super_admin" || role === "staff" || userEmail === "cheerfulweb@gmail.com";
+            if (!isAdmin) {
+                window.location.replace("/staff/login.html");
+                return;
+            }
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+
+            document.getElementById("pr-title").addEventListener("input", () => {
+                if (!slugManuallyEdited) {
+                    document.getElementById("pr-slug").value = slugify(document.getElementById("pr-title").value);
+                }
+                updatePreview();
+            });
+            document.getElementById("pr-slug").addEventListener("input", () => { slugManuallyEdited = true; });
+            ["pr-summary", "pr-biz-name", "pr-biz-address", "pr-biz-phone", "pr-biz-website", "pr-image-url", "pr-image-alt", "pr-image-caption", "pr-content"].forEach((id) => {
+                document.getElementById(id).addEventListener("input", updatePreview);
+            });
+
+            document.getElementById("btn-toggle-preview").addEventListener("click", () => {
+                const wrap = document.getElementById("pr-live-preview-wrap");
+                wrap.style.display = wrap.style.display === "none" ? "block" : "none";
+                updatePreview();
+            });
+            document.getElementById("btn-reset").addEventListener("click", resetForm);
+
+            document.getElementById("press-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                await savePressRelease("draft");
+            });
+            document.getElementById("btn-publish-now").addEventListener("click", async () => {
+                await savePressRelease("published");
+            });
+
+            // Image upload to Supabase Storage press-images
+            document.getElementById("pr-image-file").addEventListener("change", async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const statusEl = document.getElementById("pr-upload-status");
+                statusEl.textContent = "Uploading image...";
+                const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+                const path = `${Date.now()}-${slugify(document.getElementById("pr-slug").value || file.name)}.${ext}`;
+                const { error } = await sbClient.storage.from("press-images").upload(path, file, { upsert: true });
+                if (error) {
+                    statusEl.textContent = "Upload failed: " + error.message;
+                    return;
+                }
+                const { data: pub } = sbClient.storage.from("press-images").getPublicUrl(path);
+                if (pub?.publicUrl) {
+                    document.getElementById("pr-image-url").value = pub.publicUrl;
+                    statusEl.textContent = "Uploaded!";
+                    updatePreview();
+                }
+            });
+
+            // Additional body images upload to Supabase Storage press-images
+            document.getElementById("pr-extra-image-file").addEventListener("change", async (e) => {
+                const files = Array.from(e.target.files || []);
+                if (!files.length) return;
+                const statusEl = document.getElementById("pr-extra-upload-status");
+                const capEl = document.getElementById("pr-extra-image-caption");
+                const cap = (capEl?.value || "").trim();
+                const ta = document.getElementById("pr-content");
+                let uploaded = 0;
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    statusEl.textContent = `Uploading image ${i + 1} of ${files.length}...`;
+                    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const path = `${Date.now()}-${i}-${slugify(document.getElementById("pr-slug").value || file.name)}.${ext}`;
+                    const { error } = await sbClient.storage.from("press-images").upload(path, file, { upsert: true });
+                    if (error) {
+                        statusEl.textContent = "Upload failed: " + error.message;
+                        return;
+                    }
+                    const { data: pub } = sbClient.storage.from("press-images").getPublicUrl(path);
+                    if (pub?.publicUrl) {
+                        const altText = escapeHtml(cap || document.getElementById("pr-title").value.trim() || "Press release photo");
+                        const fig = `<figure>\n  <img src="${escapeHtml(pub.publicUrl)}" alt="${altText}" />\n${cap ? `  <figcaption>${escapeHtml(cap)}</figcaption>\n` : ""}</figure>\n`;
+                        ta.value = (ta.value ? ta.value.trimEnd() + "\n\n" : "") + fig;
+                        uploaded++;
+                    }
+                }
+                statusEl.textContent = `Inserted ${uploaded} image${uploaded === 1 ? "" : "s"} into body!`;
+                if (capEl) capEl.value = "";
+                e.target.value = "";
+                updatePreview();
+            });
+
+            // AI Press Release Writer
+            document.getElementById("btn-ai-draft").addEventListener("click", async () => {
+                const btn = document.getElementById("btn-ai-draft");
+                const statusEl = document.getElementById("ai-draft-status");
+                const bizName = document.getElementById("pr-biz-name").value.trim();
+                const notes = document.getElementById("pr-ai-notes").value.trim();
+                const sourceUrl = document.getElementById("pr-ai-url").value.trim();
+                if (!bizName) { showAlert("Enter the Business Name in Section 2 (or pick one above) before running AI draft.", "warning", "pr-biz-name"); return; }
+                if (!notes && !sourceUrl) { showAlert("Enter brief announcement notes or a source URL for the AI writer.", "warning", "pr-ai-notes"); return; }
+
+                btn.disabled = true;
+                statusEl.textContent = "Drafting press release with Claude...";
+                try {
+                    const { data, error } = await sbClient.functions.invoke("admin-press-release", {
+                        body: {
+                            business_name: bizName,
+                            business_address: document.getElementById("pr-biz-address").value.trim(),
+                            business_phone: document.getElementById("pr-biz-phone").value.trim(),
+                            business_website: document.getElementById("pr-biz-website").value.trim(),
+                            source_url: sourceUrl,
+                            notes,
+                            tone: document.getElementById("pr-ai-tone").value
+                        }
+                    });
+                    if (error || data?.error) throw new Error(data?.error || error?.message || "AI draft failed.");
+                    const d = data.draft || {};
+                    if (d.title) document.getElementById("pr-title").value = d.title;
+                    if (d.slug_suggestion && !slugManuallyEdited) document.getElementById("pr-slug").value = slugify(d.slug_suggestion);
+                    if (d.summary) document.getElementById("pr-summary").value = d.summary;
+                    if (d.content_html) document.getElementById("pr-content").value = d.content_html;
+                    if (d.image_alt && !document.getElementById("pr-image-alt").value.trim()) document.getElementById("pr-image-alt").value = d.image_alt;
+                    if (d.image_caption && !document.getElementById("pr-image-caption").value.trim()) document.getElementById("pr-image-caption").value = d.image_caption;
+                    statusEl.textContent = "Draft ready! Review below before saving/publishing.";
+                    document.getElementById("pr-live-preview-wrap").style.display = "block";
+                    updatePreview();
+                } catch (err) {
+                    statusEl.textContent = "";
+                    showAlert("AI Writer Error: " + escapeHtml(err.message), "danger");
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+
+            await Promise.all([loadBusinessPicker(), loadPressReleases()]);
+        }
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

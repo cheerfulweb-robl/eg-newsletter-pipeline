@@ -1,0 +1,419 @@
+/* Design B: Fontshare silently drops cabinet-grotesk when combined with satoshi in one URL, so load each family separately */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Inter:wght@400;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #0f172a;
+  }
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Cabinet Grotesk', 'Fraunces', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Universal 135% Card Text Scaling & Readability */
+.card, [class*="rounded-2xl"][class*="border"], [class*="rounded-3xl"][class*="border"] {
+  font-size: 1.05rem;
+}
+
+/* High Contrast Pill Standard */
+.pill-high-contrast {
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+}
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 10s linear infinite;
+  display: inline-block;
+  min-width: 200%;
+}
+
+@keyframes shimmer-text {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+.text-shimmer {
+  background: linear-gradient(90deg, #ffffff 20%, #7dd3fc 40%, #7dd3fc 60%, #ffffff 80%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer-text 3s linear infinite;
+}
+@keyframes shimmer-swipe {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+.hover-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.hover-shimmer:hover::before {
+  content: '';
+  position: absolute;
+  top: 0; 
+  left: -100%; 
+  width: 50%; 
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-20deg);
+  animation: shimmer-swipe 1.5s infinite linear;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Completely hide ugly OS scrollbars while preserving smooth touch/button scrolling */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Center text horizontally and vertically in badge and category pill spans */
+.badge-pill,
+span[class*="rounded-full"][class*="px-"],
+span[class*="rounded-md"][class*="px-"],
+span[class*="rounded-xl"][class*="px-"],
+span[class*="rounded-lg"][class*="px-"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Explicitly force all form inputs, textareas, and selects to be left-aligned */
+input, textarea, select {
+  text-align: left !important;
+}
+
+/* ===================================================================== */
+/* Design B — Lake & Sunset: global focus, carousels, reduced motion      */
+/* ===================================================================== */
+:focus-visible {
+  outline: 3px solid #FFB627;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.focus-ring-dark:focus-visible {
+  outline-color: #051B2E;
+}
+
+/* Horizontal scroll-snap carousel: scrolls inside its own box, never the page */
+.b-carousel {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.b-carousel::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.b-carousel > * {
+  scroll-snap-align: start;
+}
+
+/* Pill shimmer (Home): a soft light sweep passes over each pill every few seconds.
+   :where() keeps position/overflow at zero specificity so utilities like .absolute still win. */
+:where(.wg-shimmer) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.wg-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 28%, rgba(255, 255, 255, 0.55) 46%, rgba(255, 221, 128, 0.45) 54%, transparent 72%);
+  transform: translateX(-130%);
+  animation: wg-shimmer 5.25s ease-in-out infinite;
+  animation-delay: var(--shimmer-delay, 0s);
+}
+.wg-shimmer:nth-child(3n + 2) { --shimmer-delay: 1.75s; }
+.wg-shimmer:nth-child(3n) { --shimmer-delay: 3.5s; }
+@keyframes wg-shimmer {
+  0% { transform: translateX(-130%); }
+  40%, 100% { transform: translateX(130%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wg-shimmer::after { display: none; }
+}
+
+/* Home's fixed mobile tab bar (lg:hidden): lift floating buttons above it */
+html.wg-has-bottom-bar {
+  --wg-bottom-bar: calc(64px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  html.wg-has-bottom-bar {
+    --wg-bottom-bar: 0px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Home hero "clothesline" photo strip (components/HeroGallery.jsx) */
+.wg-pola {
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25), 0 6px 14px -6px rgba(0, 0, 0, 0.55);
+  transform-origin: 50% -6px;
+  transform: rotate(var(--sway, 0deg));
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.wg-pola:hover,
+.wg-pola:focus-visible {
+  transform: rotate(calc(var(--sway, 0deg) * -1.6)) scale(1.1);
+  z-index: 2;
+}
+.wg-pola-hl {
+  box-shadow: 0 0 0 2px #FFB627, 0 6px 14px -6px rgba(0, 0, 0, 0.55);
+}
+.wg-pola-hl::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #D63A24;
+}
+.wg-peg {
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  width: 6px;
+  height: 11px;
+  margin-left: -3px;
+  border-radius: 1.5px;
+  background: #D63A24;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+@media (max-width: 639px) {
+  .wg-pola-hl::after { width: 3px; height: 3px; right: 1px; bottom: 1px; }
+  .wg-peg { top: -5px; width: 4px; height: 8px; margin-left: -2px; }
+}
+@keyframes wg-ad-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes wg-ad-flash {
+  0%, 100% {
+    box-shadow: 0 0 0 3px #fbbf24, 0 0 14px rgba(251, 191, 36, 0.75), 0 8px 18px -6px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 3px #38bdf8, 0 0 22px rgba(236, 72, 153, 0.85), 0 8px 18px -6px rgba(0, 0, 0, 0.6);
+  }
+}
+@keyframes wg-gallery-slide {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.wg-pola-ad {
+  background: linear-gradient(135deg, #ff5f6d, #fbbf24, #34d399, #38bdf8, #a855f7, #ff5f6d);
+  background-size: 320% 320%;
+  animation: wg-ad-shimmer 6s ease infinite, wg-ad-flash 2.8s ease-in-out infinite;
+  border-radius: 5px;
+}
+.wg-gallery-track {
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+}
+.wg-gallery-track.is-sliding {
+  animation: wg-gallery-slide var(--wg-slide-duration, 32s) linear infinite;
+}
+.wg-gallery-track.is-sliding:hover,
+.wg-gallery-track.is-sliding:focus-within {
+  animation-play-state: paused;
+}
+@keyframes wg-clock-tick {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.wg-hamburger-tick {
+  animation: wg-clock-tick 12s steps(12, end) infinite;
+}
+.wg-hamburger-tick:hover,
+.wg-hamburger-tick:focus-visible {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wg-pola { transition: none; }
+  .wg-pola:hover, .wg-pola:focus-visible { transform: rotate(var(--sway, 0deg)); }
+  .wg-pola-ad { animation: none; box-shadow: 0 0 0 3px #fbbf24; }
+  .wg-gallery-track.is-sliding { animation: none; }
+  .wg-hamburger-tick { animation: none; }
+}
+
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links). */
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+  width: 100%;
+}
+@supports (overflow-x: clip) {
+  html, body, #root {
+    overflow-x: clip;
+  }
+}
+/* Use overflow-wrap (not word-break: break-word) so short words & badges like DINING never split mid-word */
+p, li, td, a, span, h1, h2, h3, h4 {
+  overflow-wrap: break-word;
+}
+
+/* ===================================================================== */
+/* Accessible Announcement Ticker (replaces legacy <marquee> which broke */
+/* mobile viewport width on client-side navigation and WCAG 2.2.2)       */
+/* ===================================================================== */
+.wg-ticker {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wg-ticker-track {
+  display: inline-block;
+  padding-left: 100%;
+  will-change: transform;
+  animation: wg-ticker-scroll 28s linear infinite;
+}
+.wg-ticker:hover .wg-ticker-track,
+.wg-ticker:focus-within .wg-ticker-track {
+  animation-play-state: paused;
+}
+@keyframes wg-ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wg-ticker {
+    white-space: normal;
+    text-align: center;
+    padding-inline: 1rem;
+  }
+  .wg-ticker-track {
+    padding-left: 0;
+    animation: none;
+  }
+}
+
+/* ===================================================================== */
+/* Site-Wide Even Typography Scale (+50% readability on body/content,    */
+/* conservative scaling on nav, badges & pills so layouts never wrap)    */
+/* ===================================================================== */
+main {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+main p,
+main li {
+  line-height: 1.6;
+}
+/* Elevate tiny Tailwind text sizes inside page content (leaving <header>/<nav> compact) */
+main .text-\[9px\],
+main .text-\[10px\],
+main .text-\[10\.5px\],
+main .text-\[11px\] {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+main .text-xs {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+main p.text-xs,
+main li.text-xs {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+main .text-sm {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+main p.text-sm,
+main li.text-sm {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+}
+main .text-base {
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+/* Ensure form controls are always >= 16px so iOS Safari never auto-zooms on focus */
+main input,
+main select,
+main textarea {
+  font-size: max(1rem, 16px);
+}
+/* Keep badges/pills legible and wrapping cleanly across mobile, tablet, and desktop cards */
+main .badge-pill,
+main span[class*="rounded-full"][class*="px-"],
+main span[class*="rounded-md"][class*="px-"] {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  white-space: normal;
+  flex-shrink: 1;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+/* Prevent CSS Grid and Flex items inside main from expanding past mobile viewport width */
+main .grid {
+  min-width: 0;
+}
+main .grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 639px) {
+  .badge-pill,
+  span[class*="rounded-full"][class*="px-"],
+  span[class*="rounded-md"][class*="px-"],
+  span[class*="rounded-xl"][class*="px-"],
+  span[class*="rounded-lg"][class*="px-"],
+  main .badge-pill,
+  main span[class*="rounded-full"][class*="px-"],
+  main span[class*="rounded-md"][class*="px-"] {
+    white-space: normal;
+    flex-shrink: 1;
+    text-align: left;
+    overflow-wrap: break-word;
+  }
+}
+main input[type="date"],
+main input[type="datetime-local"] {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}

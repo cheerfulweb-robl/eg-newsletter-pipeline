@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statements of Correction — Welcome East Gwillimbury Staff</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .status-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+        }
+        .status-active { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .status-draft { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .status-archived { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+        .form-control, input[type="date"], input[type="text"], select, textarea {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="corrections-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="container admin-content-area" style="max-width: 1440px; margin: 0 auto; padding: 18px 20px;">
+        <div id="page-alert" role="status" style="display: none; margin-bottom: 20px;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Post a Correction Notice</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Write the Correction:</strong> Type the corrected details clearly and pick which newsletter(s) should show the notice (<strong>Monday</strong>, <strong>Thursday</strong>, or <strong>Both</strong>).</li>
+        <li><strong>Goes Live Automatically:</strong> Active notices appear on the public Corrections page and at the top of the selected newsletter.</li>
+    </ol>
+</details>
+
+        <!-- Add / Edit Form Card -->
+        <div class="card" style="margin-bottom: 24px;">
+            <h2 id="form-title" style="margin: 0 0 4px 0; font-size: 20px; color: #00008b;">Add a Statement of Editorial Correction</h2>
+            <p style="margin: 0 0 16px 0; color: var(--muted); font-size: 13px;">
+                Published statements are displayed transparently to readers at <a href="/corrections" target="_blank" style="color:#0284c7; font-weight:700;">welcomeeg.ca/corrections</a> and included in Monday &amp; Thursday newsletter dispatches.
+            </p>
+
+            <form id="correction-form" style="display: grid; gap: 14px;">
+                <input type="hidden" id="c-id" value="">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+                    <div style="min-width: 0;">
+                        <label for="c-title" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Correction Title *</label>
+                        <input type="text" id="c-title" class="form-control" required placeholder="e.g. Legion Meat Draw Date Clarification">
+                    </div>
+                    <div style="min-width: 0;">
+                        <label for="c-date" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Issue Date *</label>
+                        <input type="date" id="c-date" class="form-control" required>
+                    </div>
+                    <div style="min-width: 0;">
+                        <label for="c-target" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Target Audience</label>
+                        <select id="c-target" class="form-control">
+                            <option value="both">Both Editions (Monday &amp; Thursday)</option>
+                            <option value="monday">Monday Edition (Mon&ndash;Fri Listings)</option>
+                            <option value="thursday">Thursday Edition (Weekend Listings)</option>
+                        </select>
+                    </div>
+                    <div style="min-width: 0;">
+                        <label for="c-status" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Publication Status</label>
+                        <select id="c-status" class="form-control">
+                            <option value="active">Active (Published Publicly)</option>
+                            <option value="draft">Draft (Private)</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="c-claim" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Original Claim / Inaccurate Text</label>
+                    <textarea id="c-claim" class="form-control" rows="2" placeholder="What was originally published incorrectly..."></textarea>
+                </div>
+
+                <div>
+                    <label for="c-text" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Correction Statement *</label>
+                    <textarea id="c-text" class="form-control" rows="3" required placeholder="The accurate factual statement..."></textarea>
+                </div>
+
+                <div>
+                    <label for="c-action" style="display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px;">Action Taken</label>
+                    <input type="text" id="c-action" class="form-control" placeholder="e.g. Updated active calendar listing and published errata in issue #42">
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button type="submit" id="btn-save" class="btn btn-primary" style="background:#00008b;">Save Statement</button>
+                    <button type="button" id="btn-cancel" class="btn btn-secondary" style="display: none;">Cancel Edit</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Statements List Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                <div>
+                    <h2 style="margin: 0 0 4px 0; font-size: 20px; color: #00008b;">Editorial Statements &amp; Errata Records</h2>
+                    <p style="margin: 0; color: var(--muted); font-size: 13px;">Manage all published, draft, and historical statements of correction.</p>
+                </div>
+                <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">🔄 Refresh</button>
+            </div>
+
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Edition</th>
+                            <th>Title &amp; Statement Details</th>
+                            <th>Date</th>
+                            <th style="text-align: right; white-space: nowrap;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corrections-tbody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--muted); padding: 24px;">Loading corrections...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/hamper/redeem.html">🎟️ Redemptions (Hamper Codes)</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let client = null;
+        let correctionsList = [];
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+        function escapeHtml(s) {
+            return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function jsArg(value) {
+            return escapeHtml(JSON.stringify(String(value == null ? "" : value)));
+        }
+
+        function formatEditionLabel(val) {
+            const v = String(val || "both").toLowerCase();
+            if (v === "monday" || v === "vendor") return "Monday Edition";
+            if (v === "thursday" || v === "reader") return "Thursday Edition";
+            return "Both Editions";
+        }
+
+        async function loadCorrections() {
+            clearAlert();
+            try {
+                const { data, error } = await client.from("editorial_corrections").select("*").order("issue_date", { ascending: false });
+                if (error) {
+                    const msg = String(error.message || error);
+                    if (msg.includes("schema cache") || msg.includes("editorial_corrections")) {
+                        correctionsList = [];
+                        renderTable();
+                        return;
+                    }
+                    throw error;
+                }
+                correctionsList = data || [];
+                renderTable();
+            } catch (err) {
+                showAlert("Could not load corrections: " + (err.message || err), "danger");
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById("corrections-tbody");
+            if (!correctionsList.length) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--muted); padding:24px;">No statements of correction recorded yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = correctionsList.map(c => `<tr>
+                <td><span class="status-badge status-${escapeHtml(c.status || "draft")}">${escapeHtml(c.status || "draft")}</span></td>
+                <td><span style="font-size:12px; font-weight:700;">${escapeHtml(formatEditionLabel(c.edition_target))}</span></td>
+                <td>
+                    <strong style="font-size:14px; color:#0f172a;">${escapeHtml(c.title)}</strong>
+                    ${c.original_claim ? `<div style="font-size:12px; color:#64748b; margin-top:4px;"><b>Original:</b> ${escapeHtml(c.original_claim)}</div>` : ''}
+                    <div style="font-size:13px; color:#1e293b; margin-top:4px; line-height:1.4;">${escapeHtml(c.correction_text)}</div>
+                    ${c.action_taken ? `<div style="font-size:11px; color:#166534; font-weight:700; margin-top:4px;">Action: ${escapeHtml(c.action_taken)}</div>` : ''}
+                </td>
+                <td style="font-size:12px; white-space:nowrap;">${escapeHtml(c.issue_date || c.created_at?.slice(0, 10))}</td>
+                <td style="text-align: right; white-space: nowrap;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="editCorrection(${jsArg(c.id)})">✏️ Edit</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="toggleStatus(${jsArg(c.id)}, ${jsArg(c.status === "active" ? "draft" : "active")})">${c.status === "active" ? "Unpublish" : "Publish"}</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteCorrection(${jsArg(c.id)})">🗑️ Delete</button>
+                </td>
+            </tr>`).join("");
+        }
+
+        window.editCorrection = function(id) {
+            const c = correctionsList.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById("c-id").value = c.id;
+            document.getElementById("c-title").value = c.title || "";
+            document.getElementById("c-date").value = c.issue_date || "";
+            const rawTarget = c.edition_target || "both";
+            document.getElementById("c-target").value = rawTarget === "vendor" ? "monday" : (rawTarget === "reader" ? "thursday" : rawTarget);
+            document.getElementById("c-status").value = c.status || "active";
+            document.getElementById("c-claim").value = c.original_claim || "";
+            document.getElementById("c-text").value = c.correction_text || "";
+            document.getElementById("c-action").value = c.action_taken || "";
+
+            document.getElementById("form-title").textContent = "Edit Statement of Correction";
+            document.getElementById("btn-cancel").style.display = "inline-flex";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        };
+
+        window.resetForm = function() {
+            document.getElementById("correction-form").reset();
+            document.getElementById("c-id").value = "";
+            document.getElementById("form-title").textContent = "Add a Statement of Editorial Correction";
+            document.getElementById("btn-cancel").style.display = "none";
+            document.getElementById("c-date").value = new Date().toISOString().slice(0, 10);
+        };
+
+        window.toggleStatus = async function(id, newStatus) {
+            try {
+                const { error } = await client.from("editorial_corrections").update({ status: newStatus }).eq("id", id);
+                if (error) throw error;
+                showAlert(`Statement updated to ${newStatus}.`, "success");
+                await loadCorrections();
+            } catch (err) {
+                showAlert("Could not update: " + (err.message || err), "danger");
+            }
+        };
+
+        window.deleteCorrection = async function(id) {
+            if (!confirm("Permanently delete this statement of correction?")) return;
+            try {
+                const { error } = await client.from("editorial_corrections").delete().eq("id", id);
+                if (error) throw error;
+                showAlert("Statement deleted.", "success");
+                await loadCorrections();
+            } catch (err) {
+                showAlert("Could not delete: " + (err.message || err), "danger");
+            }
+        };
+
+        document.getElementById("btn-cancel").addEventListener("click", resetForm);
+        document.getElementById("btn-refresh").addEventListener("click", loadCorrections);
+
+        document.getElementById("correction-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearAlert();
+            const id = document.getElementById("c-id").value;
+            const payload = {
+                title: document.getElementById("c-title").value.trim(),
+                issue_date: document.getElementById("c-date").value,
+                edition_target: document.getElementById("c-target").value,
+                status: document.getElementById("c-status").value,
+                original_claim: document.getElementById("c-claim").value.trim(),
+                correction_text: document.getElementById("c-text").value.trim(),
+                action_taken: document.getElementById("c-action").value.trim(),
+            };
+
+            try {
+                const btn = document.getElementById("btn-save");
+                btn.disabled = true;
+                const { error } = id
+                    ? await client.from("editorial_corrections").update(payload).eq("id", id)
+                    : await client.from("editorial_corrections").insert([payload]);
+                btn.disabled = false;
+                if (error) throw error;
+
+                showAlert(id ? "Statement updated successfully." : "Statement added successfully.", "success");
+                resetForm();
+                await loadCorrections();
+            } catch (err) {
+                showAlert("Could not save statement: " + (err.message || err), "danger");
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Database configuration not found.", "danger");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) {
+                window.location.href = "/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            if (window.syncHeaderAuthBadge) {
+                window.syncHeaderAuthBadge(session.user.email, true);
+            }
+            document.getElementById("c-date").value = new Date().toISOString().slice(0, 10);
+            await loadCorrections();
+        });
+    </script>
+</body>
+</html>

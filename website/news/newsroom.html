@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>East Gwillimbury Community Newsroom • 90-Day Archive Calendar</title>
+    <!-- Standard Main Site Tailwind & Production CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/news/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .cal-day-cell {
+            min-height: 110px;
+            border-radius: 16px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: all 0.2s ease;
+            position: relative;
+            cursor: pointer;
+            text-align: left;
+            min-width: 0;
+        }
+        .cal-day-cell:hover:not(.out-of-window) {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(0, 0, 139, 0.08);
+            transform: translateY(-2px);
+        }
+        .cal-day-cell.selected {
+            border-color: #00008b;
+            box-shadow: 0 0 0 2px #00008b, 0 6px 16px rgba(0, 0, 139, 0.15);
+            background: #f0f7ff;
+        }
+        .cal-day-cell.has-news {
+            border-color: #bfdbfe;
+            background: #f8fbff;
+        }
+        .cal-day-cell.is-today {
+            border-color: #2563eb;
+            background: #eff6ff;
+            ring: 1px solid #3b82f6;
+        }
+        .cal-day-cell.out-of-window {
+            background: #f8fafc;
+            opacity: 0.45;
+            cursor: not-allowed;
+            border-color: #f1f5f9;
+        }
+        .story-pill-post {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .story-pill-town {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .news-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .news-card:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 8px 24px rgba(0, 0, 139, 0.08);
+            transform: translateY(-2px);
+        }
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            color: #475569;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }
+        .share-btn:hover {
+            background: #eff6ff;
+            color: #00008b;
+            border-color: #bfdbfe;
+            transform: translateY(-1px);
+        }
+        .share-btn-copy {
+            width: auto;
+            padding: 0 8px;
+            height: 28px;
+            font-size: 11px;
+            font-weight: 700;
+            gap: 4px;
+        }
+        /* Calendar: article count per day + article titles (16px) */
+        #calendar-grid {
+            align-items: stretch; /* every cell in a week row takes the height of the tallest cell */
+        }
+        .cal-day-count {
+            font-size: 11px;
+            font-weight: 900;
+            background: #00008b;
+            color: #ffffff;
+            border-radius: 9999px;
+            padding: 2px 8px;
+            white-space: nowrap;
+        }
+        .cal-story-title {
+            display: block;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+            line-height: 1.3;
+            font-weight: 700;
+            color: #0f172a;
+            background: none;
+            border: none;
+            border-left: 3px solid #2563eb;
+            padding: 2px 0 2px 8px;
+            margin-top: 6px;
+            cursor: pointer;
+            overflow-wrap: anywhere;
+        }
+        .cal-story-title.is-post {
+            border-left-color: #f59e0b;
+        }
+        .cal-story-title:hover,
+        .cal-story-title:focus-visible {
+            color: #00008b;
+            text-decoration: underline;
+        }
+        .nr-mobile-only {
+            display: none;
+        }
+        /* Tablet & mobile: each day is a row; empty past days are not listed */
+        @media (max-width: 1024px) {
+            .nr-desktop-only {
+                display: none !important;
+            }
+            .nr-mobile-only {
+                display: block;
+            }
+        }
+        .cal-row {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            border: 1px solid #bfdbfe;
+            background: #f8fbff;
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .cal-row.is-today {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        .cal-row.selected {
+            border-color: #00008b;
+            box-shadow: 0 0 0 2px #00008b;
+        }
+        .cal-row-date {
+            flex: 0 0 56px;
+            text-align: center;
+        }
+        .cal-row-body {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        /* Article modal (same look as the home page event modal) */
+        #article-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 11000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        #article-modal.open {
+            display: flex;
+        }
+        #article-modal .article-modal-card {
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+        }
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. Explore the 90-Day Retrospective Newsroom Calendar featuring local journalism from The NewmarketToday and official Town of East Gwillimbury Media Releases.
+        </span></div>
+    </div>
+
+    <!-- Standard Main Site Header -->
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="news-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link active font-bold text-[#00008b]" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/news/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-news-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Breadcrumbs -->
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-6">
+            <a href="/" class="hover:text-[#00008b] transition-colors">&larr; Home</a>
+            <span>/</span>
+            <a href="/news/index.html" class="hover:text-[#00008b] transition-colors">News</a>
+            <span>/</span>
+            <span class="text-slate-900 font-bold">Past 90-Day Newsroom Calendar</span>
+        </nav>
+
+        <!-- Hero Header -->
+        <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#0c2340] via-[#133a6b] to-[#1e1b4b] text-white p-8 sm:p-10 md:p-12 shadow-xl border border-blue-900/40 mb-8">
+            <div style="position: absolute; right: 0; top: 0; width: 24rem; height: 24rem; background: rgba(251, 191, 36, 0.1); border-radius: 9999px; filter: blur(48px); pointer-events: none;"></div>
+            <div style="position: absolute; left: 33%; bottom: -2.5rem; width: 20rem; height: 20rem; background: rgba(240, 78, 55, 0.1); border-radius: 9999px; filter: blur(48px); pointer-events: none;"></div>
+
+            <svg style="position: absolute; right: -3rem; bottom: -4rem; width: 500px; height: 220px; color: rgba(255,255,255,0.03); pointer-events: none;" viewBox="0 0 1440 320" fill="currentColor" aria-hidden="true">
+                <path d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,122.7C672,128,768,192,864,208C960,224,1056,192,1152,165.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z" />
+            </svg>
+
+            <div class="relative z-10 max-w-4xl">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0c2340]/80 border border-blue-500/40 text-amber-200 text-xs sm:text-sm font-bold mb-4 shadow-sm backdrop-blur-sm">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 9999px; background: #fbbf24; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;" aria-hidden="true"></span>
+                    <span>📰 90-Day Community News Archive &bull; Verified Journalism</span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight mb-4" style="font-family: 'Cabinet Grotesk', system-ui, sans-serif;">
+                    Past News Stories <span style="color: #fbbf24;">Calendar</span>
+                </h1>
+
+                <p class="text-blue-100 text-sm sm:text-base md:text-lg font-medium leading-relaxed max-w-2xl mb-6">
+                    Interactive retrospective calendar spanning the past 90 days. Click any date on the calendar grid to read verified local journalism from <strong>The NewmarketToday</strong> and official <strong>Town of East Gwillimbury Media Releases</strong> published on that day.
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-bold text-blue-200">
+                    <span class="flex items-center gap-1.5 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-sm">
+                        <span>🗓️ 90-Day Rolling Archive</span>
+                    </span>
+                    <span class="flex items-center gap-1.5 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-sm">
+                        <span>🏛️ Town Council Highlights &amp; Media Releases</span>
+                    </span>
+                    <span class="flex items-center gap-1.5 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-sm">
+                        <span>📰 The NewmarketToday Local Coverage</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar: Month Navigator & Source Filters -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 md:p-6 shadow-sm mb-6 space-y-4">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <!-- Month / Year Selector Buttons -->
+                <div class="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-start">
+                    <button type="button" onclick="changeMonth(-1)" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-black text-slate-700 hover:bg-slate-100 flex items-center gap-1 transition-colors">
+                        <span>&larr; Prev Month</span>
+                    </button>
+                    <span id="current-month-label" class="text-base font-black text-slate-900 px-3 tracking-tight">
+                        November 2026
+                    </span>
+                    <button type="button" onclick="changeMonth(1)" class="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-black text-slate-700 hover:bg-slate-100 flex items-center gap-1 transition-colors">
+                        <span>Next Month &rarr;</span>
+                    </button>
+                </div>
+
+                <!-- 90-Day Quick Month Jump Pills -->
+                <div class="flex items-center gap-1.5 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0" id="month-jump-pills">
+                    <!-- Populated dynamically: Nov 2026, Oct 2026, Sep 2026, Aug 2026 -->
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                <!-- Source Filters -->
+                <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
+                    <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 mr-1">Source:</span>
+                    <button type="button" onclick="setSourceFilter('All')" id="src-pill-All" class="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap bg-[#00008b] text-white shadow-sm">
+                        🌟 All Sources
+                    </button>
+                    <button type="button" onclick="setSourceFilter('The NewmarketToday')" id="src-pill-post" class="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        📰 The NewmarketToday
+                    </button>
+                    <button type="button" onclick="setSourceFilter('Town of East Gwillimbury')" id="src-pill-town" class="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        🏛️ Town of East Gwillimbury
+                    </button>
+                </div>
+
+                <!-- Keyword Search -->
+                <div class="relative w-full md:w-72">
+                    <input
+                        type="text"
+                        id="search-input"
+                        oninput="handleSearch(this.value)"
+                        placeholder="Search headline, reporter, topic..."
+                        class="w-full pl-3.5 pr-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-[#00008b]"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- 7-Column Master Calendar Grid Header -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 md:p-6 shadow-sm mb-8">
+            <div class="nr-desktop-only grid grid-cols-7 gap-2 md:gap-3 text-center text-xs font-black uppercase tracking-wider text-slate-500 mb-3 px-1">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+
+            <!-- Calendar Days Grid Container -->
+            <div id="calendar-grid" class="nr-desktop-only grid grid-cols-7 gap-2 md:gap-3">
+                <!-- Rendered dynamically via JavaScript -->
+            </div>
+
+            <!-- Tablet & Mobile: one row per day that has articles (newest first) -->
+            <div id="calendar-list" class="nr-mobile-only">
+                <!-- Rendered dynamically via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Selected Date Header & Story List -->
+        <div id="stories-section" class="scroll-mt-8 mb-16">
+            <div class="flex items-center justify-between mb-4 px-1">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 tracking-tight" id="stories-heading">
+                        Stories on Selected Date
+                    </h2>
+                    <p class="text-xs text-slate-500 font-semibold" id="stories-subheading">
+                        Click any highlighted date above to filter stories by day.
+                    </p>
+                </div>
+
+                <button type="button" id="btn-show-all-month" onclick="showAllCurrentMonthStories()" class="text-xs font-bold text-[#00008b] hover:underline" style="display: none;">
+                    Show All Stories for this Month &rarr;
+                </button>
+            </div>
+
+            <!-- Stories Container Grid -->
+            <div id="stories-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Story Cards Injected Dynamically -->
+            </div>
+
+            <!-- Empty State for Day with 0 stories -->
+            <div id="no-stories-day" class="bg-white rounded-3xl border border-slate-200 p-12 text-center" style="display: none;">
+                <p class="text-base font-black text-slate-900 mb-1">No News Stories Published on this Date</p>
+                <p class="text-xs text-slate-500 max-w-md mx-auto mb-4">
+                    There were no media releases or articles published on this specific day. Browse the highlighted calendar dates above to view published reports.
+                </p>
+                <button type="button" onclick="showAllCurrentMonthStories()" class="px-5 py-2.5 bg-[#00008b] text-white rounded-xl text-xs font-black uppercase tracking-wider">
+                    View All Stories for This Month
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Standard Site Footer -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.src='https://welcomeeg.ca/welcome-eg-logo.png'">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Community &amp; Calendars</h4>
+                    <ul class="footer-links">
+                        <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                        <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                        <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Subscribe to Weekly Briefing &rarr;</a></li>
+                        <li><a href="/newsletter">📰 Newsletter Archive &amp; Past Editions</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Submissions</h4>
+                    <ul class="footer-links">
+                        <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                        <li><a href="/submit-event">📅 Submit an Event</a></li>
+                        <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                        <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                        <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <h4 class="footer-heading">Portals &amp; Administration</h4>
+                    <ul class="footer-links">
+                        <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                        <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                        <li><a href="/knowledge-base">❓ Help Center &amp; Knowledge Base</a></li>
+                        <li><a href="/terms">📜 Terms of Service</a></li>
+                        <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                        <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                        <li><a href="/press">📢 Pressroom &amp; Media Kit</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Article Modal (same look as the home page event modal). Filled with textContent only. -->
+    <div id="article-modal" role="dialog" aria-modal="true" aria-labelledby="article-modal-title" onclick="if (event.target === this) closeArticleModal()">
+        <div class="article-modal-card bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-gray-100 relative space-y-4">
+            <button type="button" onclick="closeArticleModal()" class="absolute top-5 right-5 p-2 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100" aria-label="Close modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+
+            <div class="flex items-center gap-2">
+                <span id="article-modal-badge" class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-blue-100 text-[#00008b] border border-blue-200">News</span>
+            </div>
+
+            <h3 id="article-modal-title" class="text-xl md:text-2xl font-black text-gray-900 leading-tight pr-8"></h3>
+
+            <div class="space-y-2 text-xs text-gray-600 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                <p class="font-bold text-gray-900">Source: <span id="article-modal-source"></span></p>
+                <p class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span id="article-modal-date"></span>
+                </p>
+            </div>
+
+            <p id="article-modal-summary" class="text-sm text-gray-700 leading-relaxed"></p>
+
+            <div class="flex gap-3 pt-2">
+                <a id="article-modal-link" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-[#00008b] hover:bg-blue-900 text-white font-black text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-sm transition-all">
+                    Read Full Story &rarr;
+                </a>
+                <button type="button" onclick="closeArticleModal()" class="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs uppercase tracking-wider transition-all">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Today is the visitor's real local date (was hard-coded to November 11, 2026).
+        // The 90-day window runs back from the date of the latest pipeline run (newest
+        // created_at among the news rows), see computeNewsWindow().
+        const _now = new Date();
+        const TODAY = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
+        const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        let LAST_RUN = new Date(TODAY);
+        let NINETY_DAYS_AGO = new Date(TODAY);
+        NINETY_DAYS_AGO.setDate(TODAY.getDate() - 90);
+
+        function toIsoDate(d) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
+        function computeNewsWindow() {
+            let latest = null;
+            allNewsArticles.forEach(it => {
+                if (!it.created_at) return;
+                const c = new Date(it.created_at);
+                if (isNaN(c.getTime())) return;
+                const day = new Date(c.getFullYear(), c.getMonth(), c.getDate());
+                if (!latest || day > latest) latest = day;
+            });
+            LAST_RUN = (latest && latest <= TODAY) ? latest : new Date(TODAY);
+            NINETY_DAYS_AGO = new Date(LAST_RUN);
+            NINETY_DAYS_AGO.setDate(LAST_RUN.getDate() - 90);
+        }
+
+        function articleDateIso(it) {
+            return it && it.event_start_date ? String(it.event_start_date).slice(0, 10) : null;
+        }
+
+        let allNewsArticles = [];
+        let viewYear = TODAY.getFullYear();
+        let viewMonth = TODAY.getMonth(); // 0-indexed
+        let selectedDateStr = null; // 'YYYY-MM-DD'
+        let activeSource = 'All';
+        let searchQuery = '';
+
+        // HTML Sanitizer to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // URL Sanitizer to prevent javascript: and data: injection
+        function sanitizeUrl(url) {
+            if (!url) return 'https://welcomeeg.ca';
+            const clean = String(url).trim();
+            if (clean.startsWith('http://') || clean.startsWith('https://')) {
+                return clean;
+            }
+            return 'https://welcomeeg.ca';
+        }
+
+        // Curated 90-day past news archive fallback
+        const CURATED_NEWS_ARCHIVE = [
+            {
+                id: "gp-nov08",
+                title: "East Gwillimbury kids help inspire a global movement",
+                business_name: "The NewmarketToday",
+                event_date_label: "Nov 08, 2026",
+                event_start_date: "2026-11-08",
+                summary: "By Ewa Chwojko-Srawley: A real chicken, a group of curious campers and a question about the future helped spark an idea that is now reaching children around the world.",
+                link: "https://georginapost.com/2026/11/08/georgina-kids-help-inspire-a-global-movement/",
+                category: "local_news"
+            },
+            {
+                id: "gp-nov05-1",
+                title: "York Regional Police launches Project Fallback",
+                business_name: "The NewmarketToday",
+                event_date_label: "Nov 05, 2026",
+                event_start_date: "2026-11-05",
+                summary: "Community safety awareness initiative launched across East Gwillimbury and York Region to combat auto theft and promote residential crime prevention.",
+                link: "https://georginapost.com",
+                category: "local_news"
+            },
+            {
+                id: "gp-nov05-2",
+                title: "QuestBus out of service indefinitely after second fire destroys vehicle",
+                business_name: "The NewmarketToday",
+                event_date_label: "Nov 05, 2026",
+                event_start_date: "2026-11-05",
+                summary: "Community transit service for local seniors and youth temporarily halted after vehicle damage.",
+                link: "https://georginapost.com",
+                category: "local_news"
+            },
+            {
+                id: "tg-oct29-1",
+                title: "Marking Remembrance Day and more this November in East Gwillimbury",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Oct 29, 2026",
+                event_start_date: "2026-10-29",
+                summary: "The Town of East Gwillimbury, local Legion branches, and the East Gwillimbury Military Museum invite residents to commemorate our veterans.",
+                link: "https://www.georgina.ca/newsroom",
+                category: "municipal_news"
+            },
+            {
+                id: "tg-oct29-2",
+                title: "Public Notice - Invitation for Public Comment - Old Shiloh Road Bridge Replacement",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Oct 29, 2026",
+                event_start_date: "2026-10-29",
+                summary: "Public consultation notice regarding environmental assessment and bridge structure renewal in Queensville.",
+                link: "https://www.georgina.ca/newsroom",
+                category: "municipal_news"
+            },
+            {
+                id: "gp-oct29-1",
+                title: "Local teen honoured as the OAAS Youth of the Month",
+                business_name: "The NewmarketToday",
+                event_date_label: "Oct 29, 2026",
+                event_start_date: "2026-10-29",
+                summary: "East Gwillimbury youth recognized by Ontario Association of Agricultural Societies for leadership and volunteer service at the Mount Albert Fair.",
+                link: "https://georginapost.com",
+                category: "local_news"
+            },
+            {
+                id: "gp-oct27",
+                title: "East Gwillimbury Vote 2026 brings sweeping change in council",
+                business_name: "The NewmarketToday",
+                event_date_label: "Oct 27, 2026",
+                event_start_date: "2026-10-27",
+                summary: "Comprehensive breakdown of election results and new ward representatives across the Town of East Gwillimbury.",
+                link: "https://georginapost.com",
+                category: "local_news"
+            },
+            {
+                id: "tg-oct26",
+                title: "It’s Voting Day in East Gwillimbury",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Oct 26, 2026",
+                event_start_date: "2026-10-26",
+                summary: "Polls open across Holland Landing, Mount Albert, and Queensville with online and in-person ballot casting options.",
+                link: "https://www.georgina.ca/newsroom",
+                category: "municipal_news"
+            },
+            {
+                id: "tg-oct22",
+                title: "East Gwillimbury Public Library and Milwaukee Tool form exciting partnership to benefit local community",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Oct 22, 2026",
+                event_start_date: "2026-10-22",
+                summary: "New community tool lending program and hands-on maker space enhancements unveiled at Holland Landing Branch.",
+                link: "https://www.georgina.ca/newsroom",
+                category: "municipal_news"
+            },
+            {
+                id: "gp-oct22",
+                title: "Butter Tarts, Big Hearts…and a Little Gooeyness",
+                business_name: "The NewmarketToday",
+                event_date_label: "Oct 22, 2026",
+                event_start_date: "2026-10-22",
+                summary: "Feature on local bakeries, harvest treats, and community fundraising around East Gwillimbury.",
+                link: "https://georginapost.com",
+                category: "local_news"
+            },
+            {
+                id: "tg-oct19",
+                title: "Statement from Mayor Margaret Quirk on the next milestone in advancing East Gwillimbury’s Advanced Care Centre",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Oct 19, 2026",
+                event_start_date: "2026-10-19",
+                summary: "Council advances provincial health care partnership to expand outpatient emergency services and hospice beds in East Gwillimbury.",
+                link: "https://www.georgina.ca/newsroom",
+                category: "municipal_news"
+            },
+            {
+                id: "tg-sep16",
+                title: "Council Highlights - Sep 16, 2026",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Sep 16, 2026",
+                event_start_date: "2026-09-16",
+                summary: "Council approvals regarding waterfront park preservation, road paving tenders, and annual budget committee meetings.",
+                link: "https://www.georgina.ca/municipal-government/council-meetings/council-highlights",
+                category: "municipal_news"
+            },
+            {
+                id: "tg-sep02",
+                title: "Council Highlights - Sep 02, 2026",
+                business_name: "Town of East Gwillimbury",
+                event_date_label: "Sep 02, 2026",
+                event_start_date: "2026-09-02",
+                summary: "Town Council approvals regarding fall community recreation schedules, street safety, and library services.",
+                link: "https://www.georgina.ca/municipal-government/council-meetings/council-highlights",
+                category: "municipal_news"
+            }
+        ];
+
+        async function initNewsroom() {
+            try {
+                const client = window.GeorginaStore ? window.GeorginaStore.getClient() : null;
+                if (client) {
+                    const { data, error } = await client
+                        .from('vendor_events')
+                        .select('id, title, business_name, summary, link, event_date_label, event_start_date, created_at, category')
+                        .in('category', ['local_news', 'municipal_news', 'news', 'press_release'])
+                        .eq('status', 'approved')
+                        .order('event_start_date', { ascending: false })
+                        .limit(1000);
+
+                    if (!error && data && data.length > 0) {
+                        allNewsArticles = data;
+                    } else {
+                        allNewsArticles = CURATED_NEWS_ARCHIVE;
+                    }
+                } else {
+                    allNewsArticles = CURATED_NEWS_ARCHIVE;
+                }
+            } catch (err) {
+                console.warn('Newsroom database load warning:', err);
+                allNewsArticles = CURATED_NEWS_ARCHIVE;
+            }
+
+            // Numeric index used by the modal buttons (never put article text into onclick)
+            allNewsArticles.forEach((it, i) => { it._nrIdx = i; });
+            computeNewsWindow();
+
+            renderMonthJumpPills();
+            renderCalendar();
+            showAllCurrentMonthStories();
+        }
+
+        function renderMonthJumpPills() {
+            const container = document.getElementById('month-jump-pills');
+            // One pill per month from this month back to the month the 90-day window starts
+            const months = [];
+            for (let idx = TODAY.getFullYear() * 12 + TODAY.getMonth(); idx >= NINETY_DAYS_AGO.getFullYear() * 12 + NINETY_DAYS_AGO.getMonth(); idx--) {
+                const y = Math.floor(idx / 12);
+                const m = idx % 12;
+                months.push({ name: `${MONTH_NAMES[m].slice(0, 3)} ${y}`, month: m, year: y });
+            }
+
+            let html = '';
+            months.forEach(m => {
+                const isActive = viewMonth === m.month && viewYear === m.year;
+                html += `
+                    <button type="button" onclick="jumpToMonth(${m.month}, ${m.year})" class="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                        isActive ? 'bg-[#00008b] text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }">
+                        ${m.name}
+                    </button>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function jumpToMonth(m, y) {
+            viewMonth = m;
+            viewYear = y;
+            selectedDateStr = null;
+            renderMonthJumpPills();
+            renderCalendar();
+            showAllCurrentMonthStories();
+        }
+
+        function changeMonth(delta) {
+            // Stay between the month the 90-day window starts and the current month
+            const minIdx = NINETY_DAYS_AGO.getFullYear() * 12 + NINETY_DAYS_AGO.getMonth();
+            const maxIdx = TODAY.getFullYear() * 12 + TODAY.getMonth();
+            const idx = Math.min(maxIdx, Math.max(minIdx, viewYear * 12 + viewMonth + delta));
+            jumpToMonth(idx % 12, Math.floor(idx / 12));
+        }
+
+        function getFilteredArticles() {
+            const windowStartIso = toIsoDate(NINETY_DAYS_AGO);
+            const todayIso = toIsoDate(TODAY);
+            return allNewsArticles.filter(item => {
+                // 90-day window: from (last pipeline run - 90 days) up to today
+                const dIso = articleDateIso(item);
+                if (!dIso || dIso < windowStartIso || dIso > todayIso) return false;
+
+                // Source Filter
+                const biz = (item.business_name || "").toLowerCase();
+                if (activeSource === 'The NewmarketToday' && !biz.includes('post')) return false;
+                // "georgina" alone also matched The NewmarketToday
+                if (activeSource === 'Town of East Gwillimbury' && (biz.includes('post') || (!biz.includes('town') && !biz.includes('georgina')))) return false;
+
+                // Keyword Search
+                if (searchQuery) {
+                    const t = (item.title || "").toLowerCase();
+                    const s = (item.summary || "").toLowerCase();
+                    const b = (item.business_name || "").toLowerCase();
+                    if (!t.includes(searchQuery) && !s.includes(searchQuery) && !b.includes(searchQuery)) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        }
+
+        function setSourceFilter(src) {
+            activeSource = src;
+            const pills = {
+                'All': document.getElementById('src-pill-All'),
+                'The NewmarketToday': document.getElementById('src-pill-post'),
+                'Town of East Gwillimbury': document.getElementById('src-pill-town')
+            };
+            Object.keys(pills).forEach(k => {
+                if (pills[k]) {
+                    pills[k].className = k === src
+                        ? "px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap bg-[#00008b] text-white shadow-sm"
+                        : "px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200";
+                }
+            });
+            renderCalendar();
+            if (selectedDateStr) {
+                renderStoriesForDate(selectedDateStr);
+            } else {
+                showAllCurrentMonthStories();
+            }
+        }
+
+        function handleSearch(val) {
+            searchQuery = (val || "").toLowerCase().trim();
+            renderCalendar();
+            if (selectedDateStr) {
+                renderStoriesForDate(selectedDateStr);
+            } else {
+                showAllCurrentMonthStories();
+            }
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const list = document.getElementById('calendar-list');
+            const monthLabel = document.getElementById('current-month-label');
+            monthLabel.innerText = `${MONTH_NAMES[viewMonth]} ${viewYear}`;
+
+            // Map articles by 'YYYY-MM-DD' (getFilteredArticles already applies the 90-day window)
+            const filtered = getFilteredArticles();
+            const storiesByDate = {};
+            filtered.forEach(it => {
+                const d = articleDateIso(it);
+                if (d) {
+                    if (!storiesByDate[d]) storiesByDate[d] = [];
+                    storiesByDate[d].push(it);
+                }
+            });
+
+            const todayIso = toIsoDate(TODAY);
+            const windowStartIso = toIsoDate(NINETY_DAYS_AGO);
+
+            // Article titles (16px). Only a numeric index goes into onclick; all text is escaped.
+            function titlesHtml(stories) {
+                return stories.map(s => {
+                    const isPost = (s.business_name || '').toLowerCase().includes('post');
+                    return `<button type="button" class="cal-story-title${isPost ? ' is-post' : ''}" onclick="event.stopPropagation(); openArticleModal(${Number(s._nrIdx)})">${escapeHtml(s.title || 'Community News Story')}</button>`;
+                }).join('');
+            }
+
+            function countHtml(n) {
+                return n > 0 ? `<span class="cal-day-count">${n} ${n === 1 ? 'article' : 'articles'}</span>` : '';
+            }
+
+            // Calculate calendar days for this month view (7 columns Sun-Sat)
+            const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const startDayOfWeek = firstDayOfMonth.getDay(); // 0 is Sun
+
+            // Prev month filler
+            const prevMonthDays = new Date(viewYear, viewMonth, 0).getDate();
+
+            let html = '';
+
+            // 1. Prev month filler days
+            for (let i = startDayOfWeek - 1; i >= 0; i--) {
+                const dayNum = prevMonthDays - i;
+                html += `
+                    <div class="cal-day-cell out-of-window">
+                        <span class="text-xs font-bold text-slate-400">${dayNum}</span>
+                    </div>
+                `;
+            }
+
+            // 2. Current Month Days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dIso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                const isToday = dIso === todayIso;
+                const isOut = dIso > todayIso || dIso < windowStartIso;
+
+                const stories = storiesByDate[dIso] || [];
+                const hasStories = stories.length > 0;
+                const isSelected = selectedDateStr === dIso;
+
+                let cellClass = "cal-day-cell";
+                if (isOut) {
+                    cellClass += " out-of-window";
+                } else {
+                    if (isToday) cellClass += " is-today";
+                    if (hasStories) cellClass += " has-news";
+                    if (isSelected) cellClass += " selected";
+                }
+
+                html += `
+                    <div class="${cellClass}" onclick="${isOut ? '' : `selectDate('${dIso}')`}">
+                        <div class="flex items-center justify-between gap-1 w-full flex-wrap">
+                            <span class="text-sm font-black ${isToday ? 'text-blue-900' : isOut ? 'text-slate-300' : 'text-slate-900'}">
+                                ${day}
+                            </span>
+                            ${isToday ? '<span class="text-[9px] font-black uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded shadow-xs">Today</span>' : ''}
+                            ${countHtml(stories.length)}
+                        </div>
+                        <div class="w-full">
+                            ${titlesHtml(stories)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. Next month filler days to complete grid
+            const totalCells = startDayOfWeek + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+            for (let i = 1; i <= remaining; i++) {
+                html += `
+                    <div class="cal-day-cell out-of-window">
+                        <span class="text-xs font-bold text-slate-400">${i}</span>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+
+            // Tablet & mobile rows: newest first, today plus only the days that have articles
+            // (no empty past-day rows, no filler days from other months).
+            if (list) {
+                let rows = '';
+                for (let day = daysInMonth; day >= 1; day--) {
+                    const dIso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    if (dIso > todayIso || dIso < windowStartIso) continue;
+                    const stories = storiesByDate[dIso] || [];
+                    const isToday = dIso === todayIso;
+                    if (!stories.length && !isToday) continue;
+                    const dObj = new Date(viewYear, viewMonth, day);
+                    const wk = dObj.toLocaleDateString('en-US', { weekday: 'short' });
+                    rows += `
+                        <div class="cal-row${isToday ? ' is-today' : ''}${selectedDateStr === dIso ? ' selected' : ''}" onclick="selectDate('${dIso}')">
+                            <div class="cal-row-date">
+                                <div class="text-[11px] font-black uppercase tracking-wider text-slate-500">${wk}</div>
+                                <div class="text-2xl font-black text-slate-900 leading-none mt-0.5">${day}</div>
+                                <div class="text-[11px] font-bold uppercase text-slate-500">${MONTH_NAMES[viewMonth].slice(0, 3)}</div>
+                            </div>
+                            <div class="cal-row-body">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    ${isToday ? '<span class="text-[9px] font-black uppercase bg-blue-600 text-white px-1.5 py-0.5 rounded shadow-xs">Today</span>' : ''}
+                                    ${stories.length ? countHtml(stories.length) : '<span class="text-xs font-semibold text-slate-500">No articles yet today</span>'}
+                                </div>
+                                ${titlesHtml(stories)}
+                            </div>
+                        </div>
+                    `;
+                }
+                list.innerHTML = rows || `
+                    <div class="text-center text-sm font-semibold text-slate-500 py-6">
+                        No news articles in ${MONTH_NAMES[viewMonth]} ${viewYear} for this filter.
+                    </div>
+                `;
+            }
+        }
+
+        function selectDate(dIso) {
+            selectedDateStr = dIso;
+            renderCalendar();
+            renderStoriesForDate(dIso);
+
+            // Smooth scroll to stories
+            const sec = document.getElementById('stories-section');
+            if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderStoriesForDate(dIso) {
+            const filtered = getFilteredArticles();
+            const stories = filtered.filter(it => it.event_start_date && it.event_start_date.slice(0, 10) === dIso);
+            
+            const heading = document.getElementById('stories-heading');
+            const subheading = document.getElementById('stories-subheading');
+            const showAllBtn = document.getElementById('btn-show-all-month');
+
+            const [y, m, d] = dIso.split('-');
+            const dateObj = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+            const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+            heading.innerText = `Stories on ${formattedDate} (${stories.length})`;
+            subheading.innerText = `Displaying verified news stories published on ${formattedDate}.`;
+            showAllBtn.style.display = 'inline-block';
+
+            renderCards(stories);
+        }
+
+        function showAllCurrentMonthStories() {
+            selectedDateStr = null;
+            renderCalendar();
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const curMonthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}`;
+            
+            const filtered = getFilteredArticles();
+            // A typed search covers the whole 90-day window, not just the month on screen
+            const stories = searchQuery ? filtered.slice() : filtered.filter(it => it.event_start_date && it.event_start_date.startsWith(curMonthPrefix));
+            stories.sort((a, b) => (b.event_start_date || '').localeCompare(a.event_start_date || ''));
+
+            const heading = document.getElementById('stories-heading');
+            const subheading = document.getElementById('stories-subheading');
+            const showAllBtn = document.getElementById('btn-show-all-month');
+
+            heading.innerText = searchQuery ? `Search results, last 90 days (${stories.length})` : `All Stories in ${monthNames[viewMonth]} ${viewYear} (${stories.length})`;
+            subheading.innerText = searchQuery ? `Stories from every month matching your search.` : `Click any highlighted date above on the calendar to isolate stories for that specific day.`;
+            showAllBtn.style.display = 'none';
+
+            renderCards(stories);
+        }
+
+        // Sharing Handlers
+        window.shareStoryFromBtn = function(btnEl) {
+            const title = btnEl.getAttribute('data-title') || 'East Gwillimbury Community News Story';
+            const url = btnEl.getAttribute('data-url') || window.location.href;
+            shareStoryNative(title, url);
+        };
+
+        window.copyStoryFromBtn = function(btnEl) {
+            const url = btnEl.getAttribute('data-url') || window.location.href;
+            copyStoryLink(url, btnEl);
+        };
+
+        window.shareStoryNative = function(title, url) {
+            const cleanUrl = sanitizeUrl(url);
+            if (navigator && navigator.share) {
+                navigator.share({
+                    title: title || 'East Gwillimbury Community News Story',
+                    text: (title || '') + ' - Welcome East Gwillimbury Newsroom',
+                    url: cleanUrl
+                }).catch(() => {});
+            } else {
+                copyStoryLink(cleanUrl);
+            }
+        };
+
+        window.copyStoryLink = function(url, btnEl) {
+            const cleanUrl = sanitizeUrl(url);
+            if (navigator && navigator.clipboard) {
+                navigator.clipboard.writeText(cleanUrl).then(() => {
+                    if (btnEl) {
+                        const origText = btnEl.innerHTML;
+                        btnEl.innerHTML = '<span>✓ Copied!</span>';
+                        btnEl.classList.add('bg-emerald-100', 'text-emerald-800');
+                        setTimeout(() => {
+                            btnEl.innerHTML = origText;
+                            btnEl.classList.remove('bg-emerald-100', 'text-emerald-800');
+                        }, 2200);
+                    } else {
+                        alert('Link copied to clipboard: ' + cleanUrl);
+                    }
+                }).catch(() => {
+                    prompt('Copy story link:', cleanUrl);
+                });
+            } else {
+                prompt('Copy story link:', cleanUrl);
+            }
+        };
+
+        function renderCards(stories) {
+            const grid = document.getElementById('stories-grid');
+            const emptyState = document.getElementById('no-stories-day');
+
+            if (!stories || stories.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            let html = '';
+            stories.forEach(it => {
+                const biz = escapeHtml(it.business_name || "East Gwillimbury News");
+                const safeTitle = escapeHtml(it.title || "Community News Story");
+                const isPost = biz.toLowerCase().includes("post");
+                const tagClass = isPost ? "story-pill-post" : "story-pill-town";
+                const tagLabel = isPost ? "📰 The NewmarketToday" : "🏛️ Town of East Gwillimbury Media Release";
+                const rawLink = sanitizeUrl(it.link);
+                const targetLink = escapeHtml(rawLink); // escaped for use inside HTML attributes
+                const dateDisplay = escapeHtml(it.event_date_label || it.event_start_date || "Recent");
+                const safeSummary = escapeHtml(it.summary || "Read the full reporting and source coverage on the original publisher website.");
+
+                // Social sharing URLs (strictly encoded)
+                const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(rawLink)}`;
+                const twShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(rawLink)}&text=${encodeURIComponent(it.title || '')}`;
+                const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent((it.title || '') + ' ' + rawLink)}`;
+                const mailShareUrl = `mailto:?subject=${encodeURIComponent(it.title || '')}&body=${encodeURIComponent((it.title || '') + '\n\nRead more at: ' + rawLink)}`;
+
+                html += `
+                    <article class="news-card">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="${tagClass}">${tagLabel}</span>
+                                <span class="text-[11px] font-bold text-slate-400">📅 ${dateDisplay}</span>
+                            </div>
+
+                            <h3 class="text-base font-black text-slate-900 leading-snug mb-2 hover:text-[#00008b] transition-colors">
+                                <button type="button" onclick="openArticleModal(${Number(it._nrIdx)})" class="text-left hover:underline">${safeTitle}</button>
+                            </h3>
+
+                            <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mt-2 font-normal">
+                                ${safeSummary}
+                            </p>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-100 flex flex-col gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-slate-400 truncate max-w-[150px]">
+                                    ${biz}
+                                </span>
+                                <a href="${targetLink}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-xl bg-[#00008b] hover:bg-blue-900 text-white text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 shadow-sm">
+                                    <span>Read Story</span>
+                                    <span>&rarr;</span>
+                                </a>
+                            </div>
+
+                            <!-- Social Sharing Bar on Each News Story -->
+                            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                                    Share:
+                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    <!-- Native / Mobile Share -->
+                                    <button type="button" data-title="${safeTitle}" data-url="${targetLink}" onclick="shareStoryFromBtn(this)" title="Share via Device" class="share-btn">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                    </button>
+
+                                    <!-- Facebook Share -->
+                                    <a href="${fbShareUrl}" target="_blank" rel="noopener noreferrer" title="Share on Facebook" class="share-btn hover:text-blue-600">
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    </a>
+
+                                    <!-- X / Twitter Share -->
+                                    <a href="${twShareUrl}" target="_blank" rel="noopener noreferrer" title="Share on X / Twitter" class="share-btn hover:text-slate-900">
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                    </a>
+
+                                    <!-- WhatsApp Share -->
+                                    <a href="${waShareUrl}" target="_blank" rel="noopener noreferrer" title="Share on WhatsApp" class="share-btn hover:text-emerald-600">
+                                        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.115.553 4.179 1.602 6.002L.07 24l6.143-1.611a11.96 11.96 0 005.818 1.496h.005c6.641 0 12.026-5.385 12.026-12.031A12.03 12.03 0 0012.031 0zm-.005 21.878h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.999-3.648-.235-.374a9.86 9.86 0 01-1.51-5.215C2.146 6.57 6.574 2.146 12.026 2.146c2.637 0 5.116 1.028 6.98 2.893a9.833 9.833 0 012.892 6.983c0 5.457-4.433 9.882-9.872 9.882z"/></svg>
+                                    </a>
+
+                                    <!-- Email Share -->
+                                    <a href="${mailShareUrl}" title="Share via Email" class="share-btn hover:text-rose-600">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    </a>
+
+                                    <!-- Copy Direct Link Button -->
+                                    <button type="button" data-url="${targetLink}" onclick="copyStoryFromBtn(this)" title="Copy Link" class="share-btn share-btn-copy">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                        <span>Copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        // Mobile drawer: uses the shared window.toggleNavDrawer from assets/config.js.
+        // (The old page-level copy toggled an "active" class the stylesheet never uses,
+        // so the hamburger did nothing on this page.)
+
+        // Article modal (same look as the home page event modal). Text goes in via textContent only.
+        const CATEGORY_LABELS = {
+            local_news: 'Local News',
+            municipal_news: 'Municipal News',
+            news: 'News',
+            press_release: 'Press Release'
+        };
+
+        window.openArticleModal = function (idx) {
+            const it = allNewsArticles[idx];
+            if (!it) return;
+            const isPost = (it.business_name || '').toLowerCase().includes('post');
+            document.getElementById('article-modal-badge').textContent = isPost
+                ? 'The NewmarketToday'
+                : (CATEGORY_LABELS[it.category] || 'News');
+            document.getElementById('article-modal-title').textContent = it.title || 'Community News Story';
+            document.getElementById('article-modal-source').textContent = it.business_name || 'East Gwillimbury News';
+
+            let dateText = it.event_date_label || '';
+            const dIso = articleDateIso(it);
+            if (dIso) {
+                const [y, m, d] = dIso.split('-').map(n => parseInt(n, 10));
+                dateText = new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            }
+            document.getElementById('article-modal-date').textContent = dateText || 'Recent';
+
+            document.getElementById('article-modal-summary').textContent =
+                it.summary || 'Read the full reporting and source coverage on the original publisher website.';
+            document.getElementById('article-modal-link').setAttribute('href', sanitizeUrl(it.link));
+
+            document.getElementById('article-modal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeArticleModal = function () {
+            const modal = document.getElementById('article-modal');
+            if (modal) modal.classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeArticleModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', initNewsroom);
+    </script>
+</body>
+</html>

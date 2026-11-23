@@ -1,0 +1,33 @@
+{
+  "directory_seeds": [
+    {
+      "name": "Central York Chamber of Commerce",
+      "url": "https://centralyorkchamber.com/events/"
+    },
+    {
+      "name": "Town of East Gwillimbury Events Calendar",
+      "url": "https://calendar.eastgwillimbury.ca/"
+    }
+  ],
+  "rss_sources": [],
+  "vendors": [
+    {
+      "business_name": "Sharon Museum & Gardens (Sharon Temple)",
+      "scrape_url": "https://www.sharonmuseumandgardens.ca/events",
+      "default_location": "18974 Leslie St, Sharon, ON",
+      "enabled": true
+    },
+    {
+      "business_name": "Mount Albert & District Lions / Sports Day",
+      "scrape_url": "https://mountalbertsportsday.com/",
+      "default_location": "5057 Mount Albert Rd, Mount Albert, ON",
+      "enabled": true
+    },
+    {
+      "business_name": "Lake Simcoe Region Conservation Authority",
+      "scrape_url": "https://lsrca.on.ca/index.php/events/",
+      "default_location": "East Gwillimbury, ON",
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Private & staff/portal paths
+Disallow: /staff/
+Disallow: /api/
+Disallow: /business/
+Disallow: /news/login.html
+Disallow: /news/dashboard.html
+Disallow: /news/portal.html
+Disallow: /news/go.html
+Disallow: /hamper/admin.html
+Disallow: /hamper/wallet.html
+Disallow: /hamper/redeem.html
+
+# Sitemaps
+Sitemap: https://welcomeeg.ca/sitemap.xml

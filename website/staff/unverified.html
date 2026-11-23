@@ -1,0 +1,443 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unverified Submissions — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        .match-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .match-badge-domain {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .match-badge-exact_url {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .match-badge-prefix {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+        .admin-shell {
+            display: block;
+            background: #f8fafc;
+        }
+        .admin-content-area {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px 20px;
+        }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+            <div id="page-alert" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: What Are Unverified Submissions?</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Waiting for Email Confirmation:</strong> When a business submits a listing, we email them a confirmation link. Until they click it, their listing waits here.</li>
+        <li><strong>Approve or Remove:</strong> If you know the submission is real, you can approve it manually. If it looks like spam, delete it.</li>
+    </ol>
+</details>
+
+            <!-- AUTH GATE -->
+            <section id="auth-gate" class="card" style="display: none; max-width: 520px; margin: 40px auto; text-align: center;">
+                <h2 style="color: var(--danger); margin-bottom: 8px;">&#128274; Admin Access Required</h2>
+                <p style="font-size: 14px; color: var(--muted); margin-bottom: 20px;">
+                    You must be logged in as an administrator (<code>cheerfulweb@gmail.com</code>) to view unverified submissions.
+                </p>
+                <a href="/staff/login.html" class="btn btn-primary">Go to Login Page &rarr;</a>
+            </section>
+
+            <!-- UNVERIFIED SUBMISSIONS WORKSPACE -->
+            <section id="unverified-console" style="display: none;">
+                <div class="card" style="margin-bottom: 24px; border: 2px solid #fdba74; background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <h2 style="margin: 0 0 4px 0; color: #9a3412;">&#9993;&#65039; Unverified Submissions</h2>
+                            <p style="margin: 0; font-size: 13px; color: var(--muted); max-width: 760px;">
+                                Events, dining specials and sales whose submitter has not yet clicked the confirmation email.
+                                They are not in the Approvals Queue and are not public. When the submitter clicks the link,
+                                the listing moves to the Approvals Queue automatically and staff get the usual alert email.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <span class="badge" id="badge-unverified-count" style="background: #ffedd5; color: #9a3412; font-weight: 700; font-size: 12px;">0 Unverified</span>
+                            <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">&#8635; Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Listing</th>
+                                    <th>Submitter</th>
+                                    <th>Submitted</th>
+                                    <th>Last email sent</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unverified-tbody">
+                                <tr><td colspan="6" style="color:var(--muted); text-align:center;">Loading unverified submissions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/hamper/redeem.html">🎟️ Redemptions (Hamper Codes)</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion">
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let client = null;
+        let currentUser = null;
+        let cachedUnverified = [];
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            if (!el) return;
+            el.className = `alert alert-${type}`;
+            el.innerHTML = msg;
+            el.style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function clearAlert() {
+            const el = document.getElementById("page-alert");
+            if (el) el.style.display = "none";
+        }
+
+        function escapeHtml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function isUuid(v) {
+            return /^[0-9a-f-]{36}$/i.test(String(v || ""));
+        }
+
+        function listingType(row) {
+            const cat = String(row.category || "").toLowerCase().trim();
+            if (["dining", "restaurant", "food_and_drink", "dining_deals"].includes(cat)) return "Dining";
+            if (["sales", "sale", "sales_deal", "special_sale"].includes(cat) || String(row.title || "").startsWith("[Sale]")) return "Sale";
+            return "Event";
+        }
+
+        function formatWhen(ts) {
+            if (!ts) return "&mdash;";
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return "&mdash;";
+            return escapeHtml(d.toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" }));
+        }
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("Supabase backend connection is not configured in <code>assets/config.js</code>.", "warning");
+                return;
+            }
+
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+
+            if (!session || !session.user) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            currentUser = session.user;
+            const userEmail = (currentUser.email || "").trim().toLowerCase();
+
+            const { data: profile } = await client
+                .from("user_profiles")
+                .select("role")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            const role = (profile?.role || "").toLowerCase();
+            const isAdmin = role === "admin" || role === "super_admin" || role === "staff" || role === "editorial" || userEmail === "cheerfulweb@gmail.com";
+
+            if (!isAdmin) {
+                const target = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.replace("/staff/login.html?redirect=" + target);
+                return;
+            }
+
+            if (window.syncHeaderAuthBadge) {
+                window.syncHeaderAuthBadge(userEmail, true);
+            }
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => {
+                    await client.auth.signOut();
+                    window.location.href = "/staff/login.html";
+                };
+            }
+
+            document.getElementById("unverified-console").style.display = "block";
+            await loadData();
+        }
+
+        async function loadData() {
+            try {
+                const { data, error } = await client.rpc("get_all_vendor_events_admin");
+                if (error) throw error;
+                cachedUnverified = (data || []).filter(r => String(r.status || "").toLowerCase().trim() === "pending_verification");
+                renderTable();
+            } catch (err) {
+                showAlert("Error loading unverified submissions: " + escapeHtml(err.message || String(err)), "danger");
+            }
+        }
+
+        function renderTable() {
+            const badge = document.getElementById("badge-unverified-count");
+            if (badge) badge.textContent = `${cachedUnverified.length} Unverified`;
+
+            const tbody = document.getElementById("unverified-tbody");
+            if (!tbody) return;
+            tbody.innerHTML = cachedUnverified.map(row => {
+                const id = isUuid(row.id) ? row.id : "";
+                const actions = id ? `
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-action="resend" data-id="${id}" title="Send the confirmation email again">&#9993;&#65039; Resend email</button>
+                        <button type="button" class="btn btn-success btn-sm" data-action="verify" data-id="${id}" title="Skip the email step and move this listing to the Approvals Queue">&#10003; Mark verified</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-action="delete" data-id="${id}" title="Permanently delete this submission">&#128465;&#65039; Delete</button>
+                    </div>` : "";
+                return `<tr>
+                    <td><span class="status-badge" style="background:#fff7ed; color:#9a3412; border:1px solid #fdba74;">${escapeHtml(listingType(row))}</span></td>
+                    <td><strong>${escapeHtml(row.title)}</strong><br><span style="font-size:12px;color:var(--muted);">${escapeHtml(row.business_name)} &bull; ${escapeHtml(row.event_date_label)}</span></td>
+                    <td>${escapeHtml(row.contact_name)}<br><span style="font-size:12px;color:var(--muted);">${escapeHtml(row.submitter_email)}</span></td>
+                    <td style="white-space:nowrap;">${formatWhen(row.created_at)}</td>
+                    <td style="white-space:nowrap;">${formatWhen(row.verify_sent_at)}</td>
+                    <td>${actions}</td>
+                </tr>`;
+            }).join("") || `<tr><td colspan="6" style="color:var(--muted); text-align:center;">No unverified submissions. Everything submitted has been confirmed.</td></tr>`;
+        }
+
+        async function readFunctionError(error, data) {
+            let msg = (data && data.error) || (error && error.message) || "Unknown error";
+            try {
+                if (error && error.context && typeof error.context.json === "function") {
+                    const body = await error.context.json();
+                    if (body && body.error) msg = body.error;
+                }
+            } catch (e) { /* keep the first message */ }
+            return msg;
+        }
+
+        async function resendEmail(row) {
+            const { data, error } = await client.functions.invoke("send-email", {
+                body: { formType: "submission_verify_request", record: { id: row.id, email: String(row.submitter_email || "").trim().toLowerCase() } }
+            });
+            if (error || (data && data.error)) {
+                showAlert("Could not resend the email: " + escapeHtml(await readFunctionError(error, data)), "danger");
+                return;
+            }
+            showAlert("Confirmation email sent again to <strong>" + escapeHtml(row.submitter_email) + "</strong>.", "success");
+            await loadData();
+        }
+
+        async function markVerified(row) {
+            if (!confirm(`Skip the email check for "${row.title || "this listing"}" and move it to the Approvals Queue?`)) return;
+            const { error } = await client.rpc("admin_set_event_status", { event_id_input: row.id, status_input: "pending" });
+            if (error) {
+                showAlert("Could not update the listing: " + escapeHtml(error.message), "danger");
+                return;
+            }
+            showAlert("Moved to the Approvals Queue.", "success");
+            await loadData();
+        }
+
+        async function deleteSubmission(row) {
+            if (!confirm(`Permanently delete "${row.title || "this listing"}" from ${row.submitter_email || "unknown"}? This cannot be undone.`)) return;
+            const { error } = await client.rpc("admin_delete_event", { event_id_input: row.id });
+            if (error) {
+                showAlert("Could not delete the listing: " + escapeHtml(error.message), "danger");
+                return;
+            }
+            showAlert("Submission deleted.", "info");
+            await loadData();
+        }
+
+        document.getElementById("unverified-tbody").addEventListener("click", async (e) => {
+            const btn = e.target.closest("button[data-action]");
+            if (!btn) return;
+            const row = cachedUnverified.find(r => r.id === btn.dataset.id);
+            if (!row) return;
+            clearAlert();
+            btn.disabled = true;
+            try {
+                if (btn.dataset.action === "resend") await resendEmail(row);
+                else if (btn.dataset.action === "verify") await markVerified(row);
+                else if (btn.dataset.action === "delete") await deleteSubmission(row);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById("btn-refresh").addEventListener("click", () => { clearAlert(); loadData(); });
+
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

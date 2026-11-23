@@ -1,0 +1,862 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Search Sponsors — Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/staff/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        
+        .admin-nav-bar a {
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+        .admin-nav-bar a:hover {
+            background: var(--bg-hover, #f1f5f9);
+            border-color: var(--border);
+        }
+        .admin-nav-bar a.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .match-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .match-badge-domain {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .match-badge-exact_url {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        .match-badge-prefix {
+            background: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fef08a;
+        }
+    
+/* Unified Admin Navigation Sub-Bar with Robust Pill Buttons */
+.admin-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.admin-nav-group-primary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-primary a {
+    text-decoration: none !important;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.admin-nav-group-primary a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.admin-nav-group-primary a.active {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0369a1;
+    box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3);
+}
+
+.admin-nav-group-external {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-nav-group-external .external-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+}
+
+.admin-nav-group-external a {
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.admin-nav-group-external a:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.admin-nav-group-external a.btn-crm-link {
+    background: #eef2ff;
+    color: #4338ca;
+    border-color: #c7d2fe;
+}
+
+.admin-nav-group-external a.btn-crm-link:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+}
+
+    /* Staff Portal Left Sidebar & Modern Shell Layout */
+.admin-shell {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f8fafc;
+}
+
+.admin-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background: #00008b;
+    color: #ffffff;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-right: 1px solid #1e3a8a;
+}
+
+@media (max-width: 900px) {
+    .admin-shell {
+        flex-direction: column;
+    }
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #1e3a8a;
+    }
+}
+
+.admin-content-area {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+}
+    
+/* Phones: the page never scrolls sideways (banner, slide-in animations, long links).
+   clip (not hidden) so the sticky header keeps working. */
+html, body { max-width: 100%; overflow-x: hidden; }
+@supports (overflow: clip) { html, body { overflow-x: clip; } }
+p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
+</style>
+</head>
+<body>
+    <!-- Soft Launch Announcement Marquee -->
+    <div class="site-announcement-bar">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="unverified-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/staff/login.html" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop" onclick="toggleNavDrawer(false)"></div>
+
+    <div class="admin-shell">
+        <!-- ADMIN LEFT SIDEBAR MENU (STAFF PORTAL) -->
+        
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="container admin-content-area">
+        <!-- Breadcrumb / Admin Nav -->
+        <!-- Unified Admin Navigation Bar -->
+        
+        <div id="page-alert" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to Set Up Sponsored Search Links</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Pick a Word &amp; Destination:</strong> Type the search word (for example, <em>pizza</em>) and choose where clicking it takes the visitor (their Welcome East Gwillimbury page, their own website, or search results).</li>
+        <li><strong>Free or Paid:</strong> Check the <strong>Complimentary</strong> box if you are giving the spot away for free. Every click is counted automatically.</li>
+    </ol>
+</details>
+
+        <section id="sponsors-console" style="display: none;">
+            <div class="card" style="margin-bottom: 20px;">
+                <h2 style="margin: 0 0 4px 0;">&#11088; Quick Search Sponsors</h2>
+                <p style="margin: 0; font-size: 13px; color: var(--muted); max-width: 820px;">
+                    Paid keywords in the Home page's <strong>"Quick Search / Sponsored"</strong> row. Live keywords appear first, with a small
+                    <strong>Sponsored</strong> tag; automatic suggestions fill the remaining spots (up to 99 quick search pills in total). If more than 99 are live
+                    at once, the highest priority wins. Times are Toronto time. Every click is counted here and in the
+                    <a href="clicks.html">Click Report</a>. A visitor clicking the same keyword again within 30 seconds counts once.
+                </p>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 id="form-title" style="margin: 0 0 12px 0;">Add a sponsored keyword</h3>
+                <form id="sponsor-form" autocomplete="off">
+                    <input type="hidden" id="f-id">
+                    <div style="display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                        <label style="font-size: 12px; font-weight: 700;">Keyword shown on the pill *
+                            <input type="text" id="f-keyword" class="form-control" maxlength="90" required placeholder="Butter Bee Bagel">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Sponsor (business name) *
+                            <input type="text" id="f-sponsor" class="form-control" maxlength="120" required placeholder="Butter Bee Bagel Co.">
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Business (its account sees these clicks)
+                            <select id="f-business" class="form-control business-select"><option value="">(none)</option></select>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Priority (higher shows first)
+                            <input type="number" id="f-priority" class="form-control" min="-100" max="100" step="1" value="0">
+                        </label>
+                    </div>
+
+                    <fieldset style="border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin: 16px 0;">
+                        <legend style="font-size: 12px; font-weight: 800; padding: 0 6px;">When a visitor taps it</legend>
+                        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+                            <input type="radio" name="f-kind" value="search" checked> Search Welcome East Gwillimbury
+                        </label>
+                        <div id="search-fields" style="margin: 0 0 12px 26px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                            <label style="font-size: 12px; font-weight: 700; flex: 1; min-width: 220px;">Search for (leave blank to use the keyword)
+                                <input type="text" id="f-query" class="form-control" maxlength="80" placeholder="Butter Bee">
+                            </label>
+                            <a id="test-search" href="/discovery" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">Test this search &#8599;</a>
+                        </div>
+                        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 600;">
+                            <input type="radio" name="f-kind" value="website"> Open the sponsor's website (new tab)
+                        </label>
+                        <div id="website-fields" style="margin: 8px 0 0 26px; display: none;">
+                            <label style="font-size: 12px; font-weight: 700;">Website address *
+                                <input type="text" inputmode="url" autocapitalize="off" spellcheck="false" id="f-website" class="form-control" maxlength="500" placeholder="https://butterbeebagel.ca">
+                            </label>
+                        </div>
+                        <label style="display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 600; margin-top: 12px;">
+                            <input type="radio" name="f-kind" value="business"> Open the business's page on Welcome East Gwillimbury
+                        </label>
+                        <div id="business-fields" style="margin: 8px 0 0 26px; display: none; font-size: 12px; color: var(--muted);">
+                            Goes to the page of the business picked in the <strong>Business</strong> field above, for example
+                            <code>/businesses/route-48</code>. Pick a business first. It must be an approved listing.
+                        </div>
+                    </fieldset>
+
+                    <div style="display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                        <label style="font-size: 12px; font-weight: 700;">Start showing (Toronto time) *
+                            <input type="datetime-local" id="f-start" class="form-control" required>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700;">Stop showing (Toronto time) *
+                            <input type="datetime-local" id="f-end" class="form-control" required>
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700; display: flex; gap: 8px; align-items: center; padding-top: 18px;">
+                            <input type="checkbox" id="f-active" checked> On (untick to pause without deleting)
+                        </label>
+                        <label style="font-size: 12px; font-weight: 700; display: flex; gap: 8px; align-items: center; padding-top: 18px;">
+                            <input type="checkbox" id="f-complimentary"> &#127873; Complimentary (Admin-granted, $0)
+                        </label>
+                    </div>
+                    <label style="display: block; font-size: 12px; font-weight: 700; margin-top: 14px;">Notes (staff only: price paid, invoice, contact)
+                        <textarea id="f-notes" class="form-control" maxlength="1000" rows="2" placeholder="$1 / week, invoice #..."></textarea>
+                    </label>
+                    <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+                        <button type="submit" id="btn-save" class="btn btn-primary">Save keyword</button>
+                        <button type="button" id="btn-cancel" class="btn btn-secondary" style="display: none;">Cancel editing</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <h3 style="margin: 0;">All sponsored keywords</h3>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                        <select id="f-billing-filter" class="form-control" style="width: auto; font-size: 12px; padding: 5px 10px;" onchange="render()">
+                            <option value="all">All (Paid &amp; Complimentary)</option>
+                            <option value="paid">Paid only</option>
+                            <option value="complimentary">Complimentary only</option>
+                        </select>
+                        <button type="button" id="btn-refresh" class="btn btn-secondary btn-sm">&#8635; Refresh</button>
+                        <button type="button" id="btn-csv" class="btn btn-secondary btn-sm">&#11015; CSV</button>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Keyword</th><th>Sponsor</th><th>Links to</th><th>Shows</th><th>Status</th><th>Impressions</th><th>Clicks</th><th>CTR</th><th>Unique visitors</th><th>Last 7 days</th><th>Last activity</th><th></th></tr></thead>
+                        <tbody id="sponsor-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3 style="margin: 0 0 6px 0;">Self-serve Stripe orders</h3>
+                <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--muted);">
+                    Orders submitted on <a href="/advertise" target="_blank" rel="noopener">/advertise</a>. Paid orders automatically activate in the Quick Search slider and link to the advertiser&rsquo;s business stats page.
+                </p>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Keyword</th><th>Sponsor</th><th>Email</th><th>Plan</th><th>Status</th><th>Paid</th></tr></thead>
+                        <tbody id="orders-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h3 style="margin: 0 0 4px 0;">Business accounts</h3>
+                <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--muted); max-width: 820px;">
+                    A business signs in at <a href="/business/" target="_blank" rel="noopener">welcomeeg.ca/business/</a> and sees the clicks for
+                    its sponsored spots and listings. Type the owner's email, pick the business and press <strong>Create account &amp; email invite</strong>:
+                    the owner gets an email to choose their own password. Use <strong>Resend invite</strong> if they lose it or forget their password.
+                    Staff emails cannot be used for a business account.
+                </p>
+                <form id="account-form" autocomplete="off" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 700; flex: 1; min-width: 220px;">Login email
+                        <input type="email" id="a-email" class="form-control" required placeholder="owner@business.ca">
+                    </label>
+                    <label style="font-size: 12px; font-weight: 700; flex: 1; min-width: 220px;">Business
+                        <select id="a-business" class="form-control business-select" required><option value="">Pick a business</option></select>
+                    </label>
+                    <button type="submit" id="btn-invite" class="btn btn-primary">Create account &amp; email invite</button>
+                </form>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th>Login email</th><th>Business</th><th>Last sign-in</th><th></th></tr></thead>
+                        <tbody id="account-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-grid">
+                <!-- Column 1: Welcome East Gwillimbury -->
+                <div class="footer-col">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    </a>
+                    <p class="footer-desc">
+                        Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                    </p>
+                    <div class="footer-briefing-box">
+                        <span class="footer-briefing-title">Weekly Community Briefing</span>
+                        <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                    </div>
+                    <div style="margin-top: 12px;">
+                        <a href="/weather" class="footer-weather-btn">
+                            <span>☀️ East Gwillimbury Waterfront</span>
+                            <span>•</span>
+                            <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Column 2: Community & Calendars -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>📅 Community &amp; Calendars</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                            <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                            <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                            <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                            <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 3: Submissions -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🏪 Submissions</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                            <li><a href="/submit-event">📅 Submit an Event</a></li>
+                            <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                            <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                            <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                            <li><a href="/directory">🏢 Business Directory</a></li>
+                        </ul>
+                    </details>
+                </div>
+
+                <!-- Column 4: Portals & Administration -->
+                <div class="footer-col">
+                    <details class="footer-accordion" open>
+                        <summary class="footer-heading">
+                            <span>🔐 Accounts &amp; Legal</span>
+                            <span class="footer-accordion-icon">▼</span>
+                        </summary>
+                        <ul class="footer-links">
+                            <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                            <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                            <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                            <li><a href="/terms">📜 Terms of Service</a></li>
+                            <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                            <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                            <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright Row -->
+            <div class="footer-bottom-row">
+                <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <a href="/terms">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/corrections">Corrections</a>
+                    <a href="/directory">A—Z Directory</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        let client = null;
+        let rows = [];
+        let stats = {};
+        let businesses = [];   // approved directory listings: { id, name }
+
+        function showAlert(msg, type = "info") {
+            const el = document.getElementById("page-alert");
+            el.className = `alert alert-${type}`;
+            el.textContent = msg;
+            el.style.display = "block";
+            el.scrollIntoView({ block: "nearest" });
+        }
+        function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+        function escapeHtml(str) {
+            return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function fmtWhen(ts) {
+            if (!ts) return "";
+            const d = new Date(ts);
+            return isNaN(d) ? "" : d.toLocaleString("en-CA", { timeZone: "America/Toronto", dateStyle: "medium", timeStyle: "short" });
+        }
+
+        // Toronto wall-clock time <-> UTC, independent of the computer's own time zone.
+        function torontoParts(ms) {
+            const p = {};
+            new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+                .formatToParts(new Date(ms)).forEach(x => { p[x.type] = x.value; });
+            return p;
+        }
+        function torontoOffsetMs(ms) {
+            const p = torontoParts(ms);
+            return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute) - Math.floor(ms / 60000) * 60000;
+        }
+        function torontoLocalToIso(value) {
+            const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value || "");
+            if (!m) return null;
+            const wall = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+            let utc = wall - torontoOffsetMs(wall);
+            utc = wall - torontoOffsetMs(utc); // second pass settles daylight-saving edges
+            return new Date(utc).toISOString();
+        }
+        function isoToTorontoLocal(iso) {
+            const p = torontoParts(new Date(iso).getTime());
+            return `${p.year}-${p.month}-${p.day}T${String(+p.hour % 24).padStart(2, "0")}:${p.minute}`;
+        }
+
+        function statusOf(r) {
+            const now = Date.now();
+            if (!r.active) return ["Paused", "badge-pill"];
+            if (now < new Date(r.starts_at).getTime()) return ["Scheduled", "badge-pill badge-pill-purple"];
+            if (now >= new Date(r.ends_at).getTime()) return ["Ended", "badge-pill"];
+            return ["Live", "badge-pill badge-pill-success"];
+        }
+        function linkLabel(r) {
+            if (r.target_kind === "business") return `Business page: ${businessName(r.business_id) || "linked business"}`;
+            return r.target_kind === "website"
+                ? `Website: ${r.website_url}`
+                : `Search: "${(r.search_query || "").trim() || r.keyword}"`;
+        }
+
+        async function load() {
+            clearAlert();
+            const [{ data, error }, rep] = await Promise.all([
+                client.from("search_sponsors").select("*").order("starts_at", { ascending: false }),
+                client.rpc("wg_search_sponsor_report")
+            ]);
+            if (error) { showAlert("Could not load sponsored keywords: " + error.message, "danger"); return; }
+            rows = data || [];
+            stats = {};
+            if (!rep.error) (rep.data || []).forEach(s => { stats[s.id] = s; });
+            render();
+            loadOrders();
+            loadAccounts();
+        }
+
+        async function loadOrders() {
+            const body = document.getElementById("orders-tbody");
+            if (!body) return;
+            const { data, error } = await client.from("search_sponsor_orders").select("*").order("created_at", { ascending: false }).limit(50);
+            if (error) { body.innerHTML = `<tr><td colspan="6" style="color:var(--muted);">No order history yet.</td></tr>`; return; }
+            body.innerHTML = (data || []).map(o => `<tr>
+                <td><strong>${escapeHtml(o.keyword)}</strong></td>
+                <td>${escapeHtml(o.sponsor_name)}</td>
+                <td style="font-size:12px;">${escapeHtml(o.contact_email)}</td>
+                <td>${escapeHtml(o.plan)}</td>
+                <td><span class="badge badge-${o.status === 'active' ? 'live' : 'off'}">${escapeHtml(o.status)}</span></td>
+                <td style="font-size:12px;">${escapeHtml(fmtWhen(o.paid_at || o.created_at)) || "&mdash;"}</td></tr>`).join("")
+                || `<tr><td colspan="6" style="color:var(--muted); text-align:center;">No self-serve orders yet.</td></tr>`;
+        }
+
+        // shortcut: loads up to 1000 directory businesses (the API maximum); page it if the directory grows past that.
+        async function loadBusinesses() {
+            const { data } = await client.from("directory_listings").select("id, name").eq("status", "approved").order("name").limit(1000);
+            businesses = data || [];
+            const opts = businesses.map(b => `<option value="${escapeHtml(b.id)}">${escapeHtml(b.name)}</option>`).join("");
+            document.querySelectorAll(".business-select").forEach(sel => {
+                const first = sel.options[0].outerHTML;
+                sel.innerHTML = first + opts;
+            });
+        }
+        function businessName(id) {
+            const b = businesses.find(x => x.id === id);
+            return b ? b.name : "";
+        }
+
+        async function loadAccounts() {
+            const { data, error } = await client.rpc("wg_admin_business_accounts");
+            const body = document.getElementById("account-tbody");
+            if (error) { body.innerHTML = `<tr><td colspan="4" style="color:var(--muted);">Could not load business accounts.</td></tr>`; return; }
+            body.innerHTML = (data || []).map(a => `<tr>
+                <td>${escapeHtml(a.email)}</td>
+                <td>${escapeHtml(a.business_name)}</td>
+                <td style="font-size:12px;">${escapeHtml(fmtWhen(a.last_sign_in_at)) || "&mdash;"}</td>
+                <td style="white-space:nowrap;"><button type="button" class="btn btn-secondary btn-sm" data-resend="${escapeHtml(a.email)}" data-business="${escapeHtml(a.business_id)}">Resend invite</button>
+                    <button type="button" class="btn btn-danger btn-sm" data-unlink="${escapeHtml(a.email)}">Unlink</button></td></tr>`).join("")
+                || `<tr><td colspan="4" style="color:var(--muted); text-align:center;">No business accounts yet.</td></tr>`;
+        }
+        async function setAccount(email, businessId) {
+            const { data, error } = await client.rpc("wg_admin_set_business_account", { email_input: email, business_id_input: businessId });
+            if (error) { showAlert(error.code === "42501" ? "Only staff can manage business accounts." : "Could not save: " + error.message, "danger"); return false; }
+            if (!data || !data.success) { showAlert((data && data.error) || "Could not save.", "warning"); return false; }
+            await loadAccounts();
+            return true;
+        }
+        // Creates (or reuses) the login on the server, links it and emails a set-password link.
+        async function sendInvite(email, businessId) {
+            const { data, error } = await client.functions.invoke("send-email", {
+                body: { formType: "business_account_invite", record: { email, business_id: businessId } }
+            });
+            if (error) {
+                let msg = "Could not create the account.";
+                try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (_) {}
+                showAlert(msg, "danger");
+                return false;
+            }
+            await loadAccounts();
+            showAlert(`Invite sent to ${email} for ${(data && data.business) || businessName(businessId)}. They choose their own password from the email.`, "success");
+            return true;
+        }
+        document.getElementById("account-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearAlert();
+            const email = document.getElementById("a-email").value.trim().toLowerCase();
+            const biz = document.getElementById("a-business").value;
+            if (!biz) { showAlert("Pick the business for this login.", "warning"); return; }
+            const btn = document.getElementById("btn-invite");
+            btn.disabled = true;
+            const ok = await sendInvite(email, biz);
+            btn.disabled = false;
+            if (ok) document.getElementById("account-form").reset();
+        });
+        document.getElementById("account-tbody").addEventListener("click", async (e) => {
+            const r = e.target.closest("button[data-resend]");
+            if (r) {
+                r.disabled = true;
+                await sendInvite(r.dataset.resend, r.dataset.business);
+                r.disabled = false;
+                return;
+            }
+            const b = e.target.closest("button[data-unlink]");
+            if (!b || !window.confirm(`Unlink ${b.dataset.unlink}? They will no longer see this business's report.`)) return;
+            if (await setAccount(b.dataset.unlink, null)) showAlert("Account unlinked.", "success");
+        });
+
+        function render() {
+            const liveCount = rows.filter(r => statusOf(r)[0] === "Live").length;
+            const bFilter = (document.getElementById("f-billing-filter")?.value || "all");
+            const filteredRows = rows.filter(r => {
+                if (bFilter === "complimentary") return !!r.is_complimentary;
+                if (bFilter === "paid") return !r.is_complimentary;
+                return true;
+            });
+            document.getElementById("sponsor-tbody").innerHTML = filteredRows.map(r => {
+                const [label, cls] = statusOf(r);
+                const s = stats[r.id] || {};
+                const billingBadge = r.is_complimentary
+                    ? `<span style="display:inline-block;margin-top:3px;padding:2px 7px;border-radius:9999px;font-size:10px;font-weight:800;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;">&#127873; COMPLIMENTARY</span>`
+                    : `<span style="display:inline-block;margin-top:3px;padding:2px 7px;border-radius:9999px;font-size:10px;font-weight:800;background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;">&#128179; PAID</span>`;
+                return `<tr>
+                    <td><strong>${escapeHtml(r.keyword)}</strong>${r.notes ? `<br><span style="font-size:11px; color:var(--muted);">${escapeHtml(r.notes)}</span>` : ""}</td>
+                    <td>${escapeHtml(r.sponsor_name)}${r.business_id ? `<br><span style="font-size:11px; color:var(--muted);">Account: ${escapeHtml(businessName(r.business_id) || "linked business")}</span>` : ""}</td>
+                    <td style="font-size:12px; word-break:break-all;">${escapeHtml(linkLabel(r))}</td>
+                    <td style="font-size:12px; white-space:nowrap;">${escapeHtml(fmtWhen(r.starts_at))}<br>to ${escapeHtml(fmtWhen(r.ends_at))}</td>
+                    <td><span class="${cls}">${label}</span><br>${billingBadge}${r.priority ? `<br><span style="font-size:11px; color:var(--muted);">priority ${Number(r.priority)}</span>` : ""}</td>
+                    <td>${Number(s.impressions || 0).toLocaleString()}</td>
+                    <td><strong>${Number(s.clicks || 0).toLocaleString()}</strong></td>
+                    <td><strong style="color:var(--brand);">${(Number(s.ctr || 0)).toFixed(1)}%</strong></td>
+                    <td>${Number(s.unique_visitors || 0).toLocaleString()}</td>
+                    <td>${Number(s.clicks_7d || 0).toLocaleString()}</td>
+                    <td style="font-size:12px; white-space:nowrap;">${escapeHtml(fmtWhen(s.last_click || s.last_impression)) || "&mdash;"}</td>
+                    <td style="white-space:nowrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" data-edit="${escapeHtml(r.id)}">Edit</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-toggle="${escapeHtml(r.id)}">${r.active ? "Pause" : "Turn on"}</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-delete="${escapeHtml(r.id)}">Delete</button>
+                    </td></tr>`;
+            }).join("") || `<tr><td colspan="12" style="color:var(--muted); text-align:center;">No sponsored keywords yet. Add one above.</td></tr>`;
+            if (liveCount > 5) showAlert(`${liveCount} keywords are live right now. Only the 5 with the highest priority are shown on the Home page.`, "warning");
+        }
+
+        function kind() { return document.querySelector('input[name="f-kind"]:checked').value; }
+        function syncKind() {
+            document.getElementById("search-fields").style.display = kind() === "search" ? "flex" : "none";
+            document.getElementById("website-fields").style.display = kind() === "website" ? "block" : "none";
+            document.getElementById("business-fields").style.display = kind() === "business" ? "block" : "none";
+        }
+        function syncTestLink() {
+            const q = document.getElementById("f-query").value.trim() || document.getElementById("f-keyword").value.trim();
+            document.getElementById("test-search").href = "/discovery" + (q ? "?q=" + encodeURIComponent(q) : "");
+        }
+        function resetForm() {
+            document.getElementById("sponsor-form").reset();
+            document.getElementById("f-id").value = "";
+            document.getElementById("form-title").textContent = "Add a sponsored keyword";
+            document.getElementById("btn-cancel").style.display = "none";
+            const now = new Date();
+            document.getElementById("f-start").value = isoToTorontoLocal(now.toISOString());
+            document.getElementById("f-end").value = isoToTorontoLocal(new Date(now.getTime() + 7 * 86400000).toISOString());
+            syncKind(); syncTestLink();
+        }
+        function editRow(id) {
+            const r = rows.find(x => x.id === id);
+            if (!r) return;
+            document.getElementById("f-id").value = r.id;
+            document.getElementById("f-keyword").value = r.keyword || "";
+            document.getElementById("f-sponsor").value = r.sponsor_name || "";
+            document.getElementById("f-priority").value = r.priority || 0;
+            document.getElementById("f-business").value = r.business_id || "";
+            document.querySelector(`input[name="f-kind"][value="${["website", "business"].includes(r.target_kind) ? r.target_kind : "search"}"]`).checked = true;
+            document.getElementById("f-query").value = r.search_query || "";
+            document.getElementById("f-website").value = r.website_url || "";
+            document.getElementById("f-start").value = isoToTorontoLocal(r.starts_at);
+            document.getElementById("f-end").value = isoToTorontoLocal(r.ends_at);
+            document.getElementById("f-active").checked = !!r.active;
+            document.getElementById("f-complimentary").checked = !!r.is_complimentary;
+            document.getElementById("f-notes").value = r.notes || "";
+            document.getElementById("form-title").textContent = `Edit "${r.keyword}"`;
+            document.getElementById("btn-cancel").style.display = "inline-flex";
+            syncKind(); syncTestLink();
+            document.getElementById("sponsor-form").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        function friendlyError(error) {
+            const m = String(error && error.message || "");
+            if (error && (error.code === "42501" || /row-level security|permission denied/i.test(m))) return "Only admins can add or change sponsored keywords.";
+            if (/search_sponsors_website/.test(m)) return "The website address must start with https:// (no spaces).";
+            if (/search_sponsors_kind|search_sponsors_business_target/.test(m)) return "Run the 20261215 database update first, then save again. For a business page, also pick the business.";
+            if (/search_sponsors_window/.test(m)) return "The stop time must be after the start time.";
+            if (/search_sponsors_keyword_len/.test(m)) return "The keyword must be 2 to 90 characters.";
+            return m || "Something went wrong.";
+        }
+
+        document.getElementById("sponsor-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearAlert();
+            const id = document.getElementById("f-id").value;
+            let website = document.getElementById("f-website").value.trim();
+            if (/^www\./i.test(website)) website = "https://" + website;
+            const payload = {
+                keyword: document.getElementById("f-keyword").value.trim(),
+                sponsor_name: document.getElementById("f-sponsor").value.trim(),
+                priority: Math.max(-100, Math.min(100, parseInt(document.getElementById("f-priority").value, 10) || 0)),
+                business_id: document.getElementById("f-business").value || null,
+                target_kind: kind(),
+                search_query: kind() === "search" ? (document.getElementById("f-query").value.trim() || null) : null,
+                website_url: kind() === "website" ? website : null,
+                starts_at: torontoLocalToIso(document.getElementById("f-start").value),
+                ends_at: torontoLocalToIso(document.getElementById("f-end").value),
+                active: document.getElementById("f-active").checked,
+                is_complimentary: document.getElementById("f-complimentary").checked,
+                notes: document.getElementById("f-notes").value.trim() || null
+            };
+            if (payload.keyword.length < 2) { showAlert("The keyword must be at least 2 characters.", "warning"); return; }
+            if (!payload.starts_at || !payload.ends_at) { showAlert("Enter both a start and a stop time.", "warning"); return; }
+            if (payload.ends_at <= payload.starts_at) { showAlert("The stop time must be after the start time.", "warning"); return; }
+            if (payload.target_kind === "business" && !payload.business_id) { showAlert("Pick the business in the Business field, so the keyword can open its page.", "warning"); return; }
+            if (payload.target_kind === "website") {
+                let ok = false;
+                try { const u = new URL(website); ok = (u.protocol === "https:" || u.protocol === "http:") && !u.username && !u.password; } catch (_) { ok = false; }
+                if (!ok) { showAlert("Enter the sponsor's website address, starting with https://", "warning"); return; }
+            }
+            const btn = document.getElementById("btn-save");
+            btn.disabled = true;
+            const { error } = id
+                ? await client.from("search_sponsors").update(payload).eq("id", id).select("id").single()
+                : await client.from("search_sponsors").insert(payload).select("id").single();
+            btn.disabled = false;
+            if (error) { showAlert(friendlyError(error), "danger"); return; }
+            resetForm();
+            await load();
+            showAlert(id ? "Keyword updated." : "Keyword added.", "success");
+        });
+
+        document.getElementById("sponsor-tbody").addEventListener("click", async (e) => {
+            const b = e.target.closest("button");
+            if (!b) return;
+            if (b.dataset.edit) { editRow(b.dataset.edit); return; }
+            if (b.dataset.toggle) {
+                const r = rows.find(x => x.id === b.dataset.toggle);
+                if (!r) return;
+                const { error } = await client.from("search_sponsors").update({ active: !r.active }).eq("id", r.id).select("id").single();
+                if (error) { showAlert(friendlyError(error), "danger"); return; }
+                await load();
+                return;
+            }
+            if (b.dataset.delete) {
+                const r = rows.find(x => x.id === b.dataset.delete);
+                if (!r || !window.confirm(`Delete "${r.keyword}"? Its past clicks stay in the Click Report. To stop it showing but keep it here, use Pause instead.`)) return;
+                const { error } = await client.from("search_sponsors").delete().eq("id", r.id).select("id").single();
+                if (error) { showAlert(friendlyError(error), "danger"); return; }
+                await load();
+                showAlert("Keyword deleted.", "success");
+            }
+        });
+
+        // CSV safe for Excel: quote every cell, and stop cells starting with = + - @ being run as formulas.
+        function csvCell(v) {
+            let s = String(v ?? "");
+            if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+            return '"' + s.replace(/"/g, '""') + '"';
+        }
+        document.getElementById("btn-csv").addEventListener("click", () => {
+            const header = ["Keyword", "Sponsor", "Links to", "Start (Toronto)", "Stop (Toronto)", "Status", "Priority", "Clicks", "Unique visitors", "Clicks last 7 days", "Last click", "Notes"];
+            const lines = rows.map(r => { const s = stats[r.id] || {}; return [r.keyword, r.sponsor_name, linkLabel(r), fmtWhen(r.starts_at), fmtWhen(r.ends_at), statusOf(r)[0], r.priority, s.clicks || 0, s.unique_visitors || 0, s.clicks_7d || 0, fmtWhen(s.last_click), r.notes || ""]; });
+            const text = "﻿" + [header, ...lines].map(r => r.map(csvCell).join(",")).join("\r\n");
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+            a.download = "welcome-georgina-search-sponsors.csv";
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        });
+
+        document.querySelectorAll('input[name="f-kind"]').forEach(r => r.addEventListener("change", syncKind));
+        document.getElementById("f-query").addEventListener("input", syncTestLink);
+        document.getElementById("f-keyword").addEventListener("input", syncTestLink);
+        document.getElementById("btn-cancel").addEventListener("click", resetForm);
+        document.getElementById("btn-refresh").addEventListener("click", load);
+
+        async function initPage() {
+            if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+                showAlert("The database connection is not configured.", "warning");
+                return;
+            }
+            client = window.GeorginaStore.getClient();
+            const { data: { session } } = await client.auth.getSession();
+            if (!session || !session.user) {
+                window.location.replace("/staff/login.html?redirect=" + encodeURIComponent(window.location.pathname));
+                return;
+            }
+            const userEmail = (session.user.email || "").trim().toLowerCase();
+            if (window.syncHeaderAuthBadge) window.syncHeaderAuthBadge(userEmail, true);
+            const btnLogout = document.getElementById("btn-logout");
+            if (btnLogout) {
+                btnLogout.style.display = "inline-flex";
+                btnLogout.onclick = async () => { await client.auth.signOut(); window.location.href = "/staff/login.html"; };
+            }
+            // The database only lets staff read sponsors, and only admins change them.
+            document.getElementById("sponsors-console").style.display = "block";
+            resetForm();
+            await loadBusinesses();
+            await load();
+        }
+        window.addEventListener("DOMContentLoaded", initPage);
+    </script>
+</body>
+</html>

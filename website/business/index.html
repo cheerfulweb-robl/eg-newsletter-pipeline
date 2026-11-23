@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Business &amp; Click Stats Portal &bull; Welcome East Gwillimbury</title>
+    <link rel="stylesheet" href="/news/assets/styles.css?v=67.9">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+    <script src="/shared/config.js?v=67.9"></script>
+    <style>
+        body { background: #f8fafc; margin: 0; }
+        .biz-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 60px; }
+        .biz-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .biz-top img { max-width: 200px; height: auto; }
+        .biz-card { background: #fff; border: 1px solid var(--border, #e2e8f0); border-radius: 16px; padding: 22px 20px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04); }
+        .biz-login { max-width: 440px; margin: 30px auto; }
+        .biz-range { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .biz-range label { font-size: 13px; font-weight: 700; display: flex; flex-direction: column; gap: 4px; }
+        .biz-tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); }
+        .biz-tile { border: 1px solid var(--border, #e2e8f0); border-radius: 14px; padding: 16px; background: #fff; }
+        .biz-tile .n { font-size: 32px; font-weight: 900; color: #00008b; line-height: 1.1; }
+        .biz-tile .l { font-size: 13px; font-weight: 700; color: #475569; margin-top: 4px; }
+        .biz-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .biz-table th, .biz-table td { text-align: left; padding: 10px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        .biz-table th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #475569; }
+        .sort-th { cursor: pointer; user-select: none; white-space: nowrap; }
+        .sort-th:hover { background: #f1f5f9; color: #0f172a; }
+        .sort-ind { font-size: 11px; margin-left: 4px; color: #0284c7; }
+        .biz-scroll { overflow-x: auto; }
+        .muted { color: #64748b; font-size: 14px; }
+        .role-pill { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+        .role-admin { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+        .role-merchant { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .seg-switch { display: inline-flex; background: #e2e8f0; border-radius: 9999px; padding: 4px; gap: 4px; }
+        .seg-switch button { border: 0; background: transparent; padding: 8px 18px; border-radius: 9999px; font-weight: 800; font-size: 14px; color: #334155; cursor: pointer; min-height: 40px; transition: all 0.15s ease; }
+        .seg-switch button[aria-selected="true"] { background: #00008b; color: #ffffff; box-shadow: 0 2px 5px rgba(0, 0, 139, 0.25); }
+        .seg-switch.sm button { padding: 6px 14px; font-size: 13px; min-height: 36px; }
+        .chart-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 12px; }
+        .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+        .chart-svg-wrap { width: 100%; overflow-x: auto; }
+        .cat-bar-row { display: grid; grid-template-columns: 200px 1fr 70px; gap: 12px; align-items: center; margin-bottom: 12px; }
+        .cat-bar-track { height: 22px; background: #f1f5f9; border-radius: 9999px; overflow: hidden; }
+        .cat-bar-fill { height: 100%; border-radius: 9999px; transition: width 0.25s ease; }
+        @media (max-width: 640px) {
+            .cat-bar-row { grid-template-columns: 1fr; gap: 4px; }
+        }
+        .print-only { display: none; }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        @media print {
+            .print-only { display: block !important; margin-bottom: 14px; border-bottom: 2px solid #00008b; padding-bottom: 8px; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="site-announcement-bar no-print">
+        <div class="wg-ticker"><span class="wg-ticker-track">
+            Announcing the SOFT LAUNCH of WelcomeEG.ca. You are invited to create an account and publish your events, dining offers and local business sales, but be aware that during this time some features may change, be added or deleted. Please use the Bug Report to let us know of any errors or improvements you would like to see.
+        </span></div>
+    </div>
+
+    <header class="site-header no-print">
+        <div class="site-header-inner">
+            <div class="site-header-brand">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='/welcome-eg-logo.png';">
+                </a>
+            </div>
+
+            <nav class="site-header-nav" id="business-nav-links">
+                <div class="drawer-header-mobile">
+                    <a href="/">
+                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='/welcome-eg-logo.png';">
+                    </a>
+                    <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
+                </div>
+                <a href="/events" class="nav-link" onclick="toggleNavDrawer(false)">Events</a>
+                <a href="/dining" class="nav-link" onclick="toggleNavDrawer(false)">Dining</a>
+                <a href="/sales" class="nav-link" onclick="toggleNavDrawer(false)">Sales</a>
+                <a href="/directory" class="nav-link" onclick="toggleNavDrawer(false)">Businesses</a>
+                <a href="/weather" class="nav-link" onclick="toggleNavDrawer(false)">&#9728;&#65039; Weather</a>
+                <a href="/hamper/" class="nav-link" onclick="toggleNavDrawer(false)">Hamper</a>
+                <a href="/news/newsroom.html" class="nav-link" onclick="toggleNavDrawer(false)">News</a>
+                <div class="site-header-auth">
+                    <a href="/login" class="nav-login-btn" id="nav-login-btn" onclick="toggleNavDrawer(false)">Login</a>
+                    <span id="user-badge" style="display: none; padding: 6px 14px; border-radius: 9999px; background: #eff6ff; color: #1e3a8a; font-size: 12px; font-weight: 800; border: 1px solid #bfdbfe;"></span>
+                    <button type="button" id="btn-logout" style="display: none; padding: 7px 18px; border-radius: 8px; background: #e11d48; color: #ffffff; font-size: 12px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onclick="toggleNavDrawer(false)">Log Out</button>
+                </div>
+            </nav>
+
+            <button type="button" class="mobile-nav-toggle-btn" id="btn-mobile-nav" onclick="toggleNavDrawer()" aria-label="Toggle Menu">
+                &#9776;
+            </button>
+        </div>
+    </header>
+    <div id="nav-backdrop" class="nav-backdrop no-print" onclick="toggleNavDrawer(false)"></div>
+
+<div class="biz-wrap">
+    <div class="biz-top no-print" style="justify-content: flex-end;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span id="role-badge" class="role-pill" style="display: none;"></span>
+            <a id="staff-clicks-link" href="/staff/clicks.html" class="btn btn-secondary btn-sm" style="display: none; text-decoration: none;">All Click Reports</a>
+        </div>
+    </div>
+    <div id="page-alert" role="status" style="display: none;"></div>
+<details class="wg-admin-guide">
+    <summary><span>&#128214; Beginner&rsquo;s Guide: How to View Business Stats</span><span style="font-size:11px;color:#475569;">Click to hide/show</span></summary>
+    <ol>
+        <li><strong>Pick a Business (Admins):</strong> Choose any business from the dropdown to see its clicks and search views. (Business owners only see their own business.)</li>
+        <li><strong>Switch Views or Print:</strong> Use <strong>Numbers | Chart</strong> to switch between tables and graphs, or click <strong>Print Report</strong> to save a copy for the business owner.</li>
+    </ol>
+</details>
+
+    <!-- Sign in -->
+    <section id="login-view" class="biz-card biz-login" style="display: none;">
+        <h1 style="font-size: 24px; margin: 0 0 8px 0;">Business &amp; Admin Stats Sign In</h1>
+        <p class="muted" style="margin: 0 0 18px 0;">See how your business page, listings, and searches are performing. Sign in with your Welcome East Gwillimbury business or staff account.</p>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" class="form-control" autocomplete="username" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" class="form-control" autocomplete="current-password" required>
+            </div>
+            <button type="submit" id="btn-login" class="btn btn-primary" style="width: 100%;">Sign in</button>
+        </form>
+        <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <button type="button" id="btn-forgot-pw" style="background: none; border: none; padding: 0; color: #00008b; font-weight: 700; font-size: 13px; text-decoration: underline; cursor: pointer;">Forgot password?</button>
+            <span class="muted" style="font-size: 13px;">Need an account? Email <a href="mailto:contact@welcomeeg.ca">contact@welcomeeg.ca</a>.</span>
+        </div>
+    </section>
+
+    <!-- Set password -->
+    <section id="setpw-view" class="biz-card biz-login" style="display: none;">
+        <h1 style="font-size: 24px; margin: 0 0 8px 0;">Choose your password</h1>
+        <p class="muted" style="margin: 0 0 18px 0;">You will use your email and this password to sign in to your business account.</p>
+        <form id="setpw-form">
+            <div class="form-group">
+                <label for="new-password">New password (at least 8 characters)</label>
+                <input type="password" id="new-password" class="form-control" autocomplete="new-password" minlength="8" required>
+            </div>
+            <div class="form-group">
+                <label for="new-password2">Type it again</label>
+                <input type="password" id="new-password2" class="form-control" autocomplete="new-password" minlength="8" required>
+            </div>
+            <button type="submit" id="btn-setpw" class="btn btn-primary" style="width: 100%;">Save password and continue</button>
+        </form>
+    </section>
+
+    <!-- Unified Report View -->
+    <section id="report-view" style="display: none;">
+        <div class="print-only">
+            <h1 id="print-title" style="margin:0; font-size:20px; color:#00008b;"></h1>
+            <div id="print-meta" style="font-size:13px; color:#475569; margin-top:4px;"></div>
+        </div>
+
+        <!-- Controls Header -->
+        <div class="biz-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 14px;">
+                <div>
+                    <h1 id="biz-name" style="font-size: 26px; margin: 0 0 4px 0; color: #0f172a;"></h1>
+                    <p class="muted" style="margin: 0;">
+                        Clicks from Welcome East Gwillimbury by Toronto day &amp; month. Admin pages are excluded. Completed months are archived automatically at midnight on month-end.
+                    </p>
+                </div>
+                <div class="no-print" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <!-- Primary Numbers vs Chart Toggle (mutually exclusive) -->
+                    <div class="seg-switch" role="tablist" aria-label="Display mode">
+                        <button type="button" id="mode-numbers" role="tab" aria-selected="true" aria-controls="panel-numbers">&#128290; Numbers</button>
+                        <button type="button" id="mode-chart" role="tab" aria-selected="false" aria-controls="panel-chart">&#128202; Chart</button>
+                    </div>
+                    <button type="button" id="btn-request-update" class="btn btn-primary btn-sm">&#9999;&#65039; Request Listing Update</button>
+                    <button type="button" id="btn-print" class="btn btn-secondary btn-sm">&#128424; Print Report</button>
+                </div>
+            </div>
+
+            <!-- Admin-only Business Selector (hidden & ignored server-side for merchants) -->
+            <div id="admin-biz-bar" class="no-print" style="display: none; margin-bottom: 14px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px;">
+                <label style="font-size: 13px; font-weight: 800; color: #1e3a8a; display: flex; flex-direction: column; gap: 6px; max-width: 440px;">
+                    Viewing stats for (Admin selector)
+                    <select id="admin-biz-select" class="form-control">
+                        <option value="">All Businesses (Site Overview)</option>
+                    </select>
+                </label>
+            </div>
+
+            <!-- Date Range & Archive Controls -->
+            <form id="range-form" class="biz-range no-print">
+                <label>From <input type="date" id="r-from" class="form-control" required></label>
+                <label>To <input type="date" id="r-to" class="form-control" required></label>
+                <button type="submit" class="btn btn-primary">Show</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-days="7">7 days</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-days="30">30 days</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-days="90">90 days</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-days="365">12 months</button>
+                <label style="margin-left: auto;">Monthly Archive
+                    <select id="r-archive" class="form-control" style="min-width: 190px;">
+                        <option value="">Live Date Range</option>
+                    </select>
+                </label>
+            </form>
+
+            <!-- Time Cadence (By Day vs By Month) & Search -->
+            <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-size: 13px; font-weight: 800; color: #475569;">Breakdown:</span>
+                    <div class="seg-switch sm" role="tablist" aria-label="Time breakdown">
+                        <button type="button" id="cadence-day" role="tab" aria-selected="true">By Day</button>
+                        <button type="button" id="cadence-month" role="tab" aria-selected="false">By Month</button>
+                    </div>
+                </div>
+                <input type="search" id="biz-filter" class="form-control" style="max-width: 280px;" placeholder="Search keywords, listings, URLs…">
+            </div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- PANEL A: NUMBERS VIEW (shown ONLY when Numbers mode is active)   -->
+        <!-- ================================================================ -->
+        <div id="panel-numbers" role="tabpanel" aria-labelledby="mode-numbers">
+            <div class="biz-tiles" style="margin-bottom: 18px;">
+                <div class="biz-tile"><div class="n" id="t-total">0</div><div class="l">Total Clicks</div></div>
+                <div class="biz-tile"><div class="n" id="t-search">0</div><div class="l">Searches &amp; Search Results</div></div>
+                <div class="biz-tile"><div class="n" id="t-sponsored-imp">0</div><div class="l">Quick Search Impressions</div></div>
+                <div class="biz-tile"><div class="n" id="t-sponsored-ctr">0.0%</div><div class="l">Quick Search CTR</div></div>
+                <div class="biz-tile"><div class="n" id="t-business">0</div><div class="l">Business Page Clicks</div></div>
+                <div class="biz-tile"><div class="n" id="t-listings">0</div><div class="l">Events, Dining &amp; Sales Clicks</div></div>
+            </div>
+
+            <!-- Dedicated Separated Category: Searches & Search Results -->
+            <div class="biz-card">
+                <h2 style="font-size: 19px; margin: 0 0 4px 0;">&#128269; Searches &amp; Search Results</h2>
+                <p class="muted" style="margin: 0 0 12px 0;">Separated list of Quick Search sponsored keywords, site searches, and clicks from the Search Results page.</p>
+                <div class="biz-scroll">
+                    <table class="biz-table" data-table="search">
+                        <thead>
+                            <tr>
+                                <th class="sort-th" data-sort="title">Search / Keyword<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="kind">Type<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="clicks">Clicks<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="unique_visitors">Unique Visitors<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="last_click">Last Activity<span class="sort-ind"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="search-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sponsored Quick Search Spots -->
+            <div class="biz-card">
+                <h2 style="font-size: 19px; margin: 0 0 10px 0;">&#11088; Sponsored Quick Search Spots</h2>
+                <div class="biz-scroll">
+                    <table class="biz-table">
+                        <thead><tr><th>Keyword</th><th>Takes Visitors To</th><th>Runs</th><th>Status</th><th>Impressions</th><th>Clicks</th><th>CTR</th></tr></thead>
+                        <tbody id="spots-body"></tbody>
+                    </table>
+                </div>
+                <div class="no-print" style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                    <div>
+                        <strong style="color: #0f172a;">Want to sponsor a Quick Search keyword?</strong>
+                        <div class="muted" style="font-size: 13px;">Featured placement in the site-wide Quick Search bar — $7/week or $25/month CAD (~18% savings).</div>
+                    </div>
+                    <a href="/advertise" class="btn btn-primary btn-sm" style="text-decoration: none; white-space: nowrap;">Buy Ad Space &rarr;</a>
+                </div>
+            </div>
+
+            <!-- Business Page, Listings & Newsletter Clicks -->
+            <div class="biz-card">
+                <h2 style="font-size: 19px; margin: 0 0 10px 0;">&#128196; Business Page, Listings &amp; Newsletter</h2>
+                <div class="biz-scroll">
+                    <table class="biz-table" data-table="listings">
+                        <thead>
+                            <tr>
+                                <th class="sort-th" data-sort="title">Listing / Link<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="kind">Category<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="clicks">Clicks<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="unique_visitors">Unique Visitors<span class="sort-ind"></span></th>
+                                <th class="sort-th" data-sort="last_click">Last Click<span class="sort-ind"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="listings-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- By Day / By Month Numeric Table -->
+            <div class="biz-card">
+                <h2 id="time-table-title" style="font-size: 19px; margin: 0 0 10px 0;">By Day</h2>
+                <div class="biz-scroll">
+                    <table class="biz-table">
+                        <thead>
+                            <tr>
+                                <th id="time-col-label">Day</th>
+                                <th>Searches &amp; Results</th>
+                                <th>Impressions</th>
+                                <th>Business Page</th>
+                                <th>Listings</th>
+                                <th>Newsletter</th>
+                            </tr>
+                        </thead>
+                        <tbody id="time-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- PANEL B: CHART VIEW (shown ONLY when Chart mode is active)       -->
+        <!-- ================================================================ -->
+        <div id="panel-chart" role="tabpanel" aria-labelledby="mode-chart" style="display: none;">
+            <div class="biz-card">
+                <h2 id="chart-trend-title" style="font-size: 19px; margin: 0 0 8px 0;">Clicks Over Time (By Day)</h2>
+                <div class="chart-legend">
+                    <span><i class="swatch" style="background:#0284c7;"></i> Searches &amp; Search Results</span>
+                    <span><i class="swatch" style="background:#00008b;"></i> Business Page</span>
+                    <span><i class="swatch" style="background:#f59e0b;"></i> Listings (Events, Dining, Sales)</span>
+                    <span><i class="swatch" style="background:#10b981;"></i> Newsletter</span>
+                </div>
+                <div id="trend-chart-wrap" class="chart-svg-wrap"></div>
+            </div>
+
+            <div class="biz-card">
+                <h2 style="font-size: 19px; margin: 0 0 14px 0;">Clicks by Category</h2>
+                <div id="category-chart-wrap"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Request Listing Update Modal (Admin Approval Required) -->
+    <div id="modal-biz-update" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="biz-update-title">
+        <div class="modal-dialog" style="max-width: 540px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid #e2e8f0;padding-bottom:10px;">
+                <h2 id="biz-update-title" style="margin:0;font-size:18px;color:#0f172a;">&#9999;&#65039; Request Listing Update</h2>
+                <button type="button" id="btn-close-update" class="btn btn-secondary btn-sm" aria-label="Close">&times;</button>
+            </div>
+            <p class="muted" style="margin:0 0 14px 0;font-size:13px;">Submit changes to your business profile. An admin will review and approve updates before they go live on Welcome East Gwillimbury.</p>
+            <form id="biz-update-form">
+                <div class="form-group">
+                    <label for="upd-field">What needs to be updated?</label>
+                    <select id="upd-field" class="form-control">
+                        <option value="Phone / Contact">Phone / Contact Info</option>
+                        <option value="Website URL">Website URL</option>
+                        <option value="Address / Location">Address / Location</option>
+                        <option value="Hours / Description">Hours / Description</option>
+                        <option value="Business Photo">Business Photo</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="upd-details">New Details *</label>
+                    <textarea id="upd-details" class="form-control" rows="4" minlength="10" required placeholder="Describe the exact updated phone, website, address, hours, or details..."></textarea>
+                </div>
+                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
+                    <button type="button" id="btn-cancel-update" class="btn btn-secondary btn-sm">Cancel</button>
+                    <button type="submit" id="btn-submit-update" class="btn btn-primary btn-sm">Submit for Admin Approval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <div class="footer-grid">
+            <!-- Column 1: Welcome East Gwillimbury -->
+            <div class="footer-col">
+                <a href="/">
+                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="footer-logo" onerror="this.onerror=null; this.src='/welcome-eg-logo.png';">
+                </a>
+                <p class="footer-desc">
+                    Connecting community, newcomers, and local businesses across East Gwillimbury in Holland Landing, Mount Albert, Queensville, Sharon, Ontario.
+                </p>
+                <div class="footer-briefing-box">
+                    <span class="footer-briefing-title">Weekly Community Briefing</span>
+                    <p class="footer-briefing-desc">Both Monday (Mon–Fri) &amp; Thursday (this coming &amp; next weekend, Fri–Sun) editions.</p>
+                </div>
+                <div style="margin-top: 12px;">
+                    <a href="/weather" class="footer-weather-btn">
+                        <span>☀️ East Gwillimbury Waterfront</span>
+                        <span>•</span>
+                        <span style="color: #fbbf24;">7-Day Forecast &rarr;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Column 2: Community & Calendars -->
+            <div class="footer-col">
+                <details class="footer-accordion">
+                    <summary class="footer-heading">
+                        <span>📅 Community &amp; Calendars</span>
+                        <span class="footer-accordion-icon">▼</span>
+                    </summary>
+                    <ul class="footer-links">
+                        <li><a href="/events">📅 6-Week Events Calendar</a></li>
+                        <li><a href="/news/newsroom.html" style="color: #93c5fd; font-weight: 700;">📰 90-Day Newsroom Calendar &rarr;</a></li>
+                        <li><a href="/weather">☀️ 7-Day Community Weather</a></li>
+                        <li><a href="/subscribe" style="color: #fde047; font-weight: 800;">📬 Weekly Briefing &rarr;</a></li>
+                        <li><a href="/newsletter">📰 Past Newsletter Archive</a></li>
+                    </ul>
+                </details>
+            </div>
+
+            <!-- Column 3: Submissions -->
+            <div class="footer-col">
+                <details class="footer-accordion">
+                    <summary class="footer-heading">
+                        <span>🏪 Submissions</span>
+                        <span class="footer-accordion-icon">▼</span>
+                    </summary>
+                    <ul class="footer-links">
+                        <li><a href="/my-submissions" style="color: #fde047; font-weight: 800;">🏪 My Submissions &rarr;</a></li>
+                        <li><a href="/submit-event">📅 Submit an Event</a></li>
+                        <li><a href="/submission?tab=dining">🍽️ Submit a Dining Special</a></li>
+                        <li><a href="/submission?tab=sales">🏷️ Submit a Sale</a></li>
+                        <li><a href="/hamper/">🎁 Welcome Hamper for New Residents</a></li>
+                        <li><a href="/hamper/redeem.html">🎟️ Redemptions (Hamper Codes)</a></li>
+                        <li><a href="/directory">🏢 Business Directory</a></li>
+                    </ul>
+                </details>
+            </div>
+
+            <!-- Column 4: Portals & Administration -->
+            <div class="footer-col">
+                <details class="footer-accordion">
+                    <summary class="footer-heading">
+                        <span>🔐 Accounts &amp; Legal</span>
+                        <span class="footer-accordion-icon">▼</span>
+                    </summary>
+                    <ul class="footer-links">
+                        <li><a href="/login" style="color: #60a5fa; font-weight: 800;">🔐 All Accounts Sign In &rarr;</a></li>
+                        <li><a href="/staff/admin-approvals.html">🛡️ Admin &amp; Staff Operations</a></li>
+                        <li><a href="/knowledge-base">❓ Help Center &amp; FAQ</a></li>
+                        <li><a href="/terms">📜 Terms of Service</a></li>
+                        <li><a href="/privacy">🔒 Privacy Policy</a></li>
+                        <li><a href="/corrections">⚖️ Statement of Corrections</a></li>
+                        <li><a href="/press">📢 Pressroom &amp; Citations</a></li>
+                    </ul>
+                </details>
+            </div>
+        </div>
+        <div class="footer-bottom-row">
+            <div>&copy; 2026 Welcome East Gwillimbury. Verified community events, independent dining, store deals, and resident digital perks. We are not responsible for errors or omissions.</div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <a href="/terms">Terms of Service</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/corrections">Corrections</a>
+                <a href="/directory">A—Z Directory</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    let client = null;
+    let currentData = null;
+    let viewMode = "numbers"; // 'numbers' | 'chart' (NEVER both at once)
+    let cadence = "day";      // 'day' | 'month'
+    let selectedBusinessId = new URLSearchParams(window.location.search).get("business") || "";
+    let activeArchiveMonth = "";
+    const sortState = {
+        search: { key: "clicks", dir: -1 },
+        listings: { key: "clicks", dir: -1 }
+    };
+
+    const linkHash = new URLSearchParams(window.location.hash.slice(1));
+    const arrivedToSetPassword = linkHash.get("type") === "recovery" || linkHash.get("type") === "invite";
+    const linkError = linkHash.get("error_description");
+
+    const KIND_LABELS = {
+        search_sponsor: "Sponsored Quick Search",
+        search_result: "Search Results Page",
+        search: "Site Search",
+        directory: "Business Page",
+        listing: "Event / Dining / Sale Listing",
+        hamper_offer: "Welcome Hamper",
+        newsletter: "Newsletter"
+    };
+
+    function showAlert(msg, type = "info") {
+        const el = document.getElementById("page-alert");
+        el.className = `alert alert-${type}`;
+        el.textContent = msg;
+        el.style.display = "block";
+    }
+    function clearAlert() { document.getElementById("page-alert").style.display = "none"; }
+    function escapeHtml(str) {
+        return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    function torontoToday() {
+        return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    }
+    function addDays(iso, n) {
+        const d = new Date(iso + "T12:00:00Z");
+        d.setUTCDate(d.getUTCDate() + n);
+        return d.toISOString().slice(0, 10);
+    }
+    function fmtDay(iso) {
+        return new Date(iso + "T12:00:00Z").toLocaleDateString("en-CA", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    }
+    function fmtShortDay(iso) {
+        return new Date(iso + "T12:00:00Z").toLocaleDateString("en-CA", { timeZone: "UTC", month: "short", day: "numeric" });
+    }
+    function fmtMonth(ym) {
+        if (!ym || !/^\d{4}-\d{2}$/.test(ym)) return ym || "";
+        return new Date(ym + "-15T12:00:00Z").toLocaleDateString("en-CA", { timeZone: "UTC", month: "short", year: "numeric" });
+    }
+    function fmtWhen(ts) {
+        const d = new Date(ts);
+        return isNaN(d) ? "" : d.toLocaleDateString("en-CA", { timeZone: "America/Toronto", month: "short", day: "numeric", year: "numeric" });
+    }
+    function spotStatus(s) {
+        const now = Date.now();
+        if (!s.active) return "Paused";
+        if (now < new Date(s.starts_at).getTime()) return "Scheduled";
+        if (now >= new Date(s.ends_at).getTime()) return "Ended";
+        return "Live";
+    }
+    function setRange(days) {
+        activeArchiveMonth = "";
+        document.getElementById("r-archive").value = "";
+        const to = torontoToday();
+        document.getElementById("r-to").value = to;
+        document.getElementById("r-from").value = addDays(to, -(days - 1));
+    }
+
+    function show(view) {
+        document.getElementById("login-view").style.display = view === "login" ? "block" : "none";
+        document.getElementById("report-view").style.display = view === "report" ? "block" : "none";
+        document.getElementById("setpw-view").style.display = view === "setpw" ? "block" : "none";
+        document.getElementById("btn-logout").style.display = view === "report" ? "inline-flex" : "none";
+    }
+
+    // Mutually exclusive Numbers vs Chart switcher
+    function setViewMode(mode) {
+        viewMode = mode === "chart" ? "chart" : "numbers";
+        const isNumbers = viewMode === "numbers";
+        document.getElementById("mode-numbers").setAttribute("aria-selected", String(isNumbers));
+        document.getElementById("mode-chart").setAttribute("aria-selected", String(!isNumbers));
+        document.getElementById("panel-numbers").style.display = isNumbers ? "block" : "none";
+        document.getElementById("panel-chart").style.display = isNumbers ? "none" : "block";
+        if (!isNumbers && currentData) renderCharts();
+    }
+
+    function setCadence(c) {
+        cadence = c === "month" ? "month" : "day";
+        document.getElementById("cadence-day").setAttribute("aria-selected", String(cadence === "day"));
+        document.getElementById("cadence-month").setAttribute("aria-selected", String(cadence === "month"));
+        if (currentData) renderActiveView();
+    }
+
+    function matchesSearch(fields) {
+        const q = document.getElementById("biz-filter").value.trim().toLowerCase();
+        if (!q) return true;
+        const hay = fields.map(x => String(x || "").toLowerCase()).join(" ");
+        return q.split(/\s+/).every(tok => hay.includes(tok));
+    }
+    function sortList(rows, name) {
+        const st = sortState[name];
+        return rows.slice().sort((a, b) => {
+            const av = a[st.key] ?? "", bv = b[st.key] ?? "";
+            if (typeof av === "number" || typeof bv === "number") return (Number(av || 0) - Number(bv || 0)) * st.dir;
+            return String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: "base" }) * st.dir;
+        });
+    }
+
+    async function loadArchiveDropdown(bizId) {
+        try {
+            await client.rpc("wg_ensure_monthly_archives");
+            const { data } = await client.rpc("wg_list_click_archives", { business_id_input: bizId || null });
+            const sel = document.getElementById("r-archive");
+            sel.innerHTML = `<option value="">Live Date Range</option>` + (data || []).map(a =>
+                `<option value="${escapeHtml(a.archive_month)}">${escapeHtml(fmtMonth(a.archive_month))}</option>`
+            ).join("");
+            sel.value = activeArchiveMonth || "";
+        } catch (_) {}
+    }
+
+    async function loadArchivedMonth(ym) {
+        clearAlert();
+        const { data, error } = await client.rpc("wg_get_click_archive", { month_input: ym, business_id_input: selectedBusinessId || null });
+        if (error || !data) { showAlert("No archived report found for " + ym + ".", "warning"); return; }
+        activeArchiveMonth = ym;
+        const sum = data.summary || {};
+        currentData = {
+            ...(currentData || {}),
+            linked: true,
+            from: ym + "-01",
+            to: ym + " (Archived)",
+            totals: {
+                total_clicks: sum.total_clicks ?? sum.clicks ?? 0,
+                search_clicks: sum.search_clicks ?? 0,
+                sponsored_clicks: sum.sponsored_clicks ?? 0,
+                sponsored_impressions: sum.sponsored_impressions ?? 0,
+                sponsored_ctr: sum.sponsored_ctr ?? 0,
+                business_page: sum.business_page ?? 0,
+                listings: sum.listings ?? 0,
+                newsletter: sum.newsletter ?? sum.newsletter_clicks ?? 0
+            },
+            search_items: data.by_search || [],
+            listing_items: data.by_item || [],
+            spots: (currentData && currentData.spots) || [],
+            daily: data.by_day || [],
+            monthly: [{
+                month: ym,
+                search_clicks: sum.search_clicks ?? 0,
+                sponsored_impressions: sum.sponsored_impressions ?? 0,
+                business_page: sum.business_page ?? 0,
+                listings: sum.listings ?? 0,
+                newsletter: sum.newsletter ?? sum.newsletter_clicks ?? 0
+            }]
+        };
+        renderActiveView();
+    }
+
+    async function loadReport() {
+        clearAlert();
+        activeArchiveMonth = "";
+        const from = document.getElementById("r-from").value;
+        const to = document.getElementById("r-to").value;
+        if (!from || !to || from > to) { showAlert("Pick a start date on or before the end date.", "warning"); return; }
+
+        const { data, error } = await client.rpc("wg_my_business_report", {
+            from_input: from,
+            to_input: to,
+            business_id_input: selectedBusinessId || null
+        });
+        if (error) { showAlert("Could not load the report. Please try again.", "danger"); return; }
+        if (!data || !data.linked) {
+            show("report");
+            document.getElementById("biz-name").textContent = "Account not set up yet";
+            showAlert("This login is not linked to a business yet. Please email contact@welcomeeg.ca.", "warning");
+            return;
+        }
+        currentData = data;
+
+        const isAdmin = data.viewer_role === "admin";
+        const badge = document.getElementById("role-badge");
+        badge.style.display = "inline-flex";
+        badge.className = "role-pill " + (isAdmin ? "role-admin" : "role-merchant");
+        badge.textContent = isAdmin ? "Admin View" : "Merchant View";
+        document.getElementById("staff-clicks-link").style.display = isAdmin ? "inline-flex" : "none";
+
+        const adminBar = document.getElementById("admin-biz-bar");
+        if (isAdmin) {
+            adminBar.style.display = "block";
+            const sel = document.getElementById("admin-biz-select");
+            if (sel.options.length <= 1 && Array.isArray(data.businesses_list)) {
+                sel.innerHTML = `<option value="">All Businesses (Site Overview)</option>` +
+                    data.businesses_list.map(b => `<option value="${escapeHtml(b.id)}">${escapeHtml(b.name)}</option>`).join("");
+            }
+            sel.value = selectedBusinessId || "";
+        } else {
+            adminBar.style.display = "none";
+        }
+
+        document.getElementById("biz-name").textContent = data.business.name;
+        document.getElementById("r-from").value = data.from;
+        document.getElementById("r-to").value = data.to;
+        await loadArchiveDropdown(isAdmin ? (selectedBusinessId || null) : data.business.id);
+        renderActiveView();
+        show("report");
+    }
+
+    function renderActiveView() {
+        if (!currentData) return;
+        document.getElementById("print-title").textContent = `${currentData.business?.name || "Welcome East Gwillimbury"} — Click & Search Stats`;
+        document.getElementById("print-meta").textContent =
+            (activeArchiveMonth ? `Archived Month: ${fmtMonth(activeArchiveMonth)}` : `Period: ${currentData.from} to ${currentData.to}`)
+            + ` • Generated ${fmtWhen(new Date().toISOString())}`;
+
+        renderNumbers();
+        if (viewMode === "chart") renderCharts();
+    }
+
+    function renderNumbers() {
+        const d = currentData;
+        const t = d.totals || {};
+        document.getElementById("t-total").textContent = Number(t.total_clicks ?? ((t.search_clicks || 0) + (t.business_page || 0) + (t.listings || 0) + (t.newsletter || 0))).toLocaleString("en-CA");
+        document.getElementById("t-search").textContent = Number(t.search_clicks ?? t.sponsored_clicks ?? 0).toLocaleString("en-CA");
+        document.getElementById("t-sponsored-imp").textContent = Number(t.sponsored_impressions || 0).toLocaleString("en-CA");
+        document.getElementById("t-sponsored-ctr").textContent = Number(t.sponsored_ctr || 0).toFixed(1) + "%";
+        document.getElementById("t-business").textContent = Number(t.business_page || 0).toLocaleString("en-CA");
+        document.getElementById("t-listings").textContent = Number(t.listings || 0).toLocaleString("en-CA");
+
+        const searchRows = sortList(
+            (d.search_items || []).filter(i => matchesSearch([i.title, i.business, i.target_url, KIND_LABELS[i.kind] || i.kind])),
+            "search"
+        );
+        document.getElementById("search-body").innerHTML = searchRows.map(i => `<tr>
+            <td><strong>${escapeHtml(i.title)}</strong>${i.target_url ? `<br><span style="font-size:12px; color:#64748b; word-break:break-all;">${escapeHtml(i.target_url)}</span>` : ""}</td>
+            <td>${escapeHtml(KIND_LABELS[i.kind] || i.kind)}</td>
+            <td><strong>${Number(i.clicks || 0).toLocaleString("en-CA")}</strong></td>
+            <td>${Number(i.unique_visitors || 0).toLocaleString("en-CA")}</td>
+            <td style="white-space:nowrap;">${escapeHtml(fmtWhen(i.last_click))}</td>
+        </tr>`).join("") || `<tr><td colspan="5" class="muted">No search or search-results clicks in this period.</td></tr>`;
+
+        document.getElementById("spots-body").innerHTML = (d.spots || []).map(s => `<tr>
+            <td><strong>${escapeHtml(s.keyword)}</strong></td>
+            <td style="word-break: break-word;">${escapeHtml(s.target_kind === "website" ? s.website_url : (s.target_kind === "business" ? "Welcome East Gwillimbury Business Page" : `Search for "${(s.search_query || "").trim() || s.keyword}"`))}</td>
+            <td style="white-space: nowrap;">${escapeHtml(fmtWhen(s.starts_at))} to ${escapeHtml(fmtWhen(s.ends_at))}</td>
+            <td>${escapeHtml(spotStatus(s))}</td>
+            <td>${Number(s.impressions || 0).toLocaleString("en-CA")}</td>
+            <td><strong>${Number(s.clicks || 0).toLocaleString("en-CA")}</strong></td>
+            <td><strong style="color:#00008b;">${Number(s.ctr || 0).toFixed(1)}%</strong></td>
+        </tr>`).join("") || `<tr><td colspan="7" class="muted">No sponsored spots yet. Ask us about a Quick Search spot: contact@welcomeeg.ca</td></tr>`;
+
+        const listRows = sortList(
+            (d.listing_items || []).filter(i => matchesSearch([i.title, i.business, i.target_url, KIND_LABELS[i.kind] || i.kind])),
+            "listings"
+        );
+        document.getElementById("listings-body").innerHTML = listRows.map(i => `<tr>
+            <td><strong>${escapeHtml(i.title)}</strong>${i.target_url ? `<br><span style="font-size:12px; color:#64748b; word-break:break-all;">${escapeHtml(i.target_url)}</span>` : ""}</td>
+            <td>${escapeHtml(KIND_LABELS[i.kind] || i.kind)}</td>
+            <td><strong>${Number(i.clicks || 0).toLocaleString("en-CA")}</strong></td>
+            <td>${Number(i.unique_visitors || 0).toLocaleString("en-CA")}</td>
+            <td style="white-space:nowrap;">${escapeHtml(fmtWhen(i.last_click))}</td>
+        </tr>`).join("") || `<tr><td colspan="5" class="muted">No business page or listing clicks in this period.</td></tr>`;
+
+        const isMonth = cadence === "month";
+        document.getElementById("time-table-title").textContent = isMonth ? "By Month" : "By Day";
+        document.getElementById("time-col-label").textContent = isMonth ? "Month" : "Day";
+        const rows = isMonth ? (d.monthly || []).slice().reverse() : (d.daily || []).slice().reverse();
+        document.getElementById("time-body").innerHTML = rows.map(r => `<tr>
+            <td style="white-space: nowrap;">${escapeHtml(isMonth ? fmtMonth(r.month) : fmtDay(r.day))}</td>
+            <td><strong>${Number(r.search_clicks ?? r.sponsored_clicks ?? 0).toLocaleString("en-CA")}</strong></td>
+            <td>${Number(r.sponsored_impressions || 0).toLocaleString("en-CA")}</td>
+            <td>${Number(r.business_page || 0).toLocaleString("en-CA")}</td>
+            <td>${Number(r.listings || 0).toLocaleString("en-CA")}</td>
+            <td>${Number(r.newsletter || 0).toLocaleString("en-CA")}</td>
+        </tr>`).join("") || `<tr><td colspan="6" class="muted">No activity recorded in this period.</td></tr>`;
+
+        document.querySelectorAll("table[data-table]").forEach(tbl => {
+            const st = sortState[tbl.dataset.table];
+            tbl.querySelectorAll("th.sort-th").forEach(th => {
+                const ind = th.querySelector(".sort-ind");
+                if (ind) ind.textContent = st && th.dataset.sort === st.key ? (st.dir > 0 ? "▲" : "▼") : "";
+            });
+        });
+    }
+
+    function renderCharts() {
+        const d = currentData;
+        const isMonth = cadence === "month";
+        document.getElementById("chart-trend-title").textContent = isMonth ? "Clicks Over Time (By Month)" : "Clicks Over Time (By Day)";
+        const series = (isMonth ? (d.monthly || []) : (d.daily || [])).map(r => ({
+            label: isMonth ? fmtMonth(r.month) : fmtShortDay(r.day),
+            search: Number(r.search_clicks ?? r.sponsored_clicks ?? 0),
+            biz: Number(r.business_page || 0),
+            listings: Number(r.listings || 0),
+            news: Number(r.newsletter || 0)
+        }));
+
+        const wrap = document.getElementById("trend-chart-wrap");
+        if (!series.length) {
+            wrap.innerHTML = `<p class="muted">No data to chart in this date range.</p>`;
+        } else {
+            const maxVal = Math.max(1, ...series.map(s => s.search + s.biz + s.listings + s.news));
+            const barW = Math.max(22, Math.min(54, Math.floor(760 / Math.max(series.length, 1)) - 8));
+            const gap = 8;
+            const padL = 44, padR = 16, padT = 20, padB = 56;
+            const chartH = 220;
+            const svgW = Math.max(460, padL + padR + series.length * (barW + gap));
+            const svgH = padT + chartH + padB;
+
+            let gridLines = "";
+            for (let step = 0; step <= 4; step++) {
+                const v = Math.round((maxVal * step) / 4);
+                const y = padT + chartH - (chartH * step) / 4;
+                gridLines += `<line x1="${padL}" y1="${y}" x2="${svgW - padR}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>` +
+                    `<text x="${padL - 8}" y="${y + 4}" text-anchor="end" font-size="11" fill="#64748b" font-weight="700">${v}</text>`;
+            }
+
+            const labelEvery = series.length > 16 ? Math.ceil(series.length / 12) : 1;
+            let bars = "";
+            series.forEach((s, idx) => {
+                const x = padL + idx * (barW + gap);
+                const total = s.search + s.biz + s.listings + s.news;
+                let yCur = padT + chartH;
+                const segs = [
+                    { v: s.search, c: "#0284c7", name: "Searches & Results" },
+                    { v: s.biz, c: "#00008b", name: "Business Page" },
+                    { v: s.listings, c: "#f59e0b", name: "Listings" },
+                    { v: s.news, c: "#10b981", name: "Newsletter" }
+                ];
+                segs.forEach(sg => {
+                    if (!sg.v) return;
+                    const h = Math.max(2, (sg.v / maxVal) * chartH);
+                    yCur -= h;
+                    bars += `<rect x="${x}" y="${yCur}" width="${barW}" height="${h}" rx="3" fill="${sg.c}"><title>${escapeHtml(s.label)} — ${sg.name}: ${sg.v}</title></rect>`;
+                });
+                if (total > 0) {
+                    bars += `<text x="${x + barW / 2}" y="${yCur - 5}" text-anchor="middle" font-size="11" font-weight="800" fill="#0f172a">${total}</text>`;
+                }
+                if (idx % labelEvery === 0) {
+                    bars += `<text x="${x + barW / 2}" y="${padT + chartH + 18}" text-anchor="middle" font-size="11" fill="#475569" font-weight="700">${escapeHtml(s.label)}</text>`;
+                }
+            });
+
+            wrap.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" role="img" aria-label="Clicks over time bar chart" style="max-width:100%; height:auto;">${gridLines}${bars}</svg>`;
+        }
+
+        // Category Breakdown Chart
+        const t = d.totals || {};
+        const cats = [
+            { label: "Searches & Search Results", value: Number(t.search_clicks ?? t.sponsored_clicks ?? 0), color: "#0284c7" },
+            { label: "Business Page", value: Number(t.business_page || 0), color: "#00008b" },
+            { label: "Listings (Events, Dining, Sales)", value: Number(t.listings || 0), color: "#f59e0b" },
+            { label: "Newsletter", value: Number(t.newsletter || 0), color: "#10b981" }
+        ];
+        const maxCat = Math.max(1, ...cats.map(c => c.value));
+        document.getElementById("category-chart-wrap").innerHTML = cats.map(c => {
+            const pct = Math.round((c.value / maxCat) * 100);
+            return `<div class="cat-bar-row">
+                <div style="font-size:14px; font-weight:800; color:#1e293b;">${escapeHtml(c.label)}</div>
+                <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${c.value > 0 ? Math.max(3, pct) : 0}%; background:${c.color};"></div></div>
+                <div style="font-size:15px; font-weight:900; color:#0f172a; text-align:right;">${c.value.toLocaleString("en-CA")}</div>
+            </div>`;
+        }).join("");
+    }
+
+    document.getElementById("mode-numbers").addEventListener("click", () => setViewMode("numbers"));
+    document.getElementById("mode-chart").addEventListener("click", () => setViewMode("chart"));
+    document.getElementById("cadence-day").addEventListener("click", () => setCadence("day"));
+    document.getElementById("cadence-month").addEventListener("click", () => setCadence("month"));
+    document.getElementById("btn-print").addEventListener("click", () => window.print());
+    document.getElementById("biz-filter").addEventListener("input", () => { if (currentData) renderNumbers(); });
+    document.getElementById("admin-biz-select").addEventListener("change", (e) => {
+        selectedBusinessId = e.target.value;
+        loadReport();
+    });
+    document.getElementById("r-archive").addEventListener("change", (e) => {
+        if (e.target.value) loadArchivedMonth(e.target.value);
+        else loadReport();
+    });
+
+    document.querySelectorAll("table[data-table] th.sort-th").forEach(th => {
+        th.addEventListener("click", () => {
+            const name = th.closest("table").dataset.table;
+            const key = th.dataset.sort;
+            if (sortState[name].key === key) sortState[name].dir *= -1;
+            else { sortState[name].key = key; sortState[name].dir = (key === "title" || key === "kind") ? 1 : -1; }
+            if (currentData) renderNumbers();
+        });
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearAlert();
+        const btn = document.getElementById("btn-login");
+        btn.disabled = true;
+        const { error } = await client.auth.signInWithPassword({
+            email: document.getElementById("login-email").value.trim().toLowerCase(),
+            password: document.getElementById("login-password").value
+        });
+        btn.disabled = false;
+        if (error) { showAlert("That email and password did not work. Please check them and try again.", "warning"); return; }
+        setRange(30);
+        await loadReport();
+    });
+
+    document.getElementById("btn-forgot-pw").addEventListener("click", async () => {
+        clearAlert();
+        const email = document.getElementById("login-email").value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showAlert("Enter your account email above first, then click Forgot password.", "warning");
+            document.getElementById("login-email").focus();
+            return;
+        }
+        const btn = document.getElementById("btn-forgot-pw");
+        btn.disabled = true;
+        const { error } = await client.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + "/business/"
+        });
+        btn.disabled = false;
+        if (error) {
+            showAlert("Could not send password reset email: " + error.message, "warning");
+            return;
+        }
+        showAlert("If an account exists for " + email + ", a password reset link has been sent. Check your inbox.", "success");
+    });
+
+    document.getElementById("setpw-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearAlert();
+        const pw = document.getElementById("new-password").value;
+        if (pw.length < 8) { showAlert("Please use at least 8 characters.", "warning"); return; }
+        if (pw !== document.getElementById("new-password2").value) { showAlert("The two passwords do not match.", "warning"); return; }
+        const btn = document.getElementById("btn-setpw");
+        btn.disabled = true;
+        const { error } = await client.auth.updateUser({ password: pw });
+        btn.disabled = false;
+        if (error) { showAlert("Could not save your password: " + error.message, "danger"); return; }
+        history.replaceState(null, "", window.location.pathname);
+        showAlert("Your password is saved. Next time, sign in with your email and this password.", "success");
+        await loadReport();
+    });
+
+    document.getElementById("range-form").addEventListener("submit", (e) => { e.preventDefault(); loadReport(); });
+    document.querySelectorAll("[data-days]").forEach(b => b.addEventListener("click", () => { setRange(Number(b.dataset.days)); loadReport(); }));
+    document.getElementById("btn-logout").addEventListener("click", async () => {
+        await client.auth.signOut();
+        clearAlert();
+        show("login");
+    });
+
+    const updModal = document.getElementById("modal-biz-update");
+    const closeUpdModal = () => updModal && updModal.classList.remove("active");
+    document.getElementById("btn-request-update").addEventListener("click", () => {
+        if (updModal) updModal.classList.add("active");
+    });
+    document.getElementById("btn-close-update").addEventListener("click", closeUpdModal);
+    document.getElementById("btn-cancel-update").addEventListener("click", closeUpdModal);
+    document.getElementById("biz-update-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const details = document.getElementById("upd-details").value.trim();
+        const field = document.getElementById("upd-field").value;
+        if (details.length < 10) { showAlert("Please enter at least 10 characters describing your update.", "warning"); return; }
+        const btn = document.getElementById("btn-submit-update");
+        btn.disabled = true;
+        btn.textContent = "Submitting...";
+        try {
+            const bizName = (currentData && currentData.business && currentData.business.name) || "Business Account";
+            const { data: { session } } = await client.auth.getSession();
+        if (window.location.hash && (arrivedToSetPassword || linkError)) {
+            history.replaceState(null, "", window.location.pathname);
+        }
+            const userEmail = (session && session.user && session.user.email) || "";
+            const pageUrl = (currentData && currentData.business && currentData.business.slug)
+                ? (window.location.origin + "/businesses/" + currentData.business.slug)
+                : window.location.href;
+            let delivered = false;
+            try {
+                const r = await fetch("/api/send_bug_report.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        report_type: "listing_correction",
+                        name: bizName,
+                        email: userEmail,
+                        page_url: pageUrl,
+                        listing_info: bizName,
+                        message: `[Business Portal Update: ${field}] ${details}`
+                    })
+                });
+                const j = await r.json().catch(() => ({}));
+                if (r.ok && j.success) delivered = true;
+            } catch (_) {}
+            const { error: insErr } = await client.from("bug_reports").insert([{
+                name: bizName,
+                email: userEmail || null,
+                page_url: pageUrl,
+                message: `[Business Portal Update: ${bizName}] [${field}] ${details}`,
+                recipient: "contact@welcomeeg.ca",
+                created_at: new Date().toISOString(),
+                status: "listing_update"
+            }]);
+            if (!insErr) delivered = true;
+            if (!delivered) throw new Error("Could not submit your update request.");
+            document.getElementById("upd-details").value = "";
+            closeUpdModal();
+            showAlert("Update request submitted! An admin will review and approve your changes before they go live.", "success");
+        } catch (err) {
+            showAlert(err.message || "Could not submit update request.", "danger");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Submit for Admin Approval";
+        }
+    });
+
+    window.addEventListener("DOMContentLoaded", async () => {
+        if (!window.GeorginaStore || !window.GeorginaStore.isSupabaseConfigured()) {
+            showAlert("The service is not available right now. Please try again later.", "warning");
+            return;
+        }
+        client = window.GeorginaStore.getClient();
+        setRange(30);
+        setViewMode("numbers");
+        const { data: { session } } = await client.auth.getSession();
+        if (window.location.hash && (arrivedToSetPassword || linkError)) {
+            history.replaceState(null, "", window.location.pathname);
+        }
+        if (linkError) {
+            history.replaceState(null, "", window.location.pathname);
+            show("login");
+            showAlert("That link has expired or was already used. Ask Welcome East Gwillimbury to send a new invite: contact@welcomeeg.ca", "warning");
+        } else if (session && session.user && arrivedToSetPassword) {
+            show("setpw");
+        } else if (session && session.user) {
+            await loadReport();
+        } else {
+            show("login");
+        }
+    });
+</script>
+</body>
+</html>
