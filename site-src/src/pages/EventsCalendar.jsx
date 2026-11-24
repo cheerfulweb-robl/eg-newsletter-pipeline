@@ -1887,7 +1887,7 @@ export default function EventsCalendar() {
                         return (
                           <div key={it.id} className="p-3 rounded-xl bg-gray-50 border border-gray-200/80 text-left space-y-1.5 min-w-0 max-w-full overflow-hidden">
                             <div className="flex items-center gap-1 flex-wrap">
-                              <span className={`py-0.5 px-2.5 inline-flex items-center justify-center text-center leading-none text-[10.5px] font-medium uppercase whitespace-nowrap rounded ${getCategoryBadgeStyle(it.category || it.badge, it.type)}`}>
+                              <span className={`py-0.5 px-2.5 inline-flex items-center justify-center text-left leading-tight text-[10.5px] font-medium uppercase max-w-full whitespace-normal break-words rounded ${getCategoryBadgeStyle(it.category || it.badge, it.type)}`}>
                                 {it.badge || 'Event'}
                               </span>
                               {(it.isOutOfArea || isOutOfAreaLocation(it.location)) && (
