@@ -26,7 +26,7 @@ const QUICK_ACTIONS = [
 const INITIAL_MESSAGE = {
   id: 'welcome',
   role: 'assistant',
-  text: 'Hi! I am Ask WG. Ask me about upcoming East Gwillimbury events, dining, local deals, businesses, or the Welcome Hamper — no account needed.',
+  text: 'Hi! I am Ask WEG. Ask me about upcoming East Gwillimbury events, dining, local deals, businesses, or the Welcome Hamper — no account needed.',
   results: [],
   followUps: QUICK_ACTIONS,
   suggestLeadType: null,
@@ -316,7 +316,7 @@ export default function AskWgWidget() {
         {
           id: `e-${Date.now()}`,
           role: 'assistant',
-          text: 'Ask WG is temporarily unavailable. You can browse live listings on /events, /dining, /sales, or /directory, or send us an inquiry below.',
+          text: 'Ask WEG is temporarily unavailable. You can browse live listings on /events, /dining, /sales, or /directory, or send us an inquiry below.',
           results: [],
           followUps: ['Weekend events', 'Local deals'],
           suggestLeadType: 'general',
@@ -378,11 +378,11 @@ export default function AskWgWidget() {
           ref={launcherRef}
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open Ask WG local discovery assistant"
+          aria-label="Open Ask WEG local discovery assistant"
           className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#00008b] hover:bg-blue-900 text-white font-black text-sm shadow-lg border border-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00008b] transition-transform motion-reduce:transition-none hover:scale-[1.02]"
         >
           <MessageSquare className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <span>Ask WG</span>
+          <span>Ask WEG</span>
         </button>
       )}
 
@@ -391,7 +391,7 @@ export default function AskWgWidget() {
         <section
           role="dialog"
           aria-modal="true"
-          aria-label="Ask WG Local Discovery Assistant"
+          aria-label="Ask WEG Local Discovery Assistant"
           className="fixed bottom-20 right-3 left-3 sm:left-auto sm:right-5 lg:bottom-6 lg:right-6 sm:w-[410px] max-h-[78vh] z-50 flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
         >
           {/* Header */}
@@ -399,7 +399,7 @@ export default function AskWgWidget() {
             <div className="flex items-center gap-2 min-w-0">
               <MessageSquare className="w-4 h-4 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
-                <h2 className="text-sm font-black leading-tight">Ask WG</h2>
+                <h2 className="text-sm font-black leading-tight">Ask WEG</h2>
                 <p className="text-[11px] text-blue-100 truncate">East Gwillimbury Events, Dining &amp; Local Deals</p>
               </div>
             </div>
@@ -419,7 +419,7 @@ export default function AskWgWidget() {
                   setOpen(false);
                   launcherRef.current?.focus();
                 }}
-                aria-label="Close Ask WG"
+                aria-label="Close Ask WEG"
                 className="p-1.5 rounded-lg hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white"
               >
                 <X className="w-4 h-4" aria-hidden="true" />
@@ -714,7 +714,7 @@ export default function AskWgWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about East Gwillimbury events, dining, deals..."
-                aria-label="Ask WG a question"
+                aria-label="Ask WEG a question"
                 className="flex-1 px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#00008b]"
               />
               <button

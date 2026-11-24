@@ -890,11 +890,16 @@ export function formatEventScheduleDisplay(item) {
   const label = String(item.event_date_label || '').trim();
   const isGeneric = !label || /^(recurring times and dates|see details(?: below)?|upcoming|ongoing|tba|tbd)$/i.test(label);
   const labelHasDate = /\b(?:\d{1,2}[-/]\w+|\w+\s+\d{1,2},?\s*\d{4}|\d{4}-\d{2}-\d{2})\b/i.test(label);
+  const isRecurring = item.date_type === 'recurring' || /\b(?:every|weekly|monthly|1st|2nd|3rd|4th|last)\b/i.test(label);
+
+  if (isRecurring) {
+    if (isGeneric && rawRule && !rawRule.startsWith('{') && !rawRule.startsWith('[')) {
+      return rawRule;
+    }
+    return label || rawRule || '';
+  }
 
   if (isGeneric) {
-    if (item.date_type === 'recurring' && rawRule && !rawRule.startsWith('{') && !rawRule.startsWith('[')) {
-      return rangeStr ? `${rawRule} (${rangeStr})` : rawRule;
-    }
     return rangeStr || label || '';
   }
 
@@ -1618,15 +1623,16 @@ export function formatPhoneNumber(val) {
 }
 
 const GEORGINA_LOCALITY_KEYWORDS = [
-  'georgina', 'holland landing', 'mount albert', 'mount albert', "sharon", 'sharon',
-  'queensville', 'river drive park', 'brown hill', 'virginia', 'baldwin', 'franklin',
-  'sibbald point', "roche's point", 'holt', 'brown hill', 'ravenshoe', 'ravenshoe'
+  'east gwillimbury', 'holland landing', 'mount albert', 'queensville', 'sharon',
+  'river drive park', 'river drive', 'holt', 'franklin', 'brown hill', 'ravenshoe'
 ];
 
 const OUT_OF_AREA_KEYWORDS = [
+  'georgina', 'keswick', 'sutton', 'pefferlaw', "jackson's point", 'jacksons point',
+  'virginia', 'baldwin', 'udora', 'belhaven', 'egypt', 'sibbald point', "roche's point",
+  'willow beach', 'island grove', 'port bolster',
   'newmarket', 'aurora', 'stouffville', 'whitchurch', 'markham', 'richmond hill',
   'vaughan', 'woodbridge', 'thornhill', 'king city', 'schomberg', 'nobleton',
-  'east gwillimbury', 'mount albert', 'sharon', 'queensville', 'holland landing',
   'bradford', 'uxbridge', 'barrie', 'innisfil', 'beaverton', 'cannington', 'york region'
 ];
 

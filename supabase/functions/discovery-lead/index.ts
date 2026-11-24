@@ -177,9 +177,9 @@ serve(async (req: Request) => {
           formType: "newsletter_dispatch",
           record: {
             email: ADMIN_NOTIFY_EMAIL,
-            subject: `[Ask WG Inquiry • ${leadType}] ${name}`,
+            subject: `[Ask WEG Inquiry • ${leadType}] ${name}`,
             html_body: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e2e8f0;border-radius:12px;">
-              <h2 style="margin:0 0 12px 0;color:#00008b;">New Ask WG Inquiry (${escapeHtml(leadType)})</h2>
+              <h2 style="margin:0 0 12px 0;color:#00008b;">New Ask WEG Inquiry (${escapeHtml(leadType)})</h2>
               <p><strong>Name:</strong> ${escapeHtml(name)}</p>
               <p><strong>Email:</strong> ${escapeHtml(email)}</p>
               ${phone ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : ""}

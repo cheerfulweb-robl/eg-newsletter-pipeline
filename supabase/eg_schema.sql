@@ -4687,7 +4687,7 @@ CREATE TABLE public.directory_listings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     category text DEFAULT 'Local Business'::text NOT NULL,
-    community text DEFAULT 'Keswick'::text NOT NULL,
+    community text DEFAULT 'East Gwillimbury'::text NOT NULL,
     location text NOT NULL,
     link text DEFAULT ''::text,
     phone text DEFAULT ''::text,

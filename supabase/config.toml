@@ -1,4 +1,13 @@
-project_id = "dtyyptbqbwvwxvtexenr"
+project_id = "cyxomkhydsmttefanalx"
 
 [functions.send-email]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.discovery-chat]
+verify_jwt = false
+
+[functions.discovery-lead]
 verify_jwt = false

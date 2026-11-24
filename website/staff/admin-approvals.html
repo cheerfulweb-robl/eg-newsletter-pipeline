@@ -1670,7 +1670,10 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
                         </div>
                         <div class="form-group">
                             <label for="edit-ev-expires">Expires Date</label>
-                            <input type="date" id="edit-ev-expires" class="form-control">
+                            <div style="display:flex; gap:6px; align-items:center;">
+                                <input type="date" id="edit-ev-expires" class="form-control" style="flex:1;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('edit-ev-expires').value='';" style="padding:6px 10px; font-size:11px; white-space:nowrap;">Clear</button>
+                            </div>
                         </div>
                     </div>
                     <div class="grid-2">
@@ -1762,6 +1765,7 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
                         <textarea id="edit-ev-admin-notes" class="form-control" rows="2" placeholder="Internal admin notes for this event/listing..."></textarea>
                         <small id="ev-admin-notes-hint" style="display: block; margin-top: 4px; color: #854d0e; font-size: 11px;">Stored in a separate admin-only table protected by row-level security.</small>
                     </div>
+                    <div id="edit-ev-modal-error" style="display:none; margin-top:14px; padding:10px 14px; border-radius:8px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; font-size:13px; font-weight:700;"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px;">
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <button type="submit" class="btn btn-primary">&#128190; Save Changes</button>
@@ -4543,7 +4547,8 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
                         category: isSale ? "special_sale" : "Community",
                         event_date_label: dateStr || "Ongoing / Drop-In",
                         event_start_date: startDateIso,
-                        expires_after: expIso,
+                        expires_after: startDateIso,
+                        date_type: "one_time",
                         location: it.location || "East Gwillimbury, ON",
                         link: it.link || "https://welcomeeg.ca/events",
                         summary: (it.summary || it.title || "").slice(0, 500),
@@ -4806,7 +4811,12 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
                     <label style="font-size:12px; font-weight:700;">Start Time<input type="text" class="form-control" data-sf="startTime" placeholder="6:00 PM" value="${escapeHtml(s.startTime)}"></label>
                     <label style="font-size:12px; font-weight:700;">End Time<input type="text" class="form-control" data-sf="endTime" placeholder="8:00 PM" value="${escapeHtml(s.endTime)}"></label>
                     <label style="font-size:12px; font-weight:700;">Starts On<input type="date" class="form-control" data-sf="recStart" value="${escapeHtml(s.recStart)}"></label>
-                    <label style="font-size:12px; font-weight:700;">Ends On (opt)<input type="date" class="form-control" data-sf="recEnd" value="${escapeHtml(s.recEnd)}"></label>
+                    <label style="font-size:12px; font-weight:700;">Ends On (opt)
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <input type="date" class="form-control" data-sf="recEnd" value="${escapeHtml(s.recEnd)}" style="flex:1;">
+                            <button type="button" data-clearsf="recEnd" style="padding:6px 8px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; color:#334155; font-size:11px; font-weight:700; cursor:pointer;">Clear</button>
+                        </div>
+                    </label>
                 </div>`;
             }
 
@@ -4844,6 +4854,9 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
             }));
             el.querySelectorAll("[data-sf]").forEach(inp => inp.addEventListener("change", () => {
                 s[inp.dataset.sf] = inp.value; cfg.touched = true; wgDrawScheduleEditor(cid); wgSyncScheduleFields(cid);
+            }));
+            el.querySelectorAll("[data-clearsf]").forEach(b => b.addEventListener("click", () => {
+                s[b.dataset.clearsf] = ""; cfg.touched = true; wgDrawScheduleEditor(cid); wgSyncScheduleFields(cid);
             }));
             el.querySelectorAll("[data-mi]").forEach(inp => inp.addEventListener("change", () => {
                 s.multiDates[Number(inp.dataset.mi)][inp.dataset.mf] = inp.value;
@@ -5022,6 +5035,8 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
                 notesGroup.style.display = isAdmin ? "block" : "none";
             }
 
+            const modalErrEl = document.getElementById("edit-ev-modal-error");
+            if (modalErrEl) { modalErrEl.style.display = "none"; modalErrEl.textContent = ""; }
             document.getElementById("modal-edit-event").classList.add("active");
         };
 
@@ -5054,89 +5069,125 @@ div:has(> #events-bulk-actions), div:has(> #sales-bulk-actions) { margin-left: a
         };
 
         window.saveEventEdit = async function (statusOverride) {
-            const id = document.getElementById("edit-ev-id").value;
-            const status = statusOverride || document.getElementById("edit-ev-status").value;
-            const rawImgVal = (document.getElementById("edit-ev-image-url")?.value || "").trim();
-            const cleanImgVal = (status === "approved" && rawImgVal) ? rawImgVal.replace(/^pending:/, "") : (rawImgVal || null);
-
-            const schedEv = wgReadScheduleEditor("edit-ev-schedule-box");
-            if (schedEv && schedEv.error) { showAlert(schedEv.error, "warning"); return; }
-            const updates = {
-                business_name: document.getElementById("edit-ev-business").value.trim(),
-                submitter_email: document.getElementById("edit-ev-email").value.trim().toLowerCase(),
-                contact_name: (document.getElementById("edit-ev-contact-name")?.value || "").trim() || null,
-                contact_phone: (document.getElementById("edit-ev-contact-phone")?.value || "").trim() || null,
-                price_text: (document.getElementById("edit-ev-price-text")?.value || "").trim() || null,
-                sale_category: (document.getElementById("edit-ev-sale-category")?.value || "").trim() || null,
-                service_options: Array.from(document.querySelectorAll(".edit-ev-service-opt:checked")).map(cb => cb.value),
-                title: wgCleanTitle(document.getElementById("edit-ev-title").value),
-                event_date_label: document.getElementById("edit-ev-date-label").value.trim(),
-                event_start_date: document.getElementById("edit-ev-start-date").value || null,
-                expires_after: document.getElementById("edit-ev-expires").value || null,
-                location: wgNormalizeAddress(document.getElementById("edit-ev-location").value, document.getElementById("edit-ev-community").value),
-                community: document.getElementById("edit-ev-community").value,
-                category: document.getElementById("edit-ev-category").value,
-                link: wgLinkOrStop("edit-ev-link", "https://welcomeeg.ca/events"),
-                summary: document.getElementById("edit-ev-summary").value.trim(),
-                is_featured: document.getElementById("edit-ev-featured") ? document.getElementById("edit-ev-featured").checked : false,
-                image_url: cleanImgVal,
-                status: status,
-                ...(schedEv && !schedEv.unchanged ? { date_type: schedEv.date_type, recurrence_rule: schedEv.recurrence_rule } : {})
-            };
-
-            const client = window.GeorginaStore.getClient();
-            if (client) {
-                // If setting this event as featured spotlight, clear previous featured flags so this selection takes exclusive precedent
-                if (updates.is_featured) {
-                    try {
-                        await wgWrite(client.from("vendor_events").update({ is_featured: false }).neq("id", id).select("id"), "save the change");
-                    } catch (_) {}
+            const modalErrEl = document.getElementById("edit-ev-modal-error");
+            const showModalErr = (msg) => {
+                if (modalErrEl) {
+                    modalErrEl.textContent = msg;
+                    modalErrEl.style.display = "block";
+                    modalErrEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
                 }
-                const { error } = await client.from("vendor_events").update(updates).eq("id", id);
-                if (error) {
-                    showAlert("Failed to save: " + error.message, "warning");
+                showAlert(msg, "warning");
+            };
+            if (modalErrEl) { modalErrEl.style.display = "none"; modalErrEl.textContent = ""; }
+
+            const approveBtn = document.getElementById("btn-save-approve-event");
+            const origApproveHtml = approveBtn ? approveBtn.innerHTML : "";
+            if (approveBtn) { approveBtn.disabled = true; approveBtn.textContent = "Saving..."; }
+
+            try {
+                const id = document.getElementById("edit-ev-id").value;
+                const status = statusOverride || document.getElementById("edit-ev-status").value;
+                const rawImgVal = (document.getElementById("edit-ev-image-url")?.value || "").trim();
+                const cleanImgVal = (status === "approved" && rawImgVal) ? rawImgVal.replace(/^pending:/, "") : (rawImgVal || null);
+
+                const schedEv = wgReadScheduleEditor("edit-ev-schedule-box");
+                if (schedEv && schedEv.error) { showModalErr(schedEv.error); return; }
+
+                const cleanedTitle = wgCleanTitle(document.getElementById("edit-ev-title").value);
+                if (!cleanedTitle) { showModalErr("Event Title is required."); return; }
+
+                let safeLink = "https://welcomeeg.ca/events";
+                try {
+                    safeLink = wgLinkOrStop("edit-ev-link", "https://welcomeeg.ca/events");
+                } catch (linkErr) {
+                    showModalErr("Please check the website link, for example https://yourbusiness.ca");
                     return;
                 }
 
-                // Save Private Admin Notes (Admins Only)
-                const notesGroup = document.getElementById("ev-admin-notes-group");
-                const notesEl = document.getElementById("edit-ev-admin-notes");
-                if (notesGroup && notesGroup.style.display !== "none" && wgEvAdminTableReady && notesEl) {
-                    const nextNote = notesEl.value.trim();
-                    const { data: { session } } = await client.auth.getSession();
-                    if (nextNote) {
-                        const { error: nErr } = await client.from("vendor_event_admin_notes").upsert({
-                            event_id: id,
-                            notes: nextNote,
-                            updated_at: new Date().toISOString(),
-                            updated_by: session && session.user ? session.user.id : null
-                        }, { onConflict: "event_id" });
-                        if (nErr) { showAlert("Event saved, but failed to save private admin note: " + nErr.message, "warning"); return; }
-                    } else if (wgEvAdminNotesExisting) {
-                        const { error: dErr } = await client.from("vendor_event_admin_notes").delete().eq("event_id", id);
-                        if (dErr) { showAlert("Event saved, but failed to clear private admin note: " + dErr.message, "warning"); return; }
-                    }
-                }
+                const updates = {
+                    business_name: document.getElementById("edit-ev-business").value.trim() || "East Gwillimbury Community",
+                    submitter_email: document.getElementById("edit-ev-email").value.trim().toLowerCase() || "crawler@welcomeeg.ca",
+                    contact_name: (document.getElementById("edit-ev-contact-name")?.value || "").trim() || null,
+                    contact_phone: (document.getElementById("edit-ev-contact-phone")?.value || "").trim() || null,
+                    price_text: (document.getElementById("edit-ev-price-text")?.value || "").trim() || null,
+                    sale_category: (document.getElementById("edit-ev-sale-category")?.value || "").trim() || null,
+                    service_options: Array.from(document.querySelectorAll(".edit-ev-service-opt:checked")).map(cb => cb.value),
+                    title: cleanedTitle,
+                    event_date_label: document.getElementById("edit-ev-date-label").value.trim() || "See event details",
+                    event_start_date: document.getElementById("edit-ev-start-date").value || null,
+                    expires_after: document.getElementById("edit-ev-expires").value || null,
+                    location: wgNormalizeAddress(document.getElementById("edit-ev-location").value, document.getElementById("edit-ev-community").value) || "East Gwillimbury, ON",
+                    community: document.getElementById("edit-ev-community").value,
+                    category: document.getElementById("edit-ev-category").value,
+                    link: safeLink,
+                    summary: document.getElementById("edit-ev-summary").value.trim() || cleanedTitle,
+                    is_featured: document.getElementById("edit-ev-featured") ? document.getElementById("edit-ev-featured").checked : false,
+                    image_url: cleanImgVal,
+                    status: status,
+                    ...(schedEv && !schedEv.unchanged ? { date_type: schedEv.date_type, recurrence_rule: schedEv.recurrence_rule } : {})
+                };
 
-                // If approved via modal ("Save & Approve Now" or status changed to approved), dispatch notification
-                if (status === "approved") {
-                    const origItem = cachedEvents.find(e => String(e.id) === String(id)) || {};
-                    await window.dispatchApprovalNotice({ ...origItem, ...updates, id: id }, cleanImgVal);
-                }
-            } else {
-                const list = window.GeorginaStore.getLocalList("gd_events", window.GeorginaStore.SEED_EVENTS);
-                list.forEach(i => {
-                    if (String(i.id) === String(id)) {
-                        Object.assign(i, updates);
-                    } else if (updates.is_featured) {
-                        i.is_featured = false;
+                const client = window.GeorginaStore.getClient();
+                if (client) {
+                    if (updates.is_featured) {
+                        try {
+                            await wgWrite(client.from("vendor_events").update({ is_featured: false }).neq("id", id).select("id"), "save the change");
+                        } catch (_) {}
                     }
-                });
-                window.GeorginaStore.setLocalList("gd_events", list);
+                    const { error } = await client.from("vendor_events").update(updates).eq("id", id);
+                    if (error) {
+                        showModalErr("Failed to save: " + error.message);
+                        return;
+                    }
+
+                    // Save Private Admin Notes (Admins Only)
+                    const notesGroup = document.getElementById("ev-admin-notes-group");
+                    const notesEl = document.getElementById("edit-ev-admin-notes");
+                    if (notesGroup && notesGroup.style.display !== "none" && wgEvAdminTableReady && notesEl) {
+                        const nextNote = notesEl.value.trim();
+                        const { data: { session } } = await client.auth.getSession();
+                        if (nextNote) {
+                            const { error: nErr } = await client.from("vendor_event_admin_notes").upsert({
+                                event_id: id,
+                                notes: nextNote,
+                                updated_at: new Date().toISOString(),
+                                updated_by: session && session.user ? session.user.id : null
+                            }, { onConflict: "event_id" });
+                            if (nErr) { showModalErr("Event saved, but failed to save private admin note: " + nErr.message); return; }
+                        } else if (wgEvAdminNotesExisting) {
+                            const { error: dErr } = await client.from("vendor_event_admin_notes").delete().eq("event_id", id);
+                            if (dErr) { showModalErr("Event saved, but failed to clear private admin note: " + dErr.message); return; }
+                        }
+                    }
+
+                    // If approved via modal ("Save & Approve Now" or status changed to approved), dispatch notification
+                    if (status === "approved") {
+                        try {
+                            const origItem = cachedEvents.find(e => String(e.id) === String(id)) || {};
+                            await window.dispatchApprovalNotice({ ...origItem, ...updates, id: id }, cleanImgVal);
+                        } catch (noticeErr) {
+                            console.warn("Approval notice notice:", noticeErr);
+                        }
+                    }
+                } else {
+                    const list = window.GeorginaStore.getLocalList("gd_events", window.GeorginaStore.SEED_EVENTS);
+                    list.forEach(i => {
+                        if (String(i.id) === String(id)) {
+                            Object.assign(i, updates);
+                        } else if (updates.is_featured) {
+                            i.is_featured = false;
+                        }
+                    });
+                    window.GeorginaStore.setLocalList("gd_events", list);
+                }
+                closeEditEventModal();
+                await loadAdminData();
+                showAlert(`Saved event '${updates.title}' (${status.toUpperCase()}).`, "success");
+            } catch (err) {
+                showModalErr("Failed to save: " + (err && err.message ? err.message : String(err)));
+            } finally {
+                if (approveBtn) { approveBtn.disabled = false; approveBtn.innerHTML = origApproveHtml; }
             }
-            closeEditEventModal();
-            await loadAdminData();
-            showAlert(`Saved event '${updates.title}' (${status.toUpperCase()}).`, "success");
         };
 
         

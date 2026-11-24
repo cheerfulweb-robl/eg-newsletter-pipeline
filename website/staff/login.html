@@ -248,11 +248,15 @@ p, li, td, a, span, h1, h2, h3, h4 { overflow-wrap: break-word; }
 
         async function verifyStaffAuthorization(client, user) {
             if (!user) return false;
-            if (isStaffEmail(user.email)) return true;
             try {
-                const { data: prof } = await client.from("user_profiles").select("role").eq("id", user.id).maybeSingle();
-                const r = String(prof?.role || "").toLowerCase();
-                return ["admin", "super_admin", "staff", "editorial", "sales_rep"].includes(r);
+                const { data: prof, error } = await client
+                    .from("user_profiles")
+                    .select("role, active")
+                    .eq("id", user.id)
+                    .maybeSingle();
+                if (error || !prof || prof.active !== true) return false;
+                const r = String(prof.role || "").toLowerCase().trim();
+                return ["admin", "super_admin", "staff", "editorial", "sales_rep", "viewer"].includes(r);
             } catch (_) {
                 return false;
             }

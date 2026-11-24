@@ -10,7 +10,7 @@ export const STAFF_MENU = [
     { href: '/staff/admin-approvals.html?view=import', label: 'Import from URL', tier: 'editorial' },
     { href: '/staff/unverified.html', label: 'Unverified Submissions', tier: 'editorial' },
     { href: '/staff/corrections.html', label: 'Statements of Correction', tier: 'editorial' },
-    { href: '/staff/ask-wg.html', label: 'Ask WG Chats &amp; Leads', tier: 'admin' },
+    { href: '/staff/ask-wg.html', label: 'Ask WEG Chats &amp; Leads', tier: 'admin' },
     { href: '/submit-event', label: 'Submit / Add Event', tier: 'editorial' },
   ] },
   { title: 'Advertising Management', items: [

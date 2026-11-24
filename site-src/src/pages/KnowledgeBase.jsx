@@ -146,7 +146,7 @@ export default function KnowledgeBase() {
             Welcome East Gwillimbury Help Center
           </h1>
           <p className="text-blue-100 text-sm md:text-base max-w-2xl leading-relaxed font-medium">
-            Explore Ask WG (our local discovery assistant), everything Welcome East Gwillimbury offers, event submission rules, twice-weekly newsletter standards, and our support desk.
+            Explore Ask WEG (our local discovery assistant), everything Welcome East Gwillimbury offers, event submission rules, twice-weekly newsletter standards, and our support desk.
           </p>
         </div>
 
@@ -169,7 +169,7 @@ export default function KnowledgeBase() {
       {/* Navigation Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
         {[
-          { id: 'ask-wg', label: 'Ask WG & Site Features' },
+          { id: 'ask-wg', label: 'Ask WEG & Site Features' },
           { id: 'events-guide', label: 'Events, Directory & Submissions' },
           { id: 'newsletter-faq', label: 'Twice-Weekly Newsletter FAQ' },
           { id: 'support', label: 'Contact Support Desk' },
@@ -201,10 +201,10 @@ export default function KnowledgeBase() {
                   New Site-Wide Assistant
                 </span>
                 <h2 className="text-2xl font-black text-gray-900 mt-2">
-                  Ask WG — Local Discovery Chatbot
+                  Ask WEG — Local Discovery Chatbot
                 </h2>
                 <p className="text-sm text-gray-600 mt-1 max-w-3xl leading-relaxed">
-                  Click the floating <strong>Ask WG</strong> button in the bottom-right corner of any page to search events, dining specials, local deals, businesses, and Welcome Hamper perks conversationally.
+                  Click the floating <strong>Ask WEG</strong> button in the bottom-right corner of any page to search events, dining specials, local deals, businesses, and Welcome Hamper perks conversationally.
                 </p>
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function KnowledgeBase() {
             <div className="mt-5 p-4 rounded-2xl bg-blue-50/70 border border-blue-200 flex items-start gap-3 text-xs text-slate-700">
               <ShieldCheck className="w-4 h-4 text-[#00008b] shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                <strong>Privacy &amp; Safety:</strong> Ask WG does not require an account, does not store full anonymous chat transcripts, and separates news publication dates from event dates so you always get clear, source-linked answers.
+                <strong>Privacy &amp; Safety:</strong> Ask WEG does not require an account, does not store full anonymous chat transcripts, and separates news publication dates from event dates so you always get clear, source-linked answers.
               </p>
             </div>
           </div>
@@ -306,7 +306,7 @@ export default function KnowledgeBase() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#00008b] font-black">&#10003;</span>
-                    <span>Approved listings appear immediately on the calendar, in Ask WG search, and in upcoming newsletter editions.</span>
+                    <span>Approved listings appear immediately on the calendar, in Ask WEG search, and in upcoming newsletter editions.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#00008b] font-black">&#10003;</span>
@@ -484,7 +484,7 @@ export default function KnowledgeBase() {
                       className="w-full p-3 rounded-xl border border-gray-300 text-sm focus:border-blue-500 focus:outline-none bg-white"
                     >
                       <option value="Event Submission Inquiry">Community Event Submission / Status</option>
-                      <option value="Ask WG Question">Ask WG Chatbot Feedback</option>
+                      <option value="Ask WEG Question">Ask WEG Chatbot Feedback</option>
                       <option value="Newsletter Question">Twice-Weekly Newsletter / Subscription</option>
                       <option value="Advertising Question">Advertising &amp; Sponsorships</option>
                       <option value="Bug Report">Technical Bug or Error Report</option>

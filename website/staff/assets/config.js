@@ -820,6 +820,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             var user = sessionRes && sessionRes.data && sessionRes.data.session ? sessionRes.data.session.user : null;
             if (!user || !user.id) return toLogin();
             var profRes = await client.from("user_profiles").select("role, active").eq("id", user.id).maybeSingle();
+            if (profRes && profRes.error) return toLogin();
             var prof = profRes ? profRes.data : null;
             var staffRoles = ["admin", "super_admin", "staff", "editorial", "sales_rep", "viewer"];
             var role = prof && prof.role ? String(prof.role).toLowerCase().trim() : "";

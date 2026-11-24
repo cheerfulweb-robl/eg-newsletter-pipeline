@@ -19,11 +19,7 @@ from urllib.parse import urlparse
 import requests
 
 DEFAULT_SUPABASE_URL = "https://cyxomkhydsmttefanalx.supabase.co"
-DEFAULT_SUPABASE_ANON_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0eXlwdGJxYnd2d3h2dGV4ZW5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NDMwOTcsImV4cCI6MjEwNzAxOTA5N30."
-    "G3KS7eEv6JDU_yJdRb-t_r4STHqaYNGx1clVugdi-ts"
-)
+DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_o21_dFCXCHW2fvVJNS45Tw_sFVcprqw"
 
 
 def _get_supabase_config() -> Dict[str, Any]:
@@ -705,6 +701,9 @@ def fetch_edition_listings(window_start: str) -> List[Dict[str, Any]]:
             break
         if resp.status_code not in (200, 206):
             print(f"Warning: could not load listings for the edition (HTTP {resp.status_code}): {resp.text[:200]}")
+            break
+        if not (resp.text or "").strip():
+            print(f"Warning: empty response from {endpoint} (HTTP {resp.status_code}) — check SUPABASE_URL secret.")
             break
         batch = resp.json() or []
         rows.extend(r for r in batch if isinstance(r, dict))

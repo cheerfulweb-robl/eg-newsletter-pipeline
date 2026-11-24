@@ -224,6 +224,101 @@ def get_municipal_announcements(limit: int = 8) -> List[Dict[str, str]]:
     return items
 
 
+def _fetch_eg_calendar_detail(detail_url: str) -> Dict[str, str]:
+    """Fetches an eSolutions /default/Detail/ page to extract location name/room, street address, and summary."""
+    out: Dict[str, str] = {"location": "", "summary": ""}
+    try:
+        resp = requests.get(detail_url, headers=DEFAULT_HEADERS, timeout=10)
+        if resp.status_code != 200 or not resp.text:
+            return out
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # 1. Try JSON-LD Event metadata if present
+        loc_parts: List[str] = []
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                data = json.loads(script.string or "{}")
+            except Exception:
+                continue
+            objs = data if isinstance(data, list) else [data]
+            for obj in objs:
+                if not isinstance(obj, dict) or obj.get("@type") != "Event":
+                    continue
+                loc_obj = obj.get("location") or {}
+                if isinstance(loc_obj, dict):
+                    lname = " ".join(str(loc_obj.get("name") or "").split())
+                    addr_obj = loc_obj.get("address") or {}
+                    if isinstance(addr_obj, dict):
+                        street = " ".join(str(addr_obj.get("streetAddress") or "").split())
+                        city = " ".join(str(addr_obj.get("addressLocality") or "").split())
+                        prov = " ".join(str(addr_obj.get("addressRegion") or "").split())
+                        addr_str = ", ".join(p for p in (street, city, prov) if p)
+                    else:
+                        addr_str = " ".join(str(addr_obj or "").split())
+                    if lname:
+                        loc_parts.append(lname)
+                    if addr_str and addr_str.lower() not in (lname.lower() if lname else ""):
+                        loc_parts.append(addr_str)
+                desc = html.unescape(BeautifulSoup(str(obj.get("description") or ""), "html.parser").get_text(" ", strip=True))
+                if desc and not out["summary"]:
+                    out["summary"] = _truncate(desc)
+
+        # 2. Fallback: parse eSolutions Detail labels (Location Name / Location / Room / Address)
+        if not loc_parts:
+            fields: Dict[str, str] = {}
+            for row in soup.select("tr"):
+                cells = row.find_all(["th", "td"])
+                if len(cells) >= 2:
+                    k = " ".join(cells[0].get_text(" ", strip=True).split()).rstrip(":").lower()
+                    v = " ".join(cells[1].get_text(" ", strip=True).split())
+                    if k and v:
+                        fields[k] = v
+            for dt in soup.select("dt"):
+                dd = dt.find_next_sibling("dd")
+                if dd:
+                    k = " ".join(dt.get_text(" ", strip=True).split()).rstrip(":").lower()
+                    v = " ".join(dd.get_text(" ", strip=True).split())
+                    if k and v:
+                        fields[k] = v
+            if not fields:
+                text_lines = [" ".join(ln.split()) for ln in soup.get_text("\n").splitlines() if ln.strip()]
+                for idx, ln in enumerate(text_lines):
+                    m = re.match(r"^(Location Name|Location|Facility|Venue|Room|Address)\s*:\s*(.*)$", ln, re.I)
+                    if m:
+                        k = m.group(1).lower()
+                        v = m.group(2).strip()
+                        if not v and idx + 1 < len(text_lines):
+                            v = text_lines[idx + 1]
+                        if v and k not in fields:
+                            fields[k] = v
+
+            loc_name = fields.get("location name") or fields.get("location") or fields.get("facility") or fields.get("venue") or ""
+            room = fields.get("room") or ""
+            addr = fields.get("address") or ""
+            if loc_name and room and room.lower() not in loc_name.lower():
+                loc_name = f"{loc_name} ({room})"
+            if loc_name:
+                loc_parts.append(loc_name)
+            if addr and addr.lower() not in loc_name.lower():
+                loc_parts.append(addr)
+
+        if loc_parts:
+            out["location"] = " • ".join(loc_parts)
+
+        # 3. Extract description paragraph if not found in JSON-LD
+        if not out["summary"]:
+            for sel in (".calendar-description", ".event-description", ".detail-description", "article p", "main p"):
+                el = soup.select_one(sel)
+                if el:
+                    txt = " ".join(el.get_text(" ", strip=True).split())
+                    if len(txt) >= 20 and not any(bp in txt.lower() for bp in BOILERPLATE_PHRASES):
+                        out["summary"] = _truncate(txt)
+                        break
+    except Exception:
+        pass
+    return out
+
+
 def get_east_gwillimbury_events(limit: int = 24) -> List[Dict[str, str]]:
     """Scrapes upcoming community & library events from calendar.eastgwillimbury.ca."""
     items: List[Dict[str, str]] = []
@@ -257,13 +352,16 @@ def get_east_gwillimbury_events(limit: int = 24) -> List[Dict[str, str]]:
             except Exception:
                 date_label = ev_date
 
+            detail = _fetch_eg_calendar_detail(full_url)
+            resolved_loc = detail["location"] or _detect_eg_community(title_clean)
+            resolved_summary = detail["summary"] or _truncate(f"{title_clean} in East Gwillimbury.")
             is_library = "library" in title_clean.lower() or "storytime" in title_clean.lower() or "egpl" in title_clean.lower()
             items.append({
                 "title": title_clean,
-                "summary": _truncate(f"{title_clean} in East Gwillimbury."),
+                "summary": resolved_summary,
                 "date": date_label,
                 "event_start_date": ev_date,
-                "location": _detect_eg_community(title_clean),
+                "location": resolved_loc,
                 "link": full_url,
                 "source": "East Gwillimbury Public Library" if is_library else "Town of East Gwillimbury Calendar",
                 "source_url": BASE_EG_CALENDAR_URL + "/",

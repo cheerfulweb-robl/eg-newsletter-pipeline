@@ -25,8 +25,8 @@ export default function CommunityWeather() {
   const { community: paramCommunity } = useParams();
   const navigate = useNavigate();
   
-  const currentSlug = (paramCommunity || 'holland landing').toLowerCase();
-  const communityMeta = GEORGINA_WEATHER_COMMUNITIES[currentSlug] || GEORGINA_WEATHER_COMMUNITIES['holland landing'];
+  const currentSlug = (paramCommunity || 'holland-landing').toLowerCase().replace(/\s+/g, '-');
+  const communityMeta = GEORGINA_WEATHER_COMMUNITIES[currentSlug] || GEORGINA_WEATHER_COMMUNITIES['holland-landing'];
 
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);

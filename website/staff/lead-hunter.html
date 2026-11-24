@@ -403,7 +403,8 @@
 
         function isOutOfArea(addr) {
             const low = String(addr || "").toLowerCase();
-            return OUT_OF_AREA_TOWNS.some(t => low.includes(t)) && !low.includes("georgina") && !low.includes("holland landing") && !low.includes("mount albert") && !low.includes("queensville");
+            const egTerms = ["east gwillimbury", "holland landing", "mount albert", "queensville", "sharon", "river drive park", "holt", "franklin", "brown hill", "ravenshoe"];
+            return OUT_OF_AREA_TOWNS.some(t => low.includes(t)) && !egTerms.some(e => low.includes(e));
         }
 
         function isChain(name) {

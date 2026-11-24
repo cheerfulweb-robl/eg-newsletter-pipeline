@@ -181,7 +181,7 @@ if ($action === 'category') {
         'textQuery' => $query . ' in ' . $area,
         'languageCode' => 'en',
         'regionCode' => 'CA',
-        'locationBias' => ['circle' => ['center' => ['latitude' => 44.296, 'longitude' => -79.436], 'radius' => 16000.0]],
+        'locationBias' => ['circle' => ['center' => ['latitude' => 44.1422, 'longitude' => -79.4497], 'radius' => 16000.0]],
     ];
     if ($pageToken !== '') $body['pageToken'] = $pageToken;
 
@@ -203,7 +203,7 @@ if ($action === 'neighbourhood') {
         'textQuery' => $location . ', East Gwillimbury, Ontario, Canada',
         'languageCode' => 'en',
         'regionCode' => 'CA',
-        'locationBias' => ['circle' => ['center' => ['latitude' => 44.296, 'longitude' => -79.436], 'radius' => 18000.0]],
+        'locationBias' => ['circle' => ['center' => ['latitude' => 44.1422, 'longitude' => -79.4497], 'radius' => 18000.0]],
     ], $placesKey);
     if (!empty($geo['error'])) {
         lh_respond(502, ['success' => false, 'error' => 'Places geocode failed. Please try again.']);
@@ -213,7 +213,7 @@ if ($action === 'neighbourhood') {
             'textQuery' => $location . ', Ontario, Canada',
             'languageCode' => 'en',
             'regionCode' => 'CA',
-            'locationBias' => ['circle' => ['center' => ['latitude' => 44.296, 'longitude' => -79.436], 'radius' => 18000.0]],
+            'locationBias' => ['circle' => ['center' => ['latitude' => 44.1422, 'longitude' => -79.4497], 'radius' => 18000.0]],
         ], $placesKey);
         if (!empty($geo['error'])) {
             lh_respond(502, ['success' => false, 'error' => 'Places geocode failed. Please try again.']);
