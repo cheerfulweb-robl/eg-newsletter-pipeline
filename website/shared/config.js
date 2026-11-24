@@ -839,3 +839,147 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Fail closed: if verification has not finished in 10 seconds, do not show the page.
     setTimeout(toLogin, 10000);
 })();
+
+/* Google Analytics (GA4: G-G4G4E47KGD) for static public pages (/hamper/, /news/, /business/) */
+(function () {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    var path = (window.location.pathname || "").toLowerCase();
+    if (path.indexOf("/staff/") !== -1 || window.gtag) return;
+    var s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-G4G4E47KGD";
+    (document.head || document.documentElement).appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    window.gtag("js", new Date());
+    window.gtag("config", "G-G4G4E47KGD");
+})();
+
+/* Ask WEG lightweight widget for static public pages (/hamper/, /news/, /business/) */
+(function () {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    var path = (window.location.pathname || "").toLowerCase();
+    if (path.indexOf("/staff/") !== -1) return;
+
+    function initAskWegStatic() {
+        if (document.getElementById("ask-weg-static-root") || !document.body) return;
+        var root = document.createElement("div");
+        root.id = "ask-weg-static-root";
+        root.style.cssText = "position:fixed;right:16px;bottom:16px;z-index:9999;font-family:inherit;";
+        root.innerHTML =
+            '<button id="ask-weg-static-btn" type="button" aria-label="Open Ask WEG assistant" ' +
+            'style="display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:9999px;border:none;background:#00008b;color:#fff;font-weight:800;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.22);cursor:pointer;">' +
+            '&#128172; Ask WEG</button>' +
+            '<div id="ask-weg-static-panel" style="display:none;width:min(360px,calc(100vw - 32px));max-height:70vh;background:#fff;border:1px solid #cbd5e1;border-radius:16px;box-shadow:0 18px 40px rgba(15,23,42,0.28);overflow:hidden;flex-direction:column;margin-top:8px;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#041e30;color:#fff;">' +
+            '<strong style="font-size:14px;">Ask WEG</strong>' +
+            '<button id="ask-weg-static-close" type="button" aria-label="Close Ask WEG" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer;line-height:1;">&times;</button>' +
+            '</div>' +
+            '<div id="ask-weg-static-msgs" style="padding:12px;overflow-y:auto;flex:1;max-height:320px;font-size:13px;line-height:1.45;color:#1e293b;background:#f8fafc;">' +
+            '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">Hi! Ask me about upcoming East Gwillimbury events, dining, deals, businesses, or the Welcome Hamper.</div>' +
+            '</div>' +
+            '<form id="ask-weg-static-form" style="display:flex;gap:6px;padding:10px;border-top:1px solid #e2e8f0;background:#fff;">' +
+            '<input id="ask-weg-static-input" type="text" placeholder="Ask about EG events, dining, deals..." style="flex:1;min-width:0;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;" />' +
+            '<button type="submit" style="padding:8px 12px;border:none;border-radius:8px;background:#00008b;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Send</button>' +
+            '</form></div>';
+        document.body.appendChild(root);
+
+        var btn = document.getElementById("ask-weg-static-btn");
+        var panel = document.getElementById("ask-weg-static-panel");
+        var closeBtn = document.getElementById("ask-weg-static-close");
+        var form = document.getElementById("ask-weg-static-form");
+        var input = document.getElementById("ask-weg-static-input");
+        var msgs = document.getElementById("ask-weg-static-msgs");
+        var history = [];
+
+        function renderSafeFormatted(container, rawText) {
+            container.textContent = "";
+            var lines = String(rawText || "").split(/\r?\n/);
+            var tokenRe = /(\[[^\]]+\]\((?:\/[^)\s]+|https?:\/\/[^)\s]+)\)|\*\*[^*]+\*\*)/g;
+            lines.forEach(function (line, li) {
+                if (li > 0) container.appendChild(document.createElement("br"));
+                var last = 0;
+                var m;
+                tokenRe.lastIndex = 0;
+                while ((m = tokenRe.exec(line)) !== null) {
+                    if (m.index > last) container.appendChild(document.createTextNode(line.slice(last, m.index)));
+                    var tok = m[0];
+                    if (tok.indexOf("**") === 0 && tok.slice(-2) === "**") {
+                        var st = document.createElement("strong");
+                        st.textContent = tok.slice(2, -2);
+                        container.appendChild(st);
+                    } else {
+                        var lm = tok.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+                        if (lm) {
+                            var href = lm[2].trim().replace(/^https?:\/\/(?:www\.)?welcomeeg\.ca(?=\/|$)/i, "") || "/";
+                            var a = document.createElement("a");
+                            a.textContent = lm[1];
+                            a.style.cssText = "color:#00008b;font-weight:700;text-decoration:underline;";
+                            if (/^\//.test(href) || /^https?:\/\//i.test(href)) {
+                                a.href = href;
+                                if (/^https?:\/\//i.test(href)) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+                                container.appendChild(a);
+                            } else {
+                                container.appendChild(document.createTextNode(lm[1]));
+                            }
+                        }
+                    }
+                    last = m.index + tok.length;
+                }
+                if (last < line.length) container.appendChild(document.createTextNode(line.slice(last)));
+            });
+        }
+
+        function appendMsg(text, isUser) {
+            var d = document.createElement("div");
+            d.style.cssText = isUser
+                ? "margin-top:8px;margin-left:24px;background:#00008b;color:#fff;border-radius:10px;padding:8px 10px;"
+                : "margin-top:8px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;";
+            if (isUser) d.textContent = text;
+            else renderSafeFormatted(d, text);
+            msgs.appendChild(d);
+            msgs.scrollTop = msgs.scrollHeight;
+            return d;
+        }
+
+        btn.addEventListener("click", function () {
+            btn.style.display = "none";
+            panel.style.display = "flex";
+            input.focus();
+        });
+        closeBtn.addEventListener("click", function () {
+            panel.style.display = "none";
+            btn.style.display = "inline-flex";
+        });
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            var q = (input.value || "").trim();
+            if (q.length < 2) return;
+            input.value = "";
+            appendMsg(q, true);
+            var waitEl = appendMsg("Searching East Gwillimbury...", false);
+            try {
+                var store = window.GeorginaStore;
+                var url = (store && store.SUPABASE_URL ? store.SUPABASE_URL : "https://cyxomkhydsmttefanalx.supabase.co").replace(/\/$/, "") + "/functions/v1/discovery-chat";
+                var key = store && store.SUPABASE_ANON_KEY ? store.SUPABASE_ANON_KEY : "";
+                var resp = await fetch(url, {
+                    method: "POST",
+                    headers: Object.assign({ "Content-Type": "application/json" }, key ? { apikey: key, Authorization: "Bearer " + key } : {}),
+                    body: JSON.stringify({ message: q, history: history.slice(-6), context: { page_url: window.location.pathname } })
+                });
+                var data = await resp.json().catch(function () { return {}; });
+                if (!resp.ok || !data.answer) throw new Error(data.error || "Unavailable");
+                renderSafeFormatted(waitEl, data.answer);
+                history.push({ role: "user", content: q }, { role: "assistant", content: data.answer });
+            } catch (_) {
+                waitEl.textContent = "Ask WEG is temporarily unavailable. Browse /events, /dining, /sales, or /directory.";
+            }
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initAskWegStatic);
+    } else {
+        initAskWegStatic();
+    }
+})();

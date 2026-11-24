@@ -236,6 +236,12 @@ export default function AskWgWidget() {
   const sessionKeyRef = useRef(makeSessionKey());
 
   useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener('wg-open-ask-weg', onOpen);
+    return () => window.removeEventListener('wg-open-ask-weg', onOpen);
+  }, []);
+
+  useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 40);
     }

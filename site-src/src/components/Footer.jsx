@@ -6,6 +6,7 @@ import {
   Star,
   Newspaper,
   Mail,
+  MessageSquare,
   Archive,
   Sun,
   Store,
@@ -140,6 +141,14 @@ export default function Footer() {
               <Sun className="w-4 h-4 text-sun-300" aria-hidden="true" />
               East Gwillimbury 7-Day Weather
             </Link>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('wg-open-ask-weg'))}
+              className="inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4 text-sun-300" aria-hidden="true" />
+              Ask WEG
+            </button>
           </div>
         </div>
 
