@@ -224,11 +224,12 @@ def get_municipal_announcements(limit: int = 8) -> List[Dict[str, str]]:
     return items
 
 
-def _fetch_eg_calendar_detail(detail_url: str) -> Dict[str, str]:
+def _fetch_eg_calendar_detail(detail_url: str, session: Optional[requests.Session] = None) -> Dict[str, str]:
     """Fetches an eSolutions /default/Detail/ page to extract location name/room, street address, and summary."""
     out: Dict[str, str] = {"location": "", "summary": ""}
     try:
-        resp = requests.get(detail_url, headers=DEFAULT_HEADERS, timeout=10)
+        getter = session if session is not None else requests
+        resp = getter.get(detail_url, headers=DEFAULT_HEADERS, timeout=10)
         if resp.status_code != 200 or not resp.text:
             return out
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -319,13 +320,14 @@ def _fetch_eg_calendar_detail(detail_url: str) -> Dict[str, str]:
     return out
 
 
-def get_east_gwillimbury_events(limit: int = 24) -> List[Dict[str, str]]:
+def get_east_gwillimbury_events(limit: int = 200) -> List[Dict[str, str]]:
     """Scrapes upcoming community & library events from calendar.eastgwillimbury.ca."""
     items: List[Dict[str, str]] = []
     seen = set()
     today_iso = datetime.now().strftime("%Y-%m-%d")
     try:
-        resp = requests.get(BASE_EG_CALENDAR_URL + "/", headers=DEFAULT_HEADERS, timeout=15)
+        sess = requests.Session()
+        resp = sess.get(BASE_EG_CALENDAR_URL + "/default/Index", headers=DEFAULT_HEADERS, timeout=15)
         if resp.status_code != 200:
             return items
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -352,7 +354,7 @@ def get_east_gwillimbury_events(limit: int = 24) -> List[Dict[str, str]]:
             except Exception:
                 date_label = ev_date
 
-            detail = _fetch_eg_calendar_detail(full_url)
+            detail = _fetch_eg_calendar_detail(full_url, session=sess)
             resolved_loc = detail["location"] or _detect_eg_community(title_clean)
             resolved_summary = detail["summary"] or _truncate(f"{title_clean} in East Gwillimbury.")
             is_library = "library" in title_clean.lower() or "storytime" in title_clean.lower() or "egpl" in title_clean.lower()
