@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta, timezone
 
 from src.facebook_poster import (
+    _recent_post_exists,
     resolve_slot,
     select_afternoon_candidate,
     select_event_candidate,
@@ -139,7 +140,19 @@ def test_afternoon_press_and_site_env_override(monkeypatch):
 
 def test_resolve_slot_and_utm():
     assert resolve_slot("auto", datetime(2026, 11, 23, 8, 30)) == "morning"
-    assert resolve_slot("auto", datetime(2026, 11, 23, 12, 30)) == "midday"
-    assert resolve_slot("auto", datetime(2026, 11, 23, 16, 30)) == "afternoon"
+    assert resolve_slot("auto", datetime(2026, 11, 23, 11, 0)) == "midday"
+    assert resolve_slot("auto", datetime(2026, 11, 23, 13, 30)) == "morning"
+    assert resolve_slot("auto", datetime(2026, 11, 23, 16, 0)) == "afternoon"
+    assert resolve_slot("auto", datetime(2026, 11, 23, 18, 30)) == "midday"
+    assert resolve_slot("auto", datetime(2026, 11, 23, 21, 0)) == "afternoon"
     url = with_utm("https://welcomeeg.ca/offers", "midday")
     assert url == "https://welcomeeg.ca/offers?utm_source=facebook&utm_medium=social&utm_campaign=auto_midday"
+
+
+def test_recent_post_exists_60m_guard():
+    now_utc = datetime(2026, 11, 24, 16, 0, tzinfo=timezone.utc)
+    recent_logs = [{"posted_at": (now_utc - timedelta(minutes=30)).isoformat()}]
+    older_logs = [{"posted_at": (now_utc - timedelta(minutes=61)).isoformat()}]
+    assert _recent_post_exists(recent_logs, now_utc, minutes=60) is True
+    assert _recent_post_exists(older_logs, now_utc, minutes=60) is False
+    assert _recent_post_exists([], now_utc, minutes=60) is False

@@ -232,7 +232,7 @@ export default function DiningDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-[1440px] mx-auto">
+      <div className="w-full max-w-[1440px] min-w-0 mx-auto">
         
         {/* Navigation Breadcrumb & Back Button */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -244,12 +244,12 @@ export default function DiningDetails() {
             <span>Back to Dining Guide</span>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-500">
-            <Link to="/" className="hover:text-blue-900">Home</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <Link to="/dining" className="hover:text-blue-900">Dining</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-800 font-bold truncate max-w-[200px]">{restaurant.business_name}</span>
+          <nav className="hidden sm:flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-500 min-w-0 max-w-full">
+            <Link to="/" className="hover:text-blue-900 shrink-0">Home</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <Link to="/dining" className="hover:text-blue-900 shrink-0">Dining</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span className="text-slate-800 font-bold min-w-0 max-w-full break-words">{restaurant.business_name}</span>
           </nav>
         </div>
 
@@ -307,7 +307,7 @@ export default function DiningDetails() {
             <div className="text-xs uppercase tracking-wider font-extrabold text-blue-900 mb-1">
               Restaurant / Establishment
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-950 tracking-tight leading-tight break-words">
               {restaurant.business_name}
             </h1>
             <p className="text-lg sm:text-2xl font-bold text-amber-900 mt-1.5">
@@ -361,12 +361,12 @@ export default function DiningDetails() {
           <div className="lg:grid lg:grid-cols-12">
             <aside className={`lg:col-span-5 lg:order-2 p-5 sm:p-8 lg:pl-0 border-b lg:border-b-0 border-slate-100 ${restaurant.image_url ? '' : 'hidden lg:block'}`}>
               <img
-                src={restaurant.image_url || '/placeholder-500x500.jpg'}
+                src={restaurant.image_url || '/placeholder-eg-500x500.png'}
                 alt={restaurant.image_url ? `${restaurant.business_name} - ${cleanOfferTitle}` : `${restaurant.business_name} (no photo provided)`}
                 className={`block w-full max-w-[500px] mx-auto rounded-2xl border border-slate-200 shadow-sm bg-slate-100 ${restaurant.image_url ? 'max-h-[260px] sm:max-h-[360px] lg:max-h-none object-cover lg:object-contain h-auto' : 'h-auto'}`}
                 loading="lazy"
                 onError={(e) => {
-                  if (!e.currentTarget.src.endsWith('/placeholder-500x500.jpg')) e.currentTarget.src = '/placeholder-500x500.jpg';
+                  if (!e.currentTarget.src.endsWith('/placeholder-eg-500x500.png')) e.currentTarget.src = '/placeholder-eg-500x500.png';
                 }}
               />
             </aside>

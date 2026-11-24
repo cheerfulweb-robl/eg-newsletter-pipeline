@@ -89,10 +89,10 @@ export default function BusinessPanel({ event, listing: listingProp = null, page
       <div className="flex items-start gap-3 sm:gap-4">
         {listing ? (
           <img
-            src={listing.image_url || '/placeholder-500x500.jpg'}
+            src={listing.image_url || '/placeholder-eg-500x500.png'}
             alt={listing.name || businessName}
             onError={(e) => {
-              if (!e.currentTarget.src.endsWith('/placeholder-500x500.jpg')) e.currentTarget.src = '/placeholder-500x500.jpg';
+              if (!e.currentTarget.src.endsWith('/placeholder-eg-500x500.png')) e.currentTarget.src = '/placeholder-eg-500x500.png';
             }}
             className="w-14 h-14 sm:w-20 sm:h-20 aspect-square object-cover rounded-xl border border-gray-200 bg-gray-50 shrink-0"
           />

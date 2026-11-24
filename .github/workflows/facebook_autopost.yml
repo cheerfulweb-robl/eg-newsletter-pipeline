@@ -1,4 +1,4 @@
-name: Facebook Page Autoposter (3x Daily)
+name: Facebook Page Autoposter (6x Daily)
 
 permissions:
   contents: read
@@ -22,12 +22,13 @@ on:
         default: true
         type: boolean
   schedule:
-    # ~8:30 AM EST / 9:30 AM EDT
+    # 6x daily in Toronto time (~8:30 AM, 11:00 AM, 1:30 PM, 4:00 PM, 6:30 PM, 9:00 PM EST)
     - cron: '30 13 * * *'
-    # ~12:30 PM EST / 1:30 PM EDT
-    - cron: '30 17 * * *'
-    # ~4:30 PM EST / 5:30 PM EDT
-    - cron: '30 21 * * *'
+    - cron: '0 16 * * *'
+    - cron: '30 18 * * *'
+    - cron: '0 21 * * *'
+    - cron: '30 23 * * *'
+    - cron: '0 2 * * *'
 
 concurrency:
   group: facebook-autopost
@@ -53,7 +54,7 @@ jobs:
         env:
           FB_POST_SLOT: ${{ inputs.slot || 'auto' }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
-          SITE_NAME: ${{ vars.SITE_NAME || 'Welcome East Gwillimbury' }}
+          SITE_NAME: ${{ vars.SITE_NAME || 'Welcome EG' }}
           SITE_DOMAIN: ${{ vars.SITE_DOMAIN || 'https://welcomeeg.ca' }}
           FB_NOTIFY_EMAIL: ${{ vars.FB_NOTIFY_EMAIL || 'contact@welcomeeg.ca' }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}

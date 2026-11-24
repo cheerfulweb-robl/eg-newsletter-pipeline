@@ -180,19 +180,19 @@ export default function PressArticle() {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto w-full px-4 md:px-6 py-10 flex flex-col gap-8">
+    <div className="max-w-[1440px] min-w-0 mx-auto w-full px-4 md:px-6 py-10 flex flex-col gap-8">
       {/* Schema.org Script Tag */}
       <script type="application/ld+json">
         {JSON.stringify(jsonLd).replace(/</g, '\\u003c')}
       </script>
 
       {/* Breadcrumbs */}
-      <nav className="text-xs font-bold text-gray-500 flex items-center gap-2">
-        <Link to="/" className="hover:text-blue-700">Home</Link>
-        <span>/</span>
-        <Link to="/press" className="hover:text-blue-700">Pressroom</Link>
-        <span>/</span>
-        <span className="text-gray-900 truncate max-w-xs">{article.business_name}</span>
+      <nav className="text-xs font-bold text-gray-500 flex flex-wrap items-center gap-2 min-w-0 max-w-full">
+        <Link to="/" className="hover:text-blue-700 shrink-0">Home</Link>
+        <span className="shrink-0">/</span>
+        <Link to="/press" className="hover:text-blue-700 shrink-0">Pressroom</Link>
+        <span className="shrink-0">/</span>
+        <span className="text-gray-900 min-w-0 max-w-full break-words">{article.business_name}</span>
       </nav>
 
       {/* Main Release Header */}
@@ -209,7 +209,7 @@ export default function PressArticle() {
           </span>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+        <h1 className="text-2xl sm:text-4xl font-black text-gray-900 leading-tight break-words">
           {article.title}
         </h1>
 

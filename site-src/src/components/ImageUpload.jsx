@@ -173,7 +173,7 @@ export default function ImageUpload({ value, onChange, label = "Listing Image (O
         >
           <div className="relative shrink-0">
             <img
-              src="/placeholder-500x500.jpg"
+              src="/placeholder-eg-500x500.png"
               alt="Default listing preview"
               className="w-20 h-20 sm:w-24 sm:h-24 aspect-square object-cover rounded-xl border border-gray-200 shadow-sm"
             />

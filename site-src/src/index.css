@@ -289,7 +289,7 @@ html, body, #root {
   }
 }
 /* Use overflow-wrap (not word-break: break-word) so short words & badges like DINING never split mid-word */
-p, li, td, a, span, h1, h2, h3, h4 {
+p, li, td, a, span, h1, h2, h3, h4, strong, button, label {
   overflow-wrap: break-word;
 }
 
@@ -380,7 +380,9 @@ main textarea {
 /* Keep badges/pills legible and wrapping cleanly across mobile, tablet, and desktop cards */
 main .badge-pill,
 main span[class*="rounded-full"][class*="px-"],
-main span[class*="rounded-md"][class*="px-"] {
+main span[class*="rounded-md"][class*="px-"],
+main span[class*="rounded-xl"][class*="px-"],
+main span[class*="rounded-lg"][class*="px-"] {
   font-size: 0.8125rem;
   line-height: 1.3;
   white-space: normal;
@@ -389,11 +391,18 @@ main span[class*="rounded-md"][class*="px-"] {
   max-width: 100%;
 }
 /* Prevent CSS Grid and Flex items inside main from expanding past mobile viewport width */
-main .grid {
+main,
+main > *,
+main .grid,
+main .grid > *,
+main .flex > * {
   min-width: 0;
 }
-main .grid > * {
-  min-width: 0;
+main .grid > *,
+main .flex > *,
+main img,
+main svg,
+main table {
   max-width: 100%;
 }
 @media (max-width: 639px) {

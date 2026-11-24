@@ -903,7 +903,7 @@ export default function EventDetails() {
 
 
 
-    <div className="max-w-[1440px] mx-auto px-4 md:px-6 py-8">
+    <div className="w-full max-w-[1440px] min-w-0 mx-auto px-4 md:px-6 py-8">
 
 
 
@@ -943,27 +943,27 @@ export default function EventDetails() {
 
 
 
-      <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-6">
+      <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500 mb-6 min-w-0 max-w-full">
 
 
 
-        <Link to="/" className="hover:text-[#00008b]">Home</Link>
+        <Link to="/" className="hover:text-[#00008b] shrink-0">Home</Link>
 
 
 
-        <span>/</span>
+        <span className="shrink-0">/</span>
 
 
 
-        <Link to="/events" className="hover:text-[#00008b]">Events</Link>
+        <Link to="/events" className="hover:text-[#00008b] shrink-0">Events</Link>
 
 
 
-        <span>/</span>
+        <span className="shrink-0">/</span>
 
 
 
-        <span className="text-gray-900 font-bold truncate">{event.title}</span>
+        <span className="text-gray-900 font-bold min-w-0 max-w-full break-words">{event.title}</span>
 
 
 
@@ -1188,7 +1188,7 @@ export default function EventDetails() {
 
 
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 leading-tight break-words">
 
 
 
@@ -1204,15 +1204,15 @@ export default function EventDetails() {
 
 
 
-          <div className="flex items-center gap-2 mt-3 text-sm font-semibold text-gray-600">
+          <div className="flex items-start sm:items-center gap-2 mt-3 text-sm font-semibold text-gray-600 min-w-0">
 
 
 
-            <Building2 className="w-4 h-4 text-blue-700" />
+            <Building2 className="w-4 h-4 text-blue-700 shrink-0 mt-0.5 sm:mt-0" />
 
 
 
-            <span>
+            <span className="min-w-0 break-words">
               Presented by:{' '}
               {businessSlug ? (
                 <Link to={`/businesses/${businessSlug}`} className="font-bold text-[#00008b] hover:underline">
@@ -1246,14 +1246,14 @@ export default function EventDetails() {
             return (
               <aside className={`lg:col-span-5 lg:order-2 lg:pt-8 mb-6 lg:mb-0 ${realImage ? '' : 'hidden lg:block'}`}>
                 <img
-                  src={realImage || '/placeholder-500x500.jpg'}
+                  src={realImage || '/placeholder-eg-500x500.png'}
                   alt={realImage ? (event.title || 'Listing image') : `${event.title || 'Listing'} (no photo provided)`}
                   onClick={realImage ? () => window.open(realImage, '_blank', 'noopener,noreferrer') : undefined}
                   title={realImage ? 'Click to view the image full screen in a new window' : undefined}
                   loading="lazy"
                   className={`block w-full max-w-[500px] mx-auto rounded-2xl border border-gray-200 shadow-sm bg-gray-100 ${realImage ? 'max-h-[260px] sm:max-h-[360px] lg:max-h-none object-cover lg:object-contain h-auto cursor-pointer hover:opacity-95' : 'h-auto'}`}
                   onError={(e) => {
-                    if (!e.currentTarget.src.endsWith('/placeholder-500x500.jpg')) e.currentTarget.src = '/placeholder-500x500.jpg';
+                    if (!e.currentTarget.src.endsWith('/placeholder-eg-500x500.png')) e.currentTarget.src = '/placeholder-eg-500x500.png';
                   }}
                 />
               </aside>

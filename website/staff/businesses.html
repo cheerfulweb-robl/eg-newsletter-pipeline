@@ -234,7 +234,7 @@
                         <span id="edit-biz-image-badge" style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;background:#f1f5f9;color:#475569;">Default Photo</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-                        <img id="edit-biz-image-preview" src="/placeholder-500x500.jpg" alt="Business Photo" style="width:76px;height:76px;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;" onclick="if(this.src) window.open(this.src,'_blank','noopener')" title="Click to view full photo">
+                        <img id="edit-biz-image-preview" src="/placeholder-eg-500x500.png" alt="Business Photo" style="width:76px;height:76px;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;" onclick="if(this.src) window.open(this.src,'_blank','noopener')" title="Click to view full photo">
                         <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:8px;">
                             <div style="display:flex;gap:8px;flex-wrap:wrap;">
                                 <input type="file" id="edit-biz-image-file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleBizPhotoUpload(event)">
@@ -750,7 +750,7 @@
                 badge.style.background = "#ecfdf5";
                 badge.style.color = "#047857";
             } else {
-                img.src = "/placeholder-500x500.jpg";
+                img.src = "/placeholder-eg-500x500.png";
                 badge.textContent = "Default Photo";
                 badge.style.background = "#f1f5f9";
                 badge.style.color = "#475569";

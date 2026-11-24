@@ -73,4 +73,4 @@ When cloning the Community Package for a new municipality, update these four arr
    - Click **Approve** to publish it to the live directory, or
    - Click **Edit** to add/clean its description, website, or upload a cleared photo, or
    - Leave it in **Pending** for follow-up later.
-3. **Copyright Rule:** Lead Hunter never imports Google Places photos. New listings use `/placeholder-500x500.jpg` until you or the business owner uploads an authorized photo.
+3. **Copyright Rule:** Lead Hunter never imports Google Places photos. New listings use `/placeholder-eg-500x500.png` until you or the business owner uploads an authorized photo.

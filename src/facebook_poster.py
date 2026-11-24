@@ -1,5 +1,5 @@
 """
-Automated 3x/day Facebook Page poster for Welcome East Gwillimbury (and clones like Welcome EG).
+Automated 6x/day Facebook Page poster for Welcome EG (and clones like Welcome Georgina).
 
 Rules:
 - Events posted in the morning slot must occur at the earliest TOMORROW (America/Toronto).
@@ -32,7 +32,7 @@ from src.sender import send_single_email
 from src.supabase_client import _get_supabase_config
 
 TORONTO_TZ = ZoneInfo("America/Toronto")
-DEFAULT_SITE_NAME = "Welcome East Gwillimbury"
+DEFAULT_SITE_NAME = "Welcome EG"
 DEFAULT_SITE_DOMAIN = "https://welcomeeg.ca"
 DEFAULT_GRAPH_VERSION = "v22.0"
 DEFAULT_EVENT_LOOKAHEAD_DAYS = 14
@@ -71,9 +71,15 @@ def resolve_slot(requested: str = "auto", now: Optional[datetime] = None) -> str
     if slot in ("morning", "midday", "afternoon"):
         return slot
     hour = _toronto_now(now).hour
-    if hour < 11:
+    if hour < 10:
         return "morning"
+    if hour < 13:
+        return "midday"
     if hour < 15:
+        return "morning"
+    if hour < 18:
+        return "afternoon"
+    if hour < 20:
         return "midday"
     return "afternoon"
 
@@ -449,13 +455,32 @@ def select_afternoon_candidate(
 
 # --------------------------------------------------------------------------- orchestration & Graph API
 
-def pick_candidate(slot: str = "auto", now: Optional[datetime] = None) -> Optional[PostCandidate]:
+def _recent_post_exists(logs: List[Dict[str, Any]], now_utc: datetime, minutes: int = 60) -> bool:
+    """Prevent back-to-back duplicate posts/emails if a cron and manual run overlap."""
+    cutoff = now_utc - timedelta(minutes=minutes)
+    for row in logs:
+        raw_ts = str(row.get("posted_at") or "").replace("Z", "+00:00")
+        try:
+            ts = datetime.fromisoformat(raw_ts)
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        if ts >= cutoff:
+            return True
+    return False
+
+
+def pick_candidate(slot: str = "auto", now: Optional[datetime] = None, skip_recent_guard: bool = False) -> Optional[PostCandidate]:
     now_tor = _toronto_now(now)
     today = now_tor.date()
     now_utc = now_tor.astimezone(timezone.utc)
     resolved_slot = resolve_slot(slot, now_tor)
 
     logs = fetch_recent_post_log(days=60)
+    if not skip_recent_guard and _recent_post_exists(logs, now_utc, minutes=60):
+        print("A Facebook post was already published within the last 60 minutes; skipping to avoid duplicate posts/emails.")
+        return None
     last_map = _last_posted_map(logs)
 
     tomorrow_iso = (today + timedelta(days=1)).isoformat()

@@ -1,4 +1,4 @@
-"""CLI entrypoint for automated 3x/day Facebook Page posting."""
+"""CLI entrypoint for automated 6x/day Facebook Page posting."""
 import argparse
 import os
 import sys
@@ -25,7 +25,7 @@ def main() -> int:
     args = parser.parse_args()
 
     dry_run = args.dry_run or os.environ.get("DRY_RUN", "").strip().lower() in ("1", "true", "yes")
-    candidate = pick_candidate(slot=args.slot)
+    candidate = pick_candidate(slot=args.slot, skip_recent_guard=dry_run)
     if candidate is None:
         print("No eligible non-expired candidate found for this slot.")
         return 0
