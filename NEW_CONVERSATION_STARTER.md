@@ -1,23 +1,19 @@
-# Welcome Georgina & Welcome EG — Session Restart Prompt (2026-11-21)
+# Welcome Georgina & Welcome EG — Session Restart Prompt (2026-11-24)
 
-Use this prompt to start your next AI chat session.
+Use this prompt to start your next AI chat session on **welcomegeorgina.ca** (`C:\Users\robel\WebProjects\welcomegeorgina-redesign`).
 
 ---
 
-### Copy & Paste Prompt for Your Next Session:
+### Copy & Paste Prompt for Your Next `welcomegeorgina.ca` Session:
 
 ```text
-Please read HANDOVER_2026-11-21.md in C:\Users\robel\WebProjects\welcomegeorgina-redesign. v72.19 is built and deployed on welcomegeorgina.ca (main at 8813092). Recent additions include: Lead Hunter (/staff/lead-hunter.html + api/lead_hunter.php with Google Places API New), CSV bulk business import + Beginners Guide + Missing Description filter/badge on /staff/businesses.html, the Claim This Business modal on /directory and /businesses/<slug> with email verification and the admin Business Claims queue (20270101_business_claims.sql deployed), and the nested-aggregate fix for wg_my_business_report (/business/index.html).
-
-For welcomeeg.ca (DNS & SSL ready on public_html/eg/), all EG-specific docs/config/deploys are in C:\Users\robel\WebProjects\welcome-eg (pre-build checklist in docs\welcomeeg_prebuild_checklist.docx, clone guide in docs\WELCOME_EG_CLONE_INSTRUCTIONS.md, shared files in shared\SHARED_FILES_MANIFEST.md). Do not make unrequested cosmetic or code changes. Confirm you have read it and await my instructions.
+Please read HANDOVER_2026-11-24.md in C:\Users\robel\WebProjects\welcomegeorgina-redesign and Section 3 (Queued Fixes for welcomegeorgina.ca) of C:\Users\robel\WebProjects\welcome-eg\HANDOVER_2026-11-24.md. v72.40 is built at _work/wg_production_deploy_2026-11-24_v72.40.zip (main at e6eb761 + handover). Please apply the queued fixes from welcome-eg Section 3 (recurring event expires_after display, tablet Clear buttons in admin-approvals.html, Business Category <select> dropdown + bulk checkboxes/Approve/Reject/Delete in businesses.html, and 14-day view badge wrapping + sibling detail mobile locks in EventsCalendar.jsx, index.css, DiningDetails.jsx, PressArticle.jsx) to welcomegeorgina-redesign, verify tests/build, and package v72.41. Do not make unrequested cosmetic or code changes. Confirm you have read both and await my instructions.
 ```
 
 ---
 
 ### Key Reference Links
-* **Canonical Handover Document:** `C:\Users\robel\WebProjects\welcomegeorgina-redesign\HANDOVER_2026-11-21.md`
-* **Welcome EG Pre-Build Checklist (Word Doc):** `C:\Users\robel\WebProjects\welcome-eg\docs\welcomeeg_prebuild_checklist.docx`
+* **Welcome Georgina Handover:** `C:\Users\robel\WebProjects\welcomegeorgina-redesign\HANDOVER_2026-11-24.md`
+* **Welcome EG Handover (with Queued Fixes in Section 3):** `C:\Users\robel\WebProjects\welcome-eg\HANDOVER_2026-11-24.md`
 * **Welcome EG Clone Instructions:** `C:\Users\robel\WebProjects\welcome-eg\docs\WELCOME_EG_CLONE_INSTRUCTIONS.md`
 * **Shared Files Manifest:** `C:\Users\robel\WebProjects\welcome-eg\shared\SHARED_FILES_MANIFEST.md`
-* **Shared Codebase Repo:** `C:\Users\robel\WebProjects\welcomegeorgina-redesign` (`main` at `8813092`)
-* **Welcome EG Dedicated Folder:** `C:\Users\robel\WebProjects\welcome-eg` (`docs/`, `config/`, `shared/`, `deploys/`)

@@ -20,13 +20,13 @@
         <div class="site-header-inner">
             <div class="site-header-brand">
                 <a href="/">
-                    <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                    <img src="/welcome-eg-logo.svg" alt="Welcome East Gwillimbury" class="site-header-logo" onerror="this.onerror=null; this.src='welcome-eg-logo.svg';">
                 </a>
             </div>
             <nav class="site-header-nav" id="unverified-nav-links">
                 <div class="drawer-header-mobile">
                     <a href="/">
-                        <img src="/welcome-eg-logo.png" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.png';">
+                        <img src="/welcome-eg-logo.svg" alt="Welcome East Gwillimbury" style="height: 32px; width: auto;" onerror="this.onerror=null; this.src='welcome-eg-logo.svg';">
                     </a>
                     <button type="button" class="drawer-close-btn" onclick="toggleNavDrawer(false)" aria-label="Close menu">&times;</button>
                 </div>
@@ -326,18 +326,20 @@
         let nextPageToken = "";
 
         const COMMUNITIES = [
-            "All East Gwillimbury", "Baldwin", "Franklin", "Brown Hill", "Egypt", "Brown Hill",
-            "Sharon", "Holland Landing", "Queensville", "Ravenshoe",
-            "Holt", "Mount Albert", "Brown Hill", "Virginia", "River Drive Park"
+            "All East Gwillimbury", "Holland Landing", "Mount Albert", "Queensville",
+            "Sharon", "River Drive Park", "Holt", "Franklin", "Brown Hill", "Ravenshoe"
         ];
         const DEFAULT_SWEEP_PLAZAS = [
-            "213 The Queensway S, Holland Landing",
-            "24018 Woodbine Ave, Holland Landing",
-            "443 The Queensway S, Holland Landing",
-            "High St & Dalton Rd, Mount Albert",
-            "15235 Hwy 48, Mount Albert",
-            "759 Queensville Rd, Queensville",
-            "Sharon Harbour, East Gwillimbury"
+            "Yonge St & Green Lane, East Gwillimbury",
+            "19450 Yonge St, Holland Landing",
+            "19685 Yonge St, Holland Landing",
+            "Yonge St & Mount Albert Rd, Holland Landing",
+            "Leslie St & Green Lane E, Sharon",
+            "19040 Leslie St, Sharon",
+            "Leslie St & Queensville Sideroad, Queensville",
+            "Centre St & Main St, Mount Albert",
+            "19263 Hwy 48, Mount Albert",
+            "Woodbine Ave & Ravenshoe Rd, East Gwillimbury"
         ];
         const DEFAULT_SWEEP_SUBCATS = [
             "bakery", "coffee shop", "restaurant", "florist", "gift shop",
@@ -345,7 +347,7 @@
         ];
         let duplicateRows = [];
         let sweepAbortFlag = false;
-        const OUT_OF_AREA_TOWNS = ["newmarket", "east gwillimbury", "bradford", "beaverton", "uxbridge", "aurora", "mount albert", "holland landing", "queensville", "sharon"];
+        const OUT_OF_AREA_TOWNS = ["newmarket", "aurora", "bradford", "georgina", "keswick", "sutton", "beaverton", "uxbridge", "stouffville", "markham", "richmond hill", "barrie"];
         const KNOWN_CHAINS = ["walmart", "mcdonald", "tim hortons", "shoppers drug mart", "staples", "zehrs", "freshco", "boston pizza", "dollarama", "canadian tire", "sobeys", "no frills", "subway", "starbucks", "pizza pizza", "domino", "popeyes", "harvey", "wendy", "burger king", "a&w", "kfc", "dairy queen", "lcbo", "the beer store", "rexall", "pet valu", "esso", "shell", "petro-canada", "ultramar", "circle k", "rbc", "td canada", "bmo", "scotiabank", "cibc"];
 
         function escapeHtml(s) {

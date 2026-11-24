@@ -62,7 +62,7 @@ describe('Production Component Render Verification', () => {
 
     expect(html).toBeDefined();
 
-    expect(html).toContain('welcome-eg-logo.png');
+    expect(html).toContain('welcome-eg-logo.svg');
 
     expect(html).toContain('News');
 

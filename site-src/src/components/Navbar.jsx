@@ -300,7 +300,7 @@ export default function Navbar() {
             className="flex items-center shrink-0"
           >
             <img
-              src="/welcome-eg-logo.png"
+              src="/welcome-eg-logo.svg"
               alt="Welcome East Gwillimbury"
               className="h-8 sm:h-9 md:h-10 lg:h-11 w-auto"
               onError={(e) => {
@@ -758,7 +758,7 @@ export default function Navbar() {
               <div className="p-4 border-b-4 border-coral-500 flex items-center justify-between bg-lake-50">
                 <Link to="/" onClick={() => setMobileMenuOpen(false)} className="inline-block hover:opacity-90 transition-opacity">
                   <img
-                    src="/welcome-eg-logo.png"
+                    src="/welcome-eg-logo.svg"
                     alt="Welcome East Gwillimbury"
                     className="h-8 w-auto"
                   />

@@ -112,12 +112,12 @@ export default function Footer() {
           <div className="space-y-3 max-w-md">
             <Link to="/" className="inline-block">
               <img
-                src="/welcome-eg-logo.png"
+                src="/welcome-eg-logo.svg"
                 alt="Welcome East Gwillimbury"
                 className="h-9 w-auto brightness-0 invert"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = 'welcome-eg-logo.png';
+                  e.target.src = 'welcome-eg-logo.svg';
                 }}
               />
             </Link>
