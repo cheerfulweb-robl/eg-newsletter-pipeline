@@ -321,56 +321,79 @@ def _fetch_eg_calendar_detail(detail_url: str, session: Optional[requests.Sessio
 
 
 def get_east_gwillimbury_events(limit: int = 200) -> List[Dict[str, str]]:
-    """Scrapes upcoming community & library events from calendar.eastgwillimbury.ca."""
+    """Scrapes upcoming community & library events from calendar.eastgwillimbury.ca (current + next month)."""
     items: List[Dict[str, str]] = []
     seen = set()
-    today_iso = datetime.now().strftime("%Y-%m-%d")
+    now_dt = datetime.now()
+    today_iso = now_dt.strftime("%Y-%m-%d")
     try:
         sess = requests.Session()
-        resp = sess.get(BASE_EG_CALENDAR_URL + "/default/Index", headers=DEFAULT_HEADERS, timeout=15)
+        index_url = BASE_EG_CALENDAR_URL + "/default/Index"
+        resp = sess.get(index_url, headers=DEFAULT_HEADERS, timeout=15)
         if resp.status_code != 200:
             return items
-        soup = BeautifulSoup(resp.text, "html.parser")
-        for a in soup.select("a[href*='/default/Detail/']"):
-            href = (a.get("href") or "").strip()
-            title = " ".join(a.get_text(" ", strip=True).split())
-            if not href or not title or len(title) < 4:
-                continue
-            # Strip trailing time like " 1:00 pm" if duplicated
-            title_clean = re.sub(r"\s+\d{1,2}:\d{2}\s*(?:am|pm)$", "", title, flags=re.I).strip()
-            full_url = urljoin(BASE_EG_CALENDAR_URL, href)
-            if full_url in seen or _is_blocked(full_url, source_url=BASE_EG_CALENDAR_URL, title=title_clean):
-                continue
-            m = re.search(r"/Detail/(\d{4}-\d{2}-\d{2})(?:-(\d{4}))?-", href)
-            if not m:
-                continue
-            ev_date = m.group(1)
-            if ev_date < today_iso:
-                continue
-            seen.add(full_url)
-            try:
-                dt_obj = datetime.strptime(ev_date, "%Y-%m-%d")
-                date_label = dt_obj.strftime("%b %d, %Y")
-            except Exception:
-                date_label = ev_date
+        soups = [BeautifulSoup(resp.text, "html.parser")]
 
-            detail = _fetch_eg_calendar_detail(full_url, session=sess)
-            resolved_loc = detail["location"] or _detect_eg_community(title_clean)
-            resolved_summary = detail["summary"] or _truncate(f"{title_clean} in East Gwillimbury.")
-            is_library = "library" in title_clean.lower() or "storytime" in title_clean.lower() or "egpl" in title_clean.lower()
-            items.append({
-                "title": title_clean,
-                "summary": resolved_summary,
-                "date": date_label,
-                "event_start_date": ev_date,
-                "location": resolved_loc,
-                "link": full_url,
-                "source": "East Gwillimbury Public Library" if is_library else "Town of East Gwillimbury Calendar",
-                "source_url": BASE_EG_CALENDAR_URL + "/",
-                "category": "library_events" if is_library else "upcoming_events",
-            })
-            if len(items) >= limit:
+        # Also fetch next month via the calendar's Next link (or StartDate/EndDate query fallback)
+        next_url = ""
+        for a in soups[0].select("a[href]"):
+            lbl = " ".join(filter(None, [a.get("title"), a.get("aria-label"), a.get_text(" ", strip=True)])).lower()
+            href = (a.get("href") or "").strip()
+            if href and ("next month" in lbl or ("next" in lbl and ("/default/index" in href.lower() or "date=" in href.lower()))):
+                next_url = urljoin(BASE_EG_CALENDAR_URL, href)
                 break
+        if not next_url:
+            next_m = 1 if now_dt.month == 12 else now_dt.month + 1
+            next_y = now_dt.year + 1 if now_dt.month == 12 else now_dt.year
+            next_url = f"{BASE_EG_CALENDAR_URL}/default/Month?StartDate={next_m:02d}/01/{next_y}"
+        try:
+            r2 = sess.get(next_url, headers=DEFAULT_HEADERS, timeout=15)
+            if r2.status_code == 200 and r2.text:
+                soups.append(BeautifulSoup(r2.text, "html.parser"))
+        except Exception:
+            pass
+
+        for soup in soups:
+            for a in soup.select("a[href*='/default/Detail/']"):
+                href = (a.get("href") or "").strip()
+                title = " ".join(a.get_text(" ", strip=True).split())
+                if not href or not title or len(title) < 4:
+                    continue
+                # Strip trailing time like " 1:00 pm" if duplicated
+                title_clean = re.sub(r"\s+\d{1,2}:\d{2}\s*(?:am|pm)$", "", title, flags=re.I).strip()
+                full_url = urljoin(BASE_EG_CALENDAR_URL, href)
+                if full_url in seen or _is_blocked(full_url, source_url=BASE_EG_CALENDAR_URL, title=title_clean):
+                    continue
+                m = re.search(r"/Detail/(\d{4}-\d{2}-\d{2})(?:-(\d{4}))?-", href)
+                if not m:
+                    continue
+                ev_date = m.group(1)
+                if ev_date < today_iso:
+                    continue
+                seen.add(full_url)
+                try:
+                    dt_obj = datetime.strptime(ev_date, "%Y-%m-%d")
+                    date_label = dt_obj.strftime("%b %d, %Y")
+                except Exception:
+                    date_label = ev_date
+
+                detail = _fetch_eg_calendar_detail(full_url, session=sess)
+                resolved_loc = detail["location"] or _detect_eg_community(title_clean)
+                resolved_summary = detail["summary"] or _truncate(f"{title_clean} in East Gwillimbury.")
+                is_library = "library" in title_clean.lower() or "storytime" in title_clean.lower() or "egpl" in title_clean.lower()
+                items.append({
+                    "title": title_clean,
+                    "summary": resolved_summary,
+                    "date": date_label,
+                    "event_start_date": ev_date,
+                    "location": resolved_loc,
+                    "link": full_url,
+                    "source": "East Gwillimbury Public Library" if is_library else "Town of East Gwillimbury Calendar",
+                    "source_url": BASE_EG_CALENDAR_URL + "/",
+                    "category": "library_events" if is_library else "upcoming_events",
+                })
+                if len(items) >= limit:
+                    return items
     except Exception as exc:
         print(f"Warning: EG calendar fetch failed: {exc}")
     return items
