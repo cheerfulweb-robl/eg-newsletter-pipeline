@@ -187,7 +187,7 @@ def sync_scraped_items_to_vendor_events(items: List[Dict[str, Any]]) -> int:
     since = (date.today() - timedelta(days=60)).isoformat()
     try:
         rows = _get_all_rows(cfg, "vendor_events", {
-            "select": "id,title,business_name,event_date_label,event_start_date,expires_after,status",
+            "select": "id,title,business_name,event_date_label,event_start_date,expires_after,location,status",
             "or": f"(event_start_date.is.null,event_start_date.gte.{since})",
             "order": "id.asc",
         })
@@ -202,6 +202,7 @@ def sync_scraped_items_to_vendor_events(items: List[Dict[str, Any]]) -> int:
             "event_date_label": (r.get("event_date_label") or "").strip(),
             "event_start_date": (r.get("event_start_date") or "").strip(),
             "expires_after": (r.get("expires_after") or "").strip(),
+            "location": (r.get("location") or "").strip(),
             "status": (r.get("status") or "").strip(),
         }
         for r in rows if r.get("title")
@@ -282,24 +283,34 @@ def sync_scraped_items_to_vendor_events(items: List[Dict[str, Any]]) -> int:
                 or existing_match.get("expires_after") != (rec.get("expires_after") or "")
                 or existing_match.get("event_date_label") != (rec.get("event_date_label") or "")
             )
-            if dates_changed and conf >= LOW_CONFIDENCE_THRESHOLD:
+            generic_locs = ("", "east gwillimbury", "east gwillimbury, on")
+            existing_loc_low = (existing_match.get("location") or "").strip().lower()
+            new_loc = (rec.get("location") or "").strip()
+            loc_upgraded = existing_loc_low in generic_locs and new_loc.lower() not in generic_locs
+            if (dates_changed and conf >= LOW_CONFIDENCE_THRESHOLD) or loc_upgraded:
+                patch_body: Dict[str, Any] = {
+                    "summary": rec["summary"],
+                    "data_confidence": conf,
+                    "confidence_notes": rec["confidence_notes"],
+                }
+                if dates_changed and conf >= LOW_CONFIDENCE_THRESHOLD:
+                    patch_body.update({
+                        "event_date_label": rec["event_date_label"],
+                        "event_start_date": rec["event_start_date"],
+                        "expires_after": rec["expires_after"],
+                    })
+                if loc_upgraded:
+                    patch_body["location"] = new_loc
                 try:
                     requests.patch(
                         f"{endpoint}?id=eq.{existing_match['id']}",
                         headers=dict(cfg["headers"], **{"Prefer": "return=minimal"}),
-                        json={
-                            "event_date_label": rec["event_date_label"],
-                            "event_start_date": rec["event_start_date"],
-                            "expires_after": rec["expires_after"],
-                            "summary": rec["summary"],
-                            "data_confidence": conf,
-                            "confidence_notes": rec["confidence_notes"],
-                        },
+                        json=patch_body,
                         timeout=10,
                     )
                     synced_count += 1
                 except Exception as exc:
-                    print(f"Warning: Failed to update dates for {rec['title']}: {exc}")
+                    print(f"Warning: Failed to update {rec['title']}: {exc}")
             continue
         if conf < LOW_CONFIDENCE_THRESHOLD:
             rec["status"] = "pending"
