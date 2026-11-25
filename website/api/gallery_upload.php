@@ -8,7 +8,7 @@
 //
 // The caller must send its Supabase sign-in token (Authorization: Bearer ...); the token is checked
 // with the database's is_admin(). Full-size images: 1600px long side, JPEG quality 72 (medium),
-// wg-watermark.png from the site root in the bottom-right corner. Thumbnails: 96x120 portrait crop.
+// watermark-500x500.png from the site root in the bottom-right corner. Thumbnails: 96x120 portrait crop.
 // Re-encoding drops all camera data (EXIF, including GPS location).
 
 header('Content-Type: application/json; charset=utf-8');
@@ -170,10 +170,10 @@ $fh = max(1, (int) round($sh * $scale));
 $full = wg_canvas($fw, $fh);
 imagecopyresampled($full, $src, 0, 0, 0, 0, $fw, $fh, $sw, $sh);
 
-$wm_path = $site_root . '/wg-watermark.png';
+$wm_path = $site_root . '/watermark-500x500.png';
 $wm = is_file($wm_path) ? @imagecreatefrompng($wm_path) : false;
 if (!$wm) {
-    wg_respond(500, ['success' => false, 'error' => 'wg-watermark.png is missing from the site root. Upload it, then try again.']);
+    wg_respond(500, ['success' => false, 'error' => 'watermark-500x500.png is missing from the site root. Upload it, then try again.']);
 }
 $ww = imagesx($wm);
 $wh = imagesy($wm);
